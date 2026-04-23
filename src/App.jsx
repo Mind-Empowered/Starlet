@@ -60,6 +60,8 @@ function App() {
   const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
   const [user, setUser] = useState({ 
     name: 'Star Hacker', 
     email: 'hacker@starlet.com', 
@@ -108,7 +110,16 @@ function App() {
       setShowScrollTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Splash Screen Timer
+    const fadeTimer = setTimeout(() => setFadeOut(true), 3000);
+    const removeTimer = setTimeout(() => setShowSplash(false), 3800);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
   }, []);
 
   const scrollToTop = () => {
@@ -121,6 +132,27 @@ function App() {
 
   return (
     <div className="App">
+      {showSplash && (
+        <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
+          <div className="splash-content">
+            <div className="splash-logo-container">
+              <img src="/brand/Logo.png" alt="Starlet Logo" className="splash-logo" />
+              <div className="splash-stars">
+                <span className="splash-star s1">✦</span>
+                <span className="splash-star s2">✧</span>
+                <span className="splash-star s3">✦</span>
+              </div>
+            </div>
+            <h1 className="text-3d splash-title">STARLET 5.0</h1>
+            <div className="splash-loading-container">
+              <div className="splash-loading-bar"></div>
+            </div>
+            <p className="handwritten splash-text">Igniting your creativity... ✨</p>
+          </div>
+          <div className="splash-footer handwritten">Mind Empowered Initiative</div>
+        </div>
+      )}
+
       {/* Floating Sparkles */}
       <div className="sparkle" style={{ top: `${sparkleTop}%`, left: `${sparkleLeft}%` }}>✦</div>
       <div className="sparkle" style={{ top: `${sparkleTop - 10}%`, left: `${sparkleLeft + 20}%`, animationDelay: '0.5s' }}>✧</div>
