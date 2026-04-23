@@ -6,52 +6,52 @@ const sectionsData = [
     id: 1, 
     type: 'about',
     title: 'About Mind Empowered',
-    content: 'Mind Empowered is a global movement dedicated to closing the gender gap in technology by providing safe spaces for girls to create and innovate.',
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     image: '/brand/Logo.png'
   },
   { 
     id: 2, 
     type: 'mission',
     title: "Our Mission", 
-    content: "Our mission is to empower 1 million girls by 2030 through hackathons, mentorship, and tech-education.",
+    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     image: "/brand/Logo.png"
   },
   { 
     id: 3, 
     type: 'tracks',
     title: "Pick Your Track", 
-    content: "Choose your mission: Creative Art, AI Bots, Tech for Good, or Future of Learning.",
+    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     image: "/brand/Logo.png"
   },
   { 
     id: 4, 
     type: 'timeline',
     title: "The Roadmap", 
-    content: "Follow the whiteboard to see our journey from registration to the grand finale!",
+    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     image: "/brand/Logo.png"
   },
   { 
     id: 5, 
     type: 'hall-of-fame',
     title: "The Hall of Fame", 
-    content: "Meet the legends! Check out the top-winning projects from previous Starlet editions.",
+    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     image: "/prizes.png"
   },
   { 
     id: 6, 
     type: 'prizes',
     title: "Epic Prizes", 
-    content: "Win $10,000+ in prizes, tech swag, and exclusive mentorship sessions.",
+    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
     image: "/prizes.png"
   },
-  { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Keep it fair, keep it fun, and keep it safe for everyone.", image: "/rules.png" },
-  { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Get guided by professionals from Google, Meta, and Microsoft.", image: "/mentors.png" },
-  { id: 9, type: 'community', title: "Make New Friends", content: "Join 500+ girls worldwide and build your dream team.", image: "/community.png" },
-  { id: 10, type: 'sponsors', title: "Our Supporters", content: "The amazing companies making Starlet 5.0 possible.", image: "/sponsors.png" },
-  { id: 11, type: 'gallery', title: "The Gallery", content: "Memories from our previous editions.", image: "/gallery.png" },
-  { id: 12, type: 'faq', title: "Common Doubts", content: "Everything you need to know about Starlet 5.0.", image: "/faq.png" },
-  { id: 13, type: 'newsletter', title: "Stay Updated", content: "Join our newsletter to never miss an update!", image: "/newsletter.png" },
-  { id: 14, type: 'contact', title: "Get in Touch", content: "Have a specific question? We are here to help.", image: "/contact.png" }
+  { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/rules.png" },
+  { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/mentors.png" },
+  { id: 9, type: 'community', title: "Make New Friends", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/community.png" },
+  { id: 10, type: 'sponsors', title: "Our Supporters", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/sponsors.png" },
+  { id: 11, type: 'gallery', title: "The Gallery", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/gallery.png" },
+  { id: 12, type: 'faq', title: "Common Doubts", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/faq.png" },
+  { id: 13, type: 'newsletter', title: "Stay Updated", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/newsletter.png" },
+  { id: 14, type: 'contact', title: "Get in Touch", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/contact.png" }
 ];
 
 function App() {
@@ -65,7 +65,7 @@ function App() {
     email: 'hacker@starlet.com', 
     team: 'Nebula Squad',
     venue: 'San Francisco, CA (Main Hub)',
-    bio: 'I love building things that sparkle and solve problems! ✨',
+    bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ✨',
     stack: ['React', 'CSS', 'Figma']
   });
   
@@ -184,7 +184,7 @@ function App() {
           <div className="badge-main">MIND EMPOWERED PRESENTS</div>
           <h1 className="text-3d">STARLET 5.0</h1>
           <div className="subtitle-large">
-            A HACKATHON FOR GIRLS AND OTHER GENDER MINORITIES
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </div>
           
           <div className="hero-ctas">
@@ -228,23 +228,23 @@ function App() {
                   <div className="handwritten">
                     <div className="timeline-event">
                       <span className="timeline-date">May 15th</span>
-                      <span className="timeline-desc">Registration Opens! <img src="/icons/rocket.svg" className="inline-icon" alt="rocket" /></span>
+                      <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. <img src="/icons/rocket.svg" className="inline-icon" alt="rocket" /></span>
                     </div>
                     <div className="timeline-event">
                       <span className="timeline-date">June 1st</span>
-                      <span className="timeline-desc">Team Formation Mixer <img src="/icons/users.svg" className="inline-icon" alt="users" /></span>
+                      <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. <img src="/icons/users.svg" className="inline-icon" alt="users" /></span>
                     </div>
                     <div className="timeline-event">
                       <span className="timeline-date">June 10th</span>
-                      <span className="timeline-desc">Workshops & Training <img src="/icons/calendar.svg" className="inline-icon" alt="calendar" /></span>
+                      <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. <img src="/icons/calendar.svg" className="inline-icon" alt="calendar" /></span>
                     </div>
                     <div className="timeline-event">
                       <span className="timeline-date">June 15th</span>
-                      <span className="timeline-desc">Hacking Begins! 🔥</span>
+                      <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. 🔥</span>
                     </div>
                     <div className="timeline-event">
                       <span className="timeline-date">June 20th</span>
-                      <span className="timeline-desc">Grand Finale & Demo <img src="/icons/trophy.svg" className="inline-icon" alt="trophy" /></span>
+                      <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. <img src="/icons/trophy.svg" className="inline-icon" alt="trophy" /></span>
                     </div>
                   </div>
                 </div>
@@ -257,19 +257,19 @@ function App() {
                   <div className="rules-grid">
                     <div className="warning-item" style={{"--r": -1}}>
                       <div className="warning-icon"><img src="/icons/warning.svg" className="card-icon" alt="warning" /></div>
-                      <p><strong>NO PLAGIARISM:</strong> Code must be built during the hackathon.</p>
+                      <p><strong>LOREM IPSUM:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
                     <div className="warning-item" style={{"--r": 1.5}}>
                       <div className="warning-icon"><img src="/icons/users.svg" className="card-icon" alt="users" /></div>
-                      <p><strong>RESPECT ALL:</strong> Be kind to mentors and teammates.</p>
+                      <p><strong>LOREM IPSUM:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
                     <div className="warning-item" style={{"--r": -0.8}}>
                       <div className="warning-icon"><img src="/icons/calendar.svg" className="card-icon" alt="calendar" /></div>
-                      <p><strong>BE ON TIME:</strong> Submissions after the deadline won't be accepted.</p>
+                      <p><strong>LOREM IPSUM:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
                     <div className="warning-item" style={{"--r": 1.2}}>
                       <div className="warning-icon"><img src="/icons/warning.svg" className="card-icon" alt="warning" /></div>
-                      <p><strong>STAY SAFE:</strong> Follow our online safety guidelines.</p>
+                      <p><strong>LOREM IPSUM:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </div>
                   </div>
                 </div>
@@ -289,11 +289,11 @@ function App() {
                   <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                   <div className="gallery-grid">
                     {[
-                      "Opening Ceremony", "Team Building", "Workshop Hour", "Late Night Hacking",
-                      "Mentor Session", "Coffee Break", "UI Design Fun", "Bot Building",
-                      "Impact Project", "Pitch Practice", "Global Connection", "Future Leaders",
-                      "Code Debugging", "Creative Spark", "Presentation Day", "Winner Reveal",
-                      "Celebration", "Tech Swag", "New Friendships", "The Journey"
+                      "Lorem Ipsum 1", "Lorem Ipsum 2", "Lorem Ipsum 3", "Lorem Ipsum 4",
+                      "Lorem Ipsum 5", "Lorem Ipsum 6", "Lorem Ipsum 7", "Lorem Ipsum 8",
+                      "Lorem Ipsum 9", "Lorem Ipsum 10", "Lorem Ipsum 11", "Lorem Ipsum 12",
+                      "Lorem Ipsum 13", "Lorem Ipsum 14", "Lorem Ipsum 15", "Lorem Ipsum 16",
+                      "Lorem Ipsum 17", "Lorem Ipsum 18", "Lorem Ipsum 19", "Lorem Ipsum 20"
                     ].map((caption, i) => (
                       <div key={i} className="polaroid" style={{"--r": `${(Math.sin(i) * 5).toFixed(1)}deg`}}>
                         <div className="polaroid-img">📸<span>Coming Soon</span></div>
@@ -310,24 +310,24 @@ function App() {
                       <div className="winner-badge">GOLD WINNER</div>
                       <div className="winner-project-img">✨<span>Project Preview</span></div>
                       <span className="winner-year">STARLET 4.0</span>
-                      <h3>Eco-Sticker Bot</h3>
-                      <p>An AI that identifies recyclable materials through doodles.</p>
+                      <h3>Lorem Ipsum Project</h3>
+                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                       <div className="view-project-btn">VIEW CASE STUDY →</div>
                     </div>
                     <div className="winner-card">
-                      <div className="winner-badge">BEST UI/UX</div>
+                      <div className="winner-badge">LOREM IPSUM</div>
                       <div className="winner-project-img">🎨<span>Project Preview</span></div>
                       <span className="winner-year">STARLET 3.0</span>
-                      <h3>Dream Journal</h3>
-                      <p>A hand-drawn interactive journal for global student collaboration.</p>
+                      <h3>Lorem Ipsum Project</h3>
+                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                       <div className="view-project-btn">VIEW CASE STUDY →</div>
                     </div>
                     <div className="winner-card">
-                      <div className="winner-badge">TECH FOR GOOD</div>
+                      <div className="winner-badge">LOREM IPSUM</div>
                       <div className="winner-project-img">🌍<span>Project Preview</span></div>
                       <span className="winner-year">STARLET 2.0</span>
-                      <h3>Safety Net</h3>
-                      <p>A community-driven safety map for solo women travelers.</p>
+                      <h3>Lorem Ipsum Project</h3>
+                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                       <div className="view-project-btn">VIEW CASE STUDY →</div>
                     </div>
                   </div>
@@ -339,17 +339,17 @@ function App() {
                     <div className="prize-card">
                       <div className="prize-icon"><img src="/icons/trophy.svg" style={{width: '80px'}} alt="trophy" /></div>
                       <h3 className="text-3d" style={{fontSize: '1.5rem'}}>1st Place</h3>
-                      <p>$5,000 + Tech Swag</p>
+                      <p>Lorem ipsum dolor sit amet</p>
                     </div>
                     <div className="prize-card">
                       <div className="prize-icon"><img src="/icons/trophy.svg" style={{width: '70px', opacity: 0.7}} alt="trophy" /></div>
                       <h3 className="text-3d" style={{fontSize: '1.5rem'}}>2nd Place</h3>
-                      <p>$3,000 + Swag</p>
+                      <p>Lorem ipsum dolor sit amet</p>
                     </div>
                     <div className="prize-card">
                       <div className="prize-icon"><img src="/icons/trophy.svg" style={{width: '60px', opacity: 0.5}} alt="trophy" /></div>
                       <h3 className="text-3d" style={{fontSize: '1.5rem'}}>3rd Place</h3>
-                      <p>$2,000 + Swag</p>
+                      <p>Lorem ipsum dolor sit amet</p>
                     </div>
                   </div>
                 </div>
@@ -358,16 +358,16 @@ function App() {
                   <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                   <div className="faq-grid">
                     <div className="faq-item">
-                      <div className="faq-question">I'm a beginner, can I join?</div>
-                      <div className="faq-answer">YES! Starlet is for everyone. We have mentors to help you from step one.</div>
+                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
+                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
                     </div>
                     <div className="faq-item">
-                      <div className="faq-question">Is there a registration fee?</div>
-                      <div className="faq-answer">Nope! Starlet 5.0 is completely FREE for everyone.</div>
+                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
+                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
                     </div>
                     <div className="faq-item">
-                      <div className="faq-question">How many people in a team?</div>
-                      <div className="faq-answer">Teams can be between 2 to 4 girls.</div>
+                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
+                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
                     </div>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ function App() {
                   <img src="/public/brand/Logo.png" alt="Starlet Logo" onError={(e) => {e.target.src='/brand/Logo.png'}} />
                 </div>
                 <h3>STARLET 5.0</h3>
-                <p>Empowering the next generation of women in technology through community, creativity, and code.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
               </div>
 
               <div className="footer-col">
@@ -496,7 +496,7 @@ function App() {
               <label>Hacking Venue</label>
               <div>{user.venue}</div>
               <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem'}}>
-                📍 Your assigned physical location for the event.
+                📍 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               </p>
             </div>
             <div className="profile-field">
@@ -513,7 +513,7 @@ function App() {
             <div className="profile-field">
               <label>Hackathon Points</label>
               <div style={{fontSize: '2rem'}}>1,250 🌟</div>
-              <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Complete workshops to earn more!</p>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Lorem ipsum dolor sit amet!</p>
             </div>
           </div>
         </div>

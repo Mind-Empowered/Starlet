@@ -276,6 +276,10 @@ header {
     flex-shrink: 0;
 }
 
+.mobile-auth-wrapper {
+    display: none;
+}
+
 .join-btn {
     background: var(--pink-primary);
     color: #fff;
