@@ -54,6 +54,27 @@ const sectionsData = [
   { id: 14, type: 'contact', title: "Get in Touch", content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: "/contact.png" }
 ];
 
+const faqsData = [
+  { id: 1, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
+  { id: 2, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 3, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 4, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 5, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 6, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 7, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 8, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  { id: 9, q: "Lorem ipsum dolor sit amet?", a: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }
+];
+
+const mentorsData = Array.from({ length: 12 }, (_, i) => ({
+  id: i + 1,
+  name: `Mentor Lorem Ipsum ${i + 1}`,
+  role: "Lead Lorem Expert",
+  company: "Ipsum Global",
+  bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+  image: "/icons/user-profile.svg"
+}));
+
 function App() {
   const [smoothProgress, setSmoothProgress] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -62,6 +83,8 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [faqLimit, setFaqLimit] = useState(3);
   const [user, setUser] = useState({ 
     name: 'Star Hacker', 
     email: 'hacker@starlet.com', 
@@ -132,6 +155,30 @@ function App() {
 
   return (
     <div className="App">
+      {/* Mentor Detail Modal */}
+      {selectedMentor && (
+        <div className="modal-overlay" onClick={() => setSelectedMentor(null)}>
+          <div className="mentor-modal" onClick={e => e.stopPropagation()}>
+            <div className="close-modal" onClick={() => setSelectedMentor(null)}>
+              <img src="/icons/close.svg" alt="close" />
+            </div>
+            <div className="mentor-modal-content">
+              <div className="mentor-modal-photo">
+                <img src={selectedMentor.image} alt="mentor" />
+              </div>
+              <div className="mentor-modal-info">
+                <h2 className="text-3d">{selectedMentor.name}</h2>
+                <div className="mentor-modal-tag">{selectedMentor.role} @ {selectedMentor.company}</div>
+                <p>{selectedMentor.bio}</p>
+                <div className="mentor-modal-footer">
+                  <div className="join-btn" onClick={() => setSelectedMentor(null)}>GET IN TOUCH</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showSplash && (
         <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
           <div className="splash-content">
@@ -328,7 +375,7 @@ function App() {
                       "Lorem Ipsum 17", "Lorem Ipsum 18", "Lorem Ipsum 19", "Lorem Ipsum 20"
                     ].map((caption, i) => (
                       <div key={i} className="polaroid" style={{"--r": `${(Math.sin(i) * 5).toFixed(1)}deg`}}>
-                        <div className="polaroid-img">📸<span>Coming Soon</span></div>
+                        <div className="polaroid-img">Coming Soon</div>
                         <div className="polaroid-caption">{caption}</div>
                       </div>
                     ))}
@@ -389,28 +436,54 @@ function App() {
                 <div className="section-content">
                   <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                   <div className="faq-grid">
-                    <div className="faq-item">
-                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
-                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-                    </div>
-                    <div className="faq-item">
-                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
-                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-                    </div>
-                    <div className="faq-item">
-                      <div className="faq-question">Lorem ipsum dolor sit amet?</div>
-                      <div className="faq-answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-                    </div>
+                    {faqsData.slice(0, faqLimit).map(faq => (
+                      <div key={faq.id} className="faq-item">
+                        <div className="faq-question">{faq.q}</div>
+                        <div className="faq-answer">{faq.a}</div>
+                      </div>
+                    ))}
                   </div>
+                  {faqLimit < faqsData.length && (
+                    <div style={{textAlign: 'center', marginTop: '3rem'}}>
+                      <button className="join-btn" onClick={() => setFaqLimit(prev => prev + 3)}>
+                        SHOW MORE DOUBTS
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : section.type === 'contact' ? (
                 <div className="section-content">
                   <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
-                  <div className="contact-form">
-                    <input type="text" placeholder="Your Name" />
-                    <input type="email" placeholder="Your Email" />
-                    <textarea placeholder="How can we help?"></textarea>
-                    <button className="join-btn" style={{width: 'fit-content'}}>SEND MESSAGE</button>
+                  <div className="contact-container">
+                    <div className="contact-form">
+                      <input type="text" placeholder="Your Name" />
+                      <input type="email" placeholder="Your Email" />
+                      <textarea placeholder="How can we help?"></textarea>
+                      <button className="join-btn" style={{width: 'fit-content'}}>SEND MESSAGE</button>
+                    </div>
+                    
+                    <div className="contact-socials">
+                      <h3 className="handwritten social-title">Follow our journey! ✨</h3>
+                      <p>Join our community of 5,000+ creators on social media.</p>
+                      <div className="social-grid">
+                        <a href="#" className="social-item instagram">
+                          <img src="/icons/instagram.svg" alt="Instagram" />
+                          <span>Instagram</span>
+                        </a>
+                        <a href="#" className="social-item discord">
+                          <img src="/icons/discord.svg" alt="Discord" />
+                          <span>Discord</span>
+                        </a>
+                        <a href="#" className="social-item linkedin">
+                          <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                          <span>LinkedIn</span>
+                        </a>
+                        <a href="#" className="social-item twitter">
+                          <img src="/icons/twitter.svg" alt="Twitter" />
+                          <span>Twitter / X</span>
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : section.type === 'newsletter' ? (
@@ -420,6 +493,23 @@ function App() {
                   <div className="newsletter-input-group">
                     <input type="email" placeholder="Enter your email" />
                     <button className="btn">SUBSCRIBE</button>
+                  </div>
+                </div>
+              ) : section.type === 'mentors' ? (
+                <div className="section-content">
+                  <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
+                  <div className="mentor-grid">
+                    {mentorsData.map(mentor => (
+                      <div key={mentor.id} className="mentor-card" onClick={() => setSelectedMentor(mentor)}>
+                        <div className="mentor-photo-wrapper">
+                          <img src={mentor.image} alt="mentor" />
+                          <div className="mentor-hover-hint">VIEW PROFILE →</div>
+                        </div>
+                        <h3>{mentor.name}</h3>
+                        <p className="mentor-role">{mentor.role}</p>
+                        <p className="mentor-company">{mentor.company}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : (
@@ -439,46 +529,23 @@ function App() {
       </main>
 
           <footer>
-            <div className="footer-grid">
-              <div className="footer-brand">
-                <div className="logo-circle">
-                  <img src="/public/brand/Logo.png" alt="Starlet Logo" onError={(e) => {e.target.src='/brand/Logo.png'}} />
-                </div>
-                <h3>STARLET 5.0</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <div className="footer-minimal">
+              <div className="footer-brand-mini">
+                <img src="/brand/Logo.png" alt="Starlet" />
+                <span className="text-3d">STARLET 5.0</span>
+              </div>
+              
+              <div className="footer-links-mini">
+                <a href="#mission">Mission</a>
+                <a href="#tracks">Tracks</a>
+                <a href="#timeline">Timeline</a>
+                <a href="#faq">FAQ</a>
+                <a href="#">Privacy Policy</a>
               </div>
 
-              <div className="footer-col">
-                <h4>Quick Links</h4>
-                <ul>
-                  <li><div onClick={() => setActiveView('landing')} style={{cursor: 'pointer'}}>Home</div></li>
-                  <li><a href="#mission">Our Mission</a></li>
-                  <li><a href="#tracks">Tracks</a></li>
-                  <li><a href="#timeline">Timeline</a></li>
-                </ul>
+              <div className="footer-copy-mini">
+                &copy; 2026 Starlet 5.0 | A Mind Empowered Initiative
               </div>
-
-              <div className="footer-col">
-                <h4>Community</h4>
-                <ul>
-                  <li><a href="#">Discord Server</a></li>
-                  <li><a href="#">Code of Conduct</a></li>
-                  <li><a href="#">Mentorship</a></li>
-                </ul>
-              </div>
-
-              <div className="footer-col">
-                <h4>Contact</h4>
-                <ul>
-                  <li><a href="mailto:hello@mind-empowered.org">hello@mind-empowered.org</a></li>
-                  <li><a href="https://mind-empowered.org">Website</a></li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="footer-bottom">
-              <p>&copy; 2026 Starlet 5.0 | Mind Empowered Initiative</p>
-              <p>Made with ❤️ for Every Woman</p>
             </div>
           </footer>
         </>
