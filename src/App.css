@@ -19,6 +19,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-y: scroll; /* Fix for scrollbar appearing/disappearing shift */
 }
 
 body {
@@ -109,23 +110,36 @@ header {
     font-size: 1rem;
     padding: 0.5rem 1rem;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .login-btn:hover {
     color: var(--blue-shadow);
 }
 
+.nav-profile-btn {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.nav-profile-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
 .logo-circle {
-    width: 85px; /* Bigger Logo */
-    height: 85px;
+    width: 65px; /* Smaller Circle */
+    height: 65px;
     border: 3px solid var(--text-navy);
     border-radius: 50%;
-    overflow: hidden;
+    overflow: hidden; /* Keep logo inside */
     background: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .logo-circle:hover {
@@ -170,8 +184,10 @@ header {
 }
 
 .logo-circle img {
-    width: 80%;
+    width: 85%; /* Scaled to fit comfortably inside */
     height: auto;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .join-btn {
@@ -638,24 +654,45 @@ footer {
 /* Polaroid Gallery */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 3rem;
-    margin-top: 3rem;
+    padding: 2rem;
 }
 
 .polaroid {
     background: #fff;
-    padding: 1rem 1rem 3rem 1rem;
-    border: 2px solid #ddd;
-    box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
-    transform: rotate(calc(var(--r, 0) * 1deg));
-    transition: all 0.3s ease;
+    padding: 0.8rem 0.8rem 2.5rem 0.8rem;
+    border: 3px solid var(--text-navy);
+    box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
+    transform: rotate(var(--r, 0deg));
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    cursor: zoom-in;
+}
+
+/* Washi Tape Effect */
+.polaroid::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 60px;
+    height: 25px;
+    background: rgba(255, 20, 147, 0.3); /* Pink tape */
+    border: 1px solid rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.polaroid:nth-child(even)::before {
+    background: rgba(255, 215, 0, 0.3); /* Yellow tape */
+    transform: translateX(-50%) rotate(3deg);
 }
 
 .polaroid:hover {
     transform: rotate(0deg) scale(1.1);
     z-index: 10;
-    box-shadow: 20px 20px 40px rgba(0,0,0,0.2);
+    box-shadow: 15px 15px 0px var(--text-navy);
 }
 
 .polaroid-img {
@@ -867,4 +904,167 @@ footer {
         gap: 1rem;
         text-align: center;
     }
+}
+
+/* Auth & Profile Screens */
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 5%;
+    background: var(--bg-cream);
+}
+
+.auth-card {
+    background: #fff;
+    border: 5px solid var(--text-navy);
+    border-radius: 40px;
+    padding: 4rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 20px 20px 0px var(--yellow-star);
+    text-align: center;
+}
+
+.auth-card h2 {
+    margin-bottom: 2rem;
+    font-size: 3rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auth-card p {
+    margin-top: 2rem;
+    color: var(--text-muted);
+}
+
+.auth-card span {
+    color: var(--pink-primary);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 100px 5%;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+}
+
+.profile-sidebar {
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 200px;
+    height: 200px;
+    border: 5px solid var(--text-navy);
+    border-radius: 30px;
+    margin: 0 auto 2rem;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 10px 10px 0px var(--blue-shadow);
+}
+
+.profile-avatar img {
+    width: 120px;
+    height: 120px;
+}
+
+.profile-info {
+    background: #fff;
+    border: 4px solid var(--text-navy);
+    border-radius: 30px;
+    padding: 3rem;
+    box-shadow: 15px 15px 0px var(--pink-primary);
+}
+
+.profile-field {
+    margin-bottom: 2rem;
+    border-bottom: 2px dashed #eee;
+    padding-bottom: 1rem;
+    text-align: left;
+}
+
+.profile-field label {
+    display: block;
+    font-family: 'Fredoka One', cursive;
+    color: var(--blue-shadow);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.profile-field div {
+    font-size: 1.5rem;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-navy);
+}
+
+.profile-field textarea {
+    width: 100%;
+    border: 2px dashed var(--text-navy);
+    padding: 1rem;
+    border-radius: 15px;
+    font-family: 'Outfit', sans-serif;
+    margin-top: 0.5rem;
+}
+
+.tech-tag-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.tech-tag {
+    background: var(--yellow-star);
+    border: 2px solid var(--text-navy);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: var(--pink-primary);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid var(--text-navy);
+    box-shadow: 3px 3px 0px var(--text-navy);
+}
+
+.logout-btn {
+    background: #fff;
+    color: #cc0000;
+    border: 3px solid #cc0000;
+    padding: 0.5rem 1.5rem;
+    border-radius: 15px;
+    font-family: 'Fredoka One', cursive;
+    margin-top: 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: #cc0000;
+    color: #fff;
 }

@@ -10,93 +10,111 @@ const sectionsData = [
     image: "https://img.freepik.com/free-vector/hand-drawn-coding-concept-illustration_23-2148810394.jpg?t=st=1713876000~exp=1713879600~hmac=7a5"
   },
   { 
+    id: 1, 
+    type: 'about',
+    title: 'About Mind Empowered',
+    content: 'Mind Empowered is a global movement dedicated to closing the gender gap in technology by providing safe spaces for girls to create and innovate.',
+    image: '/brand/Logo.png'
+  },
+  { 
     id: 2, 
-    type: 'tracks',
-    title: "Pick Your Track", 
-    content: "Doodle with Code, Build a Bot, or Save the Planet. Whatever you care about, there's a place for you to build it here.",
-    image: "https://img.freepik.com/free-vector/programmers-concept-with-flat-design_23-2147854911.jpg"
+    type: 'mission',
+    title: "Our Mission", 
+    content: "Our mission is to empower 1 million girls by 2030 through hackathons, mentorship, and tech-education.",
+    image: "/brand/Logo.png"
   },
   { 
     id: 3, 
-    type: 'timeline',
-    title: "The Roadmap", 
-    content: "Registration Starts: May 15th | Hacking Begins: June 15th | Final Demo Day: June 20th.",
-    image: "https://img.freepik.com/free-vector/modern-business-timeline-concept_23-2147926129.jpg"
+    type: 'tracks',
+    title: "Pick Your Track", 
+    content: "Choose your mission: Creative Art, AI Bots, Tech for Good, or Future of Learning.",
+    image: "/brand/Logo.png"
   },
   { 
     id: 4, 
-    type: 'mentors',
-    title: "Cool Mentors", 
-    content: "Meet real-life tech stars who will help you every step of the way. No question is too silly!",
-    image: "https://img.freepik.com/free-vector/flat-design-character-design-programmers_23-2147854910.jpg"
+    type: 'timeline',
+    title: "The Roadmap", 
+    content: "Follow the whiteboard to see our journey from registration to the grand finale!",
+    image: "/brand/Logo.png"
   },
   { 
     id: 5, 
-    type: 'community',
-    title: "Make New Friends", 
-    content: "Join girls from all over the world. Learn together, laugh together, and build something together.",
-    image: "https://img.freepik.com/free-vector/teamwork-concept-illustration_114360-1014.jpg"
-  },
-  {
-    id: 6,
-    type: 'rules',
-    title: "The Danger Zone: Rules",
-    content: "Read carefully! These rules keep our hackathon fair and fun for everyone.",
-    image: "/rules.png"
-  },
-  {
-    id: 7,
-    type: 'sponsors',
-    title: "Our Awesome Sponsors",
-    content: "These amazing organizations help us make Starlet 5.0 a reality!",
-    image: "/sponsors.png"
-  },
-  {
-    id: 8,
-    type: 'gallery',
-    title: "The Impact Gallery",
-    content: "A look back at the amazing projects and memories from our community.",
-    image: "/gallery.png"
-  },
-  {
-    id: 9,
     type: 'prizes',
-    title: "Rewards & Prizes",
-    content: "We celebrate every effort! Here are the rewards for our top performers.",
+    title: "Epic Prizes", 
+    content: "Win $10,000+ in prizes, tech swag, and exclusive mentorship sessions.",
     image: "/prizes.png"
   },
-  {
-    id: 10,
-    type: 'about',
-    title: "About Mind Empowered",
-    content: "Mind Empowered is a community-driven initiative dedicated to making technology accessible, inclusive, and fun for girls everywhere.",
-    image: "/about.png"
+  { 
+    id: 6, 
+    type: 'rules',
+    title: "Rules of the Galaxy", 
+    content: "Keep it fair, keep it fun, and keep it safe for everyone.",
+    image: "/rules.png"
   },
-  {
-    id: 11,
+  { 
+    id: 7, 
+    type: 'mentors',
+    title: "Meet Your Mentors", 
+    content: "Get guided by professionals from Google, Meta, and Microsoft.",
+    image: "/mentors.png"
+  },
+  { 
+    id: 8, 
+    type: 'community',
+    title: "Make New Friends", 
+    content: "Join 500+ girls worldwide and build your dream team.",
+    image: "/community.png"
+  },
+  { 
+    id: 9, 
+    type: 'sponsors',
+    title: "Our Supporters", 
+    content: "The amazing companies making Starlet 5.0 possible.",
+    image: "/sponsors.png"
+  },
+  { 
+    id: 10, 
+    type: 'gallery',
+    title: "The Gallery", 
+    content: "Memories from our previous editions.",
+    image: "/gallery.png"
+  },
+  { 
+    id: 11, 
     type: 'faq',
-    title: "Your Questions, Answered",
-    content: "Everything you need to know about Starlet 5.0 in one place.",
+    title: "Common Doubts", 
+    content: "Everything you need to know about Starlet 5.0.",
     image: "/faq.png"
   },
-  {
-    id: 12,
-    type: 'contact',
-    title: "Get in Touch",
-    content: "Have a question? Our team is here to support you 24/7.",
-    image: "/contact.png"
-  },
-  {
-    id: 13,
+  { 
+    id: 12, 
     type: 'newsletter',
-    title: "Stay in the Loop",
-    content: "Subscribe to our newsletter for updates, tips, and future hackathon announcements!",
+    title: "Stay Updated", 
+    content: "Join our newsletter to never miss an update!",
     image: "/newsletter.png"
+  },
+  { 
+    id: 13, 
+    type: 'contact',
+    title: "Get in Touch", 
+    content: "Have a specific question? We are here to help.",
+    image: "/contact.png"
   }
 ];
 
 function App() {
   const [smoothProgress, setSmoothProgress] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
+  const [user, setUser] = useState({ 
+    name: 'Star Hacker', 
+    email: 'hacker@starlet.com', 
+    team: 'Nebula Squad',
+    venue: 'San Francisco, CA (Main Hub)',
+    bio: 'I love building things that sparkle and solve problems! ✨',
+    stack: ['React', 'CSS', 'Figma']
+  });
+  
   const sectionRefs = useRef([]);
   const requestRef = useRef();
 
@@ -160,13 +178,26 @@ function App() {
         </div>
 
         <div className="auth-btns">
-          <a href="#" className="login-btn">LOGIN</a>
-          <a href="#" className="join-btn">SIGN UP!</a>
+          {isLoggedIn ? (
+            <img 
+              src="/icons/user-profile.svg" 
+              className="nav-profile-btn" 
+              alt="profile" 
+              onClick={() => setActiveView('profile')}
+            />
+          ) : (
+            <>
+              <div className="login-btn" onClick={() => setActiveView('login')}>LOGIN</div>
+              <div className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP!</div>
+            </>
+          )}
         </div>
       </header>
 
-      <main>
-        <section className="hero">
+      {activeView === 'landing' ? (
+        <>
+          <main>
+          <section className="hero">
           <div className="badge-main">MIND EMPOWERED PRESENTS</div>
           <h1 className="text-3d">STARLET 5.0</h1>
           <div className="subtitle-large">
@@ -182,14 +213,14 @@ function App() {
              <img src="/hero.png" alt="Starlet Hero" />
           </div>
 
-          <div className="trust-bar">
-            <div className="trust-item"><span>500+</span> HACKERS</div>
-            <div className="trust-item"><span>15+</span> COUNTRIES</div>
-            <div className="trust-item"><span>$10K</span> PRIZES</div>
-          </div>
-        </section>
+              <div className="trust-bar">
+                <div className="trust-item"><span>500+</span> HACKERS</div>
+                <div className="trust-item"><span>15+</span> COUNTRIES</div>
+                <div className="trust-item"><span>$10K</span> PRIZES</div>
+              </div>
+            </section>
 
-        <div className="content-wrapper">
+            <div className="content-wrapper">
           {sectionsData.map((section, index) => (
             <div 
               key={section.id} 
@@ -274,18 +305,18 @@ function App() {
                 <div className="section-content">
                   <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                   <div className="gallery-grid">
-                    <div className="polaroid" style={{"--r": -2}}>
-                      <div className="polaroid-img">📷<span>Coming Soon</span></div>
-                      <div className="polaroid-caption">Opening Ceremony</div>
-                    </div>
-                    <div className="polaroid" style={{"--r": 3}}>
-                      <div className="polaroid-img">👩‍💻<span>Coming Soon</span></div>
-                      <div className="polaroid-caption">Hacking in Progress</div>
-                    </div>
-                    <div className="polaroid" style={{"--r": -1.5}}>
-                      <div className="polaroid-img">🏆<span>Coming Soon</span></div>
-                      <div className="polaroid-caption">Grand Finale</div>
-                    </div>
+                    {[
+                      "Opening Ceremony", "Team Building", "Workshop Hour", "Late Night Hacking",
+                      "Mentor Session", "Coffee Break", "UI Design Fun", "Bot Building",
+                      "Impact Project", "Pitch Practice", "Global Connection", "Future Leaders",
+                      "Code Debugging", "Creative Spark", "Presentation Day", "Winner Reveal",
+                      "Celebration", "Tech Swag", "New Friendships", "The Journey"
+                    ].map((caption, i) => (
+                      <div key={i} className="polaroid" style={{"--r": `${(Math.sin(i) * 5).toFixed(1)}deg`}}>
+                        <div className="polaroid-img">📸<span>Coming Soon</span></div>
+                        <div className="polaroid-caption">{caption}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : section.type === 'prizes' ? (
@@ -362,52 +393,118 @@ function App() {
         </div>
       </main>
 
-      <footer>
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <div className="logo-circle">
-              <img src="/public/brand/Logo.png" alt="Starlet Logo" onError={(e) => {e.target.src='/brand/Logo.png'}} />
+          <footer>
+            <div className="footer-grid">
+              <div className="footer-brand">
+                <div className="logo-circle">
+                  <img src="/public/brand/Logo.png" alt="Starlet Logo" onError={(e) => {e.target.src='/brand/Logo.png'}} />
+                </div>
+                <h3>STARLET 5.0</h3>
+                <p>Empowering the next generation of women in technology through community, creativity, and code.</p>
+              </div>
+
+              <div className="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                  <li><div onClick={() => setActiveView('landing')} style={{cursor: 'pointer'}}>Home</div></li>
+                  <li><a href="#mission">Our Mission</a></li>
+                  <li><a href="#tracks">Tracks</a></li>
+                  <li><a href="#timeline">Timeline</a></li>
+                </ul>
+              </div>
+
+              <div className="footer-col">
+                <h4>Community</h4>
+                <ul>
+                  <li><a href="#">Discord Server</a></li>
+                  <li><a href="#">Code of Conduct</a></li>
+                  <li><a href="#">Mentorship</a></li>
+                </ul>
+              </div>
+
+              <div className="footer-col">
+                <h4>Contact</h4>
+                <ul>
+                  <li><a href="mailto:hello@mind-empowered.org">hello@mind-empowered.org</a></li>
+                  <li><a href="https://mind-empowered.org">Website</a></li>
+                </ul>
+              </div>
             </div>
-            <h3>STARLET 5.0</h3>
-            <p>Empowering the next generation of women in technology through community, creativity, and code.</p>
-          </div>
 
-          <div className="footer-col">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><a href="#mission">Our Mission</a></li>
-              <li><a href="#tracks">Tracks</a></li>
-              <li><a href="#timeline">Timeline</a></li>
-              <li><a href="#rules">Rules</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4>Community</h4>
-            <ul>
-              <li><a href="#">Discord Server</a></li>
-              <li><a href="#">Code of Conduct</a></li>
-              <li><a href="#">Mentorship</a></li>
-              <li><a href="#">Past Events</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4>Contact</h4>
-            <ul>
-              <li><a href="mailto:hello@mind-empowered.org">hello@mind-empowered.org</a></li>
-              <li><a href="#">Instagram</a></li>
-              <li><a href="#">LinkedIn</a></li>
-              <li><a href="https://mind-empowered.org">Website</a></li>
-            </ul>
+            <div className="footer-bottom">
+              <p>&copy; 2026 Starlet 5.0 | Mind Empowered Initiative</p>
+              <p>Made with ❤️ for Every Woman</p>
+            </div>
+          </footer>
+        </>
+      ) : activeView === 'login' || activeView === 'signup' ? (
+        <div className="auth-container">
+          <div className="auth-card">
+            <h2 className="text-3d">{activeView === 'login' ? 'Welcome Back!' : 'Join Starlet!'}</h2>
+            <form className="auth-form" onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); setActiveView('landing'); }}>
+              {activeView === 'signup' && <input type="text" placeholder="Full Name" required />}
+              <input type="email" placeholder="Email Address" required />
+              <input type="password" placeholder="Password" required />
+              <button type="submit" className="join-btn">{activeView === 'login' ? 'LOGIN' : 'SIGN UP'}</button>
+            </form>
+            <p>
+              {activeView === 'login' ? "Don't have an account? " : "Already have an account? "}
+              <span onClick={() => setActiveView(activeView === 'login' ? 'signup' : 'login')}>
+                {activeView === 'login' ? 'Sign up here' : 'Login here'}
+              </span>
+            </p>
+            <div onClick={() => setActiveView('landing')} style={{marginTop: '1.5rem', cursor: 'pointer', color: 'var(--blue-shadow)'}}>← Back to Home</div>
           </div>
         </div>
-
-        <div className="footer-bottom">
-          <p>&copy; 2026 Starlet 5.0 | Mind Empowered Initiative</p>
-          <p>Made with ❤️ for Every Woman</p>
+      ) : activeView === 'profile' ? (
+        <div className="profile-container">
+          <div className="profile-sidebar">
+            <div className="profile-avatar" style={{position: 'relative'}}>
+              <img src="/icons/user-profile.svg" alt="avatar" />
+              <label className="upload-overlay">
+                <input type="file" style={{display: 'none'}} />
+                ✎
+              </label>
+            </div>
+            <h2 className="text-3d">{user.name}</h2>
+            <div className="profile-field" style={{marginTop: '2rem'}}>
+              <label>Hacker Bio</label>
+              <textarea 
+                value={user.bio} 
+                onChange={(e) => setUser({...user, bio: e.target.value})}
+                placeholder="Tell us about yourself..."
+              />
+            </div>
+            <button className="logout-btn" onClick={() => { setIsLoggedIn(false); setActiveView('landing'); }}>LOGOUT</button>
+            <div onClick={() => setActiveView('landing')} style={{marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)'}}>← Back to Home</div>
+          </div>
+          <div className="profile-info">
+            <div className="profile-field">
+              <label>Hacking Venue</label>
+              <div>{user.venue}</div>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem'}}>
+                📍 Your assigned physical location for the event.
+              </p>
+            </div>
+            <div className="profile-field">
+              <label>Email & Team</label>
+              <div>{user.email} | {user.team}</div>
+            </div>
+            <div className="profile-field">
+              <label>My Tech Stack</label>
+              <div className="tech-tag-container">
+                {user.stack.map(s => <span key={s} className="tech-tag">{s}</span>)}
+                <span className="tech-tag" style={{opacity: 0.5, cursor: 'pointer'}}>+ Add Tool</span>
+              </div>
+            </div>
+            <div className="profile-field">
+              <label>Hackathon Points</label>
+              <div style={{fontSize: '2rem'}}>1,250 🌟</div>
+              <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Complete workshops to earn more!</p>
+            </div>
+          </div>
         </div>
-      </footer>
+      ) : null}
     </div>
   );
 }
