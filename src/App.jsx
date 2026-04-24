@@ -8,7 +8,7 @@ const sectionsData = [
     type: 'what-is-starlet',
     title: 'What is Starlet?',
     content: "Starlet is the ultimate innovation marathon for women where ideas meet execution and strangers become teammates. Whether you're a seasoned coder or just stepping into the world of tech, this event is built for everyone — solo innovators, dynamic duos, and full-fledged teams!",
-    image: '/brand/Logo.png'
+    image: '/brand/Starlet.gif'
   },
   {
     id: 2,
