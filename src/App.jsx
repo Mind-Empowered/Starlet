@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
+import { supabase } from './supabaseClient';
 
 const sectionsData = [
 
@@ -91,7 +92,9 @@ const mentorsData = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 function App() {
-  const [smoothProgress, setSmoothProgress] = useState(0);
+
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -100,14 +103,18 @@ function App() {
   const [fadeOut, setFadeOut] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [faqLimit, setFaqLimit] = useState(3);
+  const [visibleSections, setVisibleSections] = useState(new Set());
+
   const [user, setUser] = useState({
-    name: 'Star Hacker',
-    email: 'hacker@starlet.com',
-    role: 'Full Stack Wizard',
-    team: null, // Test "team not found" state
-    venue: 'San Francisco, CA (Main Hub)',
-    bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    stack: ['React', 'CSS', 'Figma'],
+    name: '',
+    email: '',
+    role: 'attendee', // attendee, mentor, admin
+    isApproved: false,
+    team: null,
+    venue: '',
+    bio: '',
+    stack: [],
+    avatarUrl: '',
     socials: {
       github: '',
       linkedin: '',
@@ -140,40 +147,34 @@ function App() {
     } catch (e) { }
   };
 
-  const sectionRefs = useRef([]);
+
+  const [signupRole, setSignupRole] = useState('attendee');
+  const [signupAvatar, setSignupAvatar] = useState(null);
+  const [signupAvatarPreview, setSignupAvatarPreview] = useState(null);
+  const [teamStatus, setTeamStatus] = useState('single');
+  const [needsTeaming, setNeedsTeaming] = useState(false);
+  const [activeAlert, setActiveAlert] = useState(null);
+  const [systemIssues, setSystemIssues] = useState([]);
+
   const galleryRef = useRef(null);
   const requestRef = useRef();
 
-  const animate = () => {
-    setSmoothProgress(prev => {
-      const target = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-      const lerpFactor = 0.1;
-      return prev + (target - prev) * lerpFactor;
-    });
-    requestRef.current = requestAnimationFrame(animate);
-  };
 
   useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate);
-
-    const observerOptions = { threshold: 0.1 };
+    const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+          setVisibleSections(prev => new Set([...prev, entry.target.id]));
         }
       });
     }, observerOptions);
 
-    sectionRefs.current.forEach(ref => {
-      if (ref) observer.observe(ref);
-    });
+    const elements = document.querySelectorAll('.section-block');
+    elements.forEach(el => observer.observe(el));
 
-    return () => {
-      cancelAnimationFrame(requestRef.current);
-      observer.disconnect();
-    };
-  }, [sectionsData, activeView]);
+    return () => observer.disconnect();
+  }, [activeView, loading]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -201,6 +202,514 @@ function App() {
       clearTimeout(removeTimer);
     };
   }, [isSoundEnabled]);
+
+  useEffect(() => {
+    // 1. Check for initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setIsLoggedIn(true);
+        fetchProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      if (session) {
+        setIsLoggedIn(true);
+        fetchProfile(session.user.id);
+        
+        // If the event is PASSWORD_RECOVERY, switch to reset view
+        if (event === 'PASSWORD_RECOVERY') {
+          setActiveView('reset-password');
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUser({ name: '', email: '', role: '', team: null, venue: '', bio: '', stack: [], socials: { github: '', linkedin: '', twitter: '' } });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (data) {
+        setUser({
+          name: data.full_name || '',
+          email: data.email || '',
+          role: data.user_role || 'attendee',
+          role_title: data.role_title || '',
+          isApproved: data.is_approved || false,
+          venue: data.venue || '',
+          bio: data.bio || '',
+          stack: data.stack || [],
+          avatarUrl: data.avatar_url || '',
+          teamId: data.team_id || null,
+          teamName: data.team_name || '',
+          selectedTrack: data.selected_track || '',
+          socials: {
+            github: data.github_url || '',
+            linkedin: data.linkedin_url || '',
+            twitter: data.twitter_url || ''
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const [mentorRequests, setMentorRequests] = useState([]);
+  const [allMentors, setAllMentors] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+
+  useEffect(() => {
+    if (isLoggedIn && user.role === 'mentor') {
+      fetchMentorRequests();
+      // Realtime listener for new requests
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'mentor_requests', filter: `mentor_id=eq.${session.user.id}` },
+          async (payload) => {
+            // Fetch rich details for the alert
+            const { data: richData } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url, team_name')
+              .eq('id', payload.new.attendee_id)
+              .single();
+
+            setActiveAlert({
+              ...payload.new,
+              attendee: richData
+            });
+            setMentorRequests(prev => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+      return () => supabase.removeChannel(channel);
+    }
+    if (isLoggedIn && user.role === 'admin') {
+      fetchAllMentors();
+      fetchAllUsers();
+    }
+  }, [isLoggedIn, user.role]);
+
+  const fetchMentorRequests = async () => {
+    const { data, error } = await supabase
+      .from('mentor_requests')
+      .select('*, profiles:attendee_id(full_name, email)')
+      .eq('mentor_id', session.user.id)
+      .order('created_at', { ascending: false });
+    if (data) setMentorRequests(data);
+  };
+
+  const fetchAllMentors = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_role', 'mentor');
+    if (data) setAllMentors(data);
+  };
+
+  const fetchAllUsers = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('full_name');
+    if (data) setAllUsers(data);
+    
+    const { data: issues } = await supabase
+      .from('system_issues')
+      .select('*, profiles(full_name)')
+      .order('created_at', { ascending: false });
+    if (issues) setSystemIssues(issues);
+  };
+
+  const handleRequestMentor = async (mentorId) => {
+    const { error } = await supabase
+      .from('mentor_requests')
+      .insert([
+        { attendee_id: session.user.id, mentor_id: mentorId, message: 'Help needed with my project!' }
+      ]);
+    if (error) alert(error.message);
+    else alert('Request sent to mentor!');
+  };
+
+  const handleApproveMentor = async (mentorId) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_approved: true })
+      .eq('id', mentorId);
+    if (error) alert(error.message);
+    else {
+      alert('Mentor approved!');
+      fetchAllMentors();
+    }
+  };
+
+  const handleRunAutoTeaming = async () => {
+    try {
+      // 1. Fetch all solo attendees who want teaming and don't have a team yet
+      const { data: singles, error: fetchError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('user_role', 'attendee')
+        .eq('team_status', 'single')
+        .eq('needs_teaming', true)
+        .is('team_name', null);
+
+      if (fetchError) throw fetchError;
+      if (!singles || singles.length < 2) {
+        alert('Not enough single attendees to form new teams yet.');
+        return;
+      }
+
+      // 2. Shuffle
+      const shuffled = [...singles].sort(() => Math.random() - 0.5);
+      
+      // 3. Group into 4s
+      const groupSize = 4;
+      
+      for (let i = 0; i < shuffled.length; i += groupSize) {
+        const group = shuffled.slice(i, i + groupSize);
+        if (group.length < 2) {
+          // Add leftover to previous group logic would go here, 
+          // for now we'll just form teams of 2-4
+        }
+        
+        const squadNumber = Math.floor(Math.random() * 10000);
+        const teamName = `Stellar Squad ${squadNumber}`;
+
+        // Create the team in the teams table first
+        const { data: newTeam, error: teamError } = await supabase
+          .from('teams')
+          .insert([{ name: teamName, bio: 'Automatically generated squad.' }])
+          .select()
+          .single();
+
+        if (teamError) continue;
+
+        // Update all members in this group
+        for (const user of group) {
+          await supabase
+            .from('profiles')
+            .update({ 
+              team_id: newTeam.id, 
+              team_name: teamName,
+              team_status: 'team',
+              needs_teaming: false 
+            })
+            .eq('id', user.id);
+        }
+      }
+
+      alert('Success! Generated relational teams for all solo attendees.');
+      fetchAllUsers();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          team_id: null,
+          team_name: null, 
+          team_status: 'single',
+          needs_teaming: true 
+        })
+        .eq('id', session.user.id);
+      
+      if (error) throw error;
+      alert('You have left the team and are now back in the solo pool.');
+      fetchProfile(session.user.id);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleSelectTrack = async (trackTitle) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ selected_track: trackTitle })
+        .eq('id', session.user.id);
+      
+      if (error) throw error;
+      alert('Track selection saved!');
+      fetchProfile(session.user.id);
+      setSelectedTrack(null);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const fullName = formData.get('fullName');
+    const roleTitle = formData.get('roleTitle') || '';
+    const bio = formData.get('bio') || '';
+    const techStack = formData.get('techStack') || '';
+    const college = formData.get('college') || '';
+    const teamName = formData.get('teamName') || '';
+
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+      });
+      if (authError) throw authError;
+
+      if (authData.user) {
+        let avatarUrl = '';
+        if (signupAvatar) {
+          const fileExt = signupAvatar.name.split('.').pop();
+          const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, signupAvatar);
+          
+          if (!uploadError) {
+            const { data: publicUrlData } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(fileName);
+            avatarUrl = publicUrlData.publicUrl;
+          }
+        }
+
+        let finalTeamId = null;
+        if (signupRole === 'attendee' && teamStatus === 'team' && teamName) {
+          // Check if team exists, if not create it
+          const { data: existingTeam } = await supabase
+            .from('teams')
+            .select('id')
+            .eq('name', teamName)
+            .single();
+          
+          if (existingTeam) {
+            finalTeamId = existingTeam.id;
+          } else {
+            const { data: newTeam } = await supabase
+              .from('teams')
+              .insert([{ name: teamName }])
+              .select()
+              .single();
+            if (newTeam) finalTeamId = newTeam.id;
+          }
+        }
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              full_name: fullName,
+              email: email,
+              user_role: signupRole,
+              role_title: roleTitle,
+              bio: bio,
+              tech_stack: techStack,
+              college: college,
+              avatar_url: avatarUrl,
+              team_id: finalTeamId,
+              team_status: signupRole === 'attendee' ? teamStatus : null,
+              needs_teaming: signupRole === 'attendee' ? needsTeaming : false,
+              team_name: signupRole === 'attendee' ? teamName : null,
+              is_approved: signupRole === 'attendee'
+            }
+          ]);
+        if (profileError) throw profileError;
+      }
+
+      alert('Registration successful! Please check your email for verification.');
+      setActiveView('login');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleSignupAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSignupAvatar(file);
+      setSignupAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) alert(error.message);
+    else setActiveView('landing');
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if (error) alert(error.message);
+    else alert('Password reset link sent! Please check your email.');
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    const newPassword = e.target.newPassword.value;
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) alert(error.message);
+    else {
+      alert('Password updated successfully!');
+      setActiveView('login');
+    }
+  };
+
+  const handleReportIssue = async () => {
+    const desc = prompt("Please describe the issue you are facing:");
+    if (!desc) return;
+
+    try {
+      const { error } = await supabase
+        .from('system_issues')
+        .insert([{ user_id: session.user.id, description: desc }]);
+      
+      if (error) throw error;
+      alert('Issue reported successfully. The admin team has been notified.');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleFindTeam = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          team_status: 'single', 
+          needs_teaming: true 
+        })
+        .eq('id', session.user.id);
+      
+      if (error) throw error;
+      alert('You have been added to the auto-teaming pool! Check back later for your squad assignment.');
+      fetchProfile(session.user.id);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error logging out:', error.message);
+    else {
+      setIsLoggedIn(false);
+      setActiveView('landing');
+    }
+  };
+
+  const updateProfile = async () => {
+    if (!session?.user?.id) return alert('Not logged in.');
+    try {
+      const updates = {
+        id: session.user.id,
+        full_name: user.name,
+        user_role: user.role,
+        bio: user.bio,
+        venue: user.venue,
+        stack: user.stack,
+        github_url: user.socials.github,
+        linkedin_url: user.socials.linkedin,
+        twitter_url: user.socials.twitter,
+        role_title: user.role_title,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('profiles').upsert(updates);
+      if (error) throw error;
+      alert('Profile updated successfully!');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !session?.user?.id) return;
+
+    const fileExt = file.name.split('.').pop();
+    const filePath = `avatars/${session.user.id}.${fileExt}`;
+
+    // Show local preview immediately
+    const localPreview = URL.createObjectURL(file);
+    setUser(prev => ({ ...prev, avatarUrl: localPreview }));
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      alert('Upload failed: ' + uploadError.message);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const avatarUrl = urlData.publicUrl;
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', session.user.id);
+
+    if (updateError) alert('Could not save avatar: ' + updateError.message);
+    else setUser(prev => ({ ...prev, avatarUrl }));
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    const { error } = await supabase
+      .from('mentor_requests')
+      .update({ status: 'accepted' })
+      .eq('id', requestId);
+    if (error) alert(error.message);
+    else {
+      alert('Request accepted!');
+      fetchMentorRequests();
+    }
+  };
+
+  const handleDeclineRequest = async (requestId) => {
+    const { error } = await supabase
+      .from('mentor_requests')
+      .update({ status: 'declined' })
+      .eq('id', requestId);
+    if (error) alert(error.message);
+    else fetchMentorRequests();
+  };
 
   useEffect(() => {
     const html = document.documentElement;
@@ -231,9 +740,22 @@ function App() {
     }
   };
 
-  // Floating Sparkle Positions
-  const sparkleTop = 20 + (smoothProgress * 60);
-  const sparkleLeft = 50 + (Math.sin(smoothProgress * Math.PI * 4) * 10);
+
+  if (loading) {
+    return (
+      <div className="splash-screen">
+        <div className="splash-content">
+          <div className="splash-logo-container">
+            <img src="/brand/Logo.png" alt="Starlet" className="splash-logo" />
+          </div>
+          <div className="splash-text">INITIALIZING QUANTUM LINK...</div>
+          <div className="splash-loading-container">
+            <div className="splash-loading-bar" style={{ animationDuration: '1s' }}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
@@ -276,7 +798,7 @@ function App() {
             <div className="splash-loading-container">
               <div className="splash-loading-bar"></div>
             </div>
-            <p className="handwritten splash-text">Igniting your creativity... ✨</p>
+            <p className="handwritten splash-text">Igniting your creativity...</p>
           </div>
           <div className="splash-footer handwritten">
             <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '30px', verticalAlign: 'middle', marginRight: '10px', borderRadius: '5px' }} />
@@ -286,9 +808,9 @@ function App() {
       )}
 
       {/* Floating Sparkles */}
-      <div className="sparkle" style={{ top: `${sparkleTop}%`, left: `${sparkleLeft}%` }}>✦</div>
-      <div className="sparkle" style={{ top: `${sparkleTop - 10}%`, left: `${sparkleLeft + 20}%`, animationDelay: '0.5s' }}>✧</div>
-      <div className="sparkle" style={{ top: `${sparkleTop + 15}%`, left: `${sparkleLeft - 15}%`, animationDelay: '1s' }}>✦</div>
+      <div className="sparkle s1">✦</div>
+      <div className="sparkle s2">✧</div>
+      <div className="sparkle s3">✦</div>
 
       <header className={activeView !== 'landing' ? 'header-minimal' : ''}>
         <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
@@ -368,8 +890,8 @@ function App() {
               </div>
 
               <div className="hero-ctas">
-                <a href="#" className="join-btn">REGISTER NOW</a>
-                <a href="#" className="btn-secondary">LEARN MORE</a>
+                <button className="join-btn" onClick={() => setActiveView('signup')}>REGISTER NOW</button>
+                <a href="#what-is-starlet" className="btn-secondary">LEARN MORE</a>
               </div>
 
 
@@ -380,8 +902,7 @@ function App() {
                 <div
                   key={section.id}
                   id={section.type}
-                  className={`section-block ${section.type}-section`}
-                  ref={el => sectionRefs.current[index] = el}
+                  className={`section-block ${section.type}-section ${visibleSections.has(section.type) ? 'visible' : ''}`}
                 >
                   {section.type === 'timeline' ? (
                     <div className="whiteboard-container">
@@ -412,7 +933,7 @@ function App() {
                         </div>
                         <div className="timeline-event">
                           <span className="timeline-date">June 15th</span>
-                          <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur. 🔥</span>
+                          <span className="timeline-desc">Lorem ipsum dolor sit amet, consectetur.</span>
                         </div>
                         <div className="timeline-event">
                           <span className="timeline-date">June 20th</span>
@@ -502,7 +1023,7 @@ function App() {
                       <div className="winner-grid">
                         <div className="winner-card">
                           <div className="winner-badge">GOLD WINNER</div>
-                          <div className="winner-project-img">✨<span>Project Preview</span></div>
+                          <div className="winner-project-img"><span>Project Preview</span></div>
                           <span className="winner-year">STARLET 4.0</span>
                           <h3>Lorem Ipsum Project</h3>
                           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
@@ -510,7 +1031,7 @@ function App() {
                         </div>
                         <div className="winner-card">
                           <div className="winner-badge">LOREM IPSUM</div>
-                          <div className="winner-project-img">🎨<span>Project Preview</span></div>
+                          <div className="winner-project-img"><span>Project Preview</span></div>
                           <span className="winner-year">STARLET 3.0</span>
                           <h3>Lorem Ipsum Project</h3>
                           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
@@ -518,7 +1039,7 @@ function App() {
                         </div>
                         <div className="winner-card">
                           <div className="winner-badge">LOREM IPSUM</div>
-                          <div className="winner-project-img">🌍<span>Project Preview</span></div>
+                          <div className="winner-project-img"><span>Project Preview</span></div>
                           <span className="winner-year">STARLET 2.0</span>
                           <h3>Lorem Ipsum Project</h3>
                           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
@@ -578,7 +1099,7 @@ function App() {
                         </div>
 
                         <div className="contact-socials">
-                          <h3 className="handwritten social-title">Follow our journey! ✨</h3>
+                          <h3 className="handwritten social-title">Follow our journey!</h3>
                           <p>Join our community of 5,000+ creators on social media.</p>
                           <div className="social-grid">
                             <a href="#" className="social-item instagram">
@@ -666,126 +1187,560 @@ function App() {
         </>
       ) : activeView === 'login' || activeView === 'signup' ? (
         <div className="auth-container">
-          <div className="auth-card">
+          <div className="auth-card" style={{ maxWidth: activeView === 'signup' ? '800px' : '500px' }}>
             <h2 className="text-3d">{activeView === 'login' ? 'Welcome Back!' : 'Join Starlet!'}</h2>
-            <form className="auth-form" onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); setActiveView('landing'); }}>
-              {activeView === 'signup' && <input type="text" placeholder="Full Name" required />}
-              <input type="email" placeholder="Email Address" required />
-              <input type="password" placeholder="Password" required />
-              <button type="submit" className="join-btn">{activeView === 'login' ? 'LOGIN' : 'SIGN UP'}</button>
+            <form className="auth-form" onSubmit={activeView === 'login' ? handleLogin : handleSignUp}>
+              {activeView === 'signup' && (
+                <div className="signup-grid">
+                  <div className="signup-photo-col">
+                    <div className="signup-avatar-preview">
+                      <img src={signupAvatarPreview || '/icons/user-profile.svg'} alt="preview" />
+                      <label className="photo-upload-btn">
+                        ADD PHOTO
+                        <input type="file" hidden accept="image/*" onChange={handleSignupAvatarChange} />
+                      </label>
+                    </div>
+                    <select 
+                      name="userRole" 
+                      className="auth-select" 
+                      value={signupRole}
+                      onChange={(e) => setSignupRole(e.target.value)}
+                    >
+                      <option value="attendee">I am an Attendee</option>
+                      <option value="mentor">I am a Mentor</option>
+                    </select>
+                  </div>
+
+                  <div className="signup-fields-col">
+                    <input name="fullName" type="text" placeholder="Full Name" required />
+                    <input name="email" type="email" placeholder="Email Address" required />
+                    <input name="password" type="password" placeholder="Password" required />
+                    
+                    {signupRole === 'mentor' ? (
+                      <>
+                        <input name="roleTitle" type="text" placeholder="Professional Title (e.g. Senior Architect)" required />
+                        <input name="techStack" type="text" placeholder="Tech Stack (e.g. React, Python, AWS)" required />
+                      </>
+                    ) : (
+                      <>
+                        <input name="college" type="text" placeholder="College or Organization Name" required />
+                        
+                        <div className="teaming-options">
+                          <label className="teaming-label">Participation Type:</label>
+                          <div className="teaming-radios">
+                            <label>
+                              <input 
+                                type="radio" 
+                                name="teamStatus" 
+                                value="single" 
+                                checked={teamStatus === 'single'} 
+                                onChange={() => setTeamStatus('single')} 
+                              /> Solo
+                            </label>
+                            <label>
+                              <input 
+                                type="radio" 
+                                name="teamStatus" 
+                                value="team" 
+                                checked={teamStatus === 'team'} 
+                                onChange={() => setTeamStatus('team')} 
+                              /> Existing Team
+                            </label>
+                          </div>
+
+                          {teamStatus === 'single' ? (
+                            <label className="teaming-checkbox">
+                              <input 
+                                type="checkbox" 
+                                checked={needsTeaming} 
+                                onChange={(e) => setNeedsTeaming(e.target.checked)} 
+                              /> Want us to find a team for you?
+                            </label>
+                          ) : (
+                            <input name="teamName" type="text" placeholder="Enter your Team Name" required />
+                          )}
+                        </div>
+                      </>
+                    )}
+                    
+                    <textarea name="bio" placeholder={signupRole === 'mentor' ? "Tell us about your mentoring experience..." : "Tell us about yourself and what you want to build..."} required></textarea>
+                  </div>
+                </div>
+              )}
+
+              {activeView === 'login' && (
+                <>
+                  <input name="email" type="email" placeholder="Email Address" required />
+                  <input name="password" type="password" placeholder="Password" required />
+                  <div 
+                    style={{ textAlign: 'right', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--pink-primary)', fontWeight: 'bold', marginTop: '-0.5rem' }}
+                    onClick={() => setActiveView('forgot-password')}
+                  >
+                    Forgot Password?
+                  </div>
+                </>
+              )}
+              
+              <button type="submit" className="join-btn" style={{ marginTop: '2rem', width: '100%' }}>
+                {activeView === 'login' ? 'LOGIN TO CONSOLE' : 'INITIALIZE REGISTRATION'}
+              </button>
             </form>
-            <p>
+            <p className="auth-toggle-text">
               {activeView === 'login' ? "Don't have an account? " : "Already have an account? "}
               <span onClick={() => setActiveView(activeView === 'login' ? 'signup' : 'login')}>
                 {activeView === 'login' ? 'Sign up here' : 'Login here'}
               </span>
             </p>
-            <div onClick={() => setActiveView('landing')} style={{ marginTop: '1.5rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
+            <div className="admin-back-link" onClick={() => setActiveView('landing')} style={{ marginTop: '1.5rem' }}>← Back to Home</div>
+          </div>
+        </div>
+      ) : activeView === 'forgot-password' ? (
+        <div className="auth-container">
+          <div className="auth-card">
+            <h2 className="text-3d">Recover Account</h2>
+            <p style={{ marginBottom: '2rem', color: 'var(--text-muted)' }}>Enter your email and we will send you a secure link to reset your password.</p>
+            <form className="auth-form" onSubmit={handleForgotPassword}>
+              <input name="email" type="email" placeholder="Email Address" required />
+              <button type="submit" className="join-btn" style={{ marginTop: '2rem', width: '100%' }}>
+                SEND RECOVERY LINK
+              </button>
+            </form>
+            <div className="admin-back-link" onClick={() => setActiveView('login')} style={{ marginTop: '1.5rem' }}>← Back to Login</div>
+          </div>
+        </div>
+      ) : activeView === 'reset-password' ? (
+        <div className="auth-container">
+          <div className="auth-card">
+            <h2 className="text-3d">Reset Password</h2>
+            <p style={{ marginBottom: '2rem', color: 'var(--text-muted)' }}>Security First! Please enter your new, strong password below.</p>
+            <form className="auth-form" onSubmit={handleUpdatePassword}>
+              <input name="newPassword" type="password" placeholder="Enter New Password" required />
+              <button type="submit" className="join-btn" style={{ marginTop: '2rem', width: '100%' }}>
+                UPDATE PASSWORD
+              </button>
+            </form>
           </div>
         </div>
       ) : activeView === 'profile' ? (
-        <div className="profile-container">
-          <div className="profile-sidebar">
-            <div className="profile-avatar" style={{ position: 'relative' }}>
-              <img src="/icons/user-profile.svg" alt="avatar" />
-              <label className="upload-overlay">
-                <input type="file" style={{ display: 'none' }} />
-                ✎
-              </label>
-            </div>
-            <h2 className="text-3d">{user.name}</h2>
-            <div className="profile-field" style={{ marginTop: '2rem' }}>
-              <label>Hacker Bio</label>
-              <textarea
-                value={user.bio}
-                onChange={(e) => setUser({ ...user, bio: e.target.value })}
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-            <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
-              <div className="sound-toggle-large" onClick={() => setIsSoundEnabled(!isSoundEnabled)}>
-                <span>Volume Control</span>
-                <div className={`toggle-switch ${isSoundEnabled ? 'active' : ''}`}>
-                  {isSoundEnabled ? "AUDIO ON" : "AUDIO OFF"}
+        <div className={user.role === 'admin' ? "admin-page-wrapper" : "profile-container"}>
+          {user.role === 'admin' ? (
+            /* ADMIN PROFILE VIEW */
+            <div className="admin-dashboard-full">
+              <div className="admin-header-row">
+                <div>
+                  <h1 className="text-3d" style={{ fontSize: '3.5rem' }}>Admin Command Center</h1>
+                  <p className="handwritten" style={{ fontSize: '1.2rem' }}>Master control for the Starlet 5.0 galaxy!</p>
+                </div>
+                <div className="admin-quick-actions">
+                  <button className="logout-btn" onClick={handleLogout}>LOGOUT ADMIN</button>
+                  <div className="admin-back-link" onClick={() => setActiveView('landing')}>← Back to Home</div>
                 </div>
               </div>
-              <button className="logout-btn" onClick={() => { setIsLoggedIn(false); setActiveView('landing'); }}>LOGOUT</button>
-            </div>
-            <div onClick={() => setActiveView('landing')} style={{ marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
-          </div>
-          <div className="profile-info">
-            <div className="profile-field">
-              <label>Hacking Role</label>
-              <input
-                type="text"
-                className="profile-input"
-                value={user.role}
-                onChange={(e) => setUser({ ...user, role: e.target.value })}
-                placeholder="e.g. Frontend, UI/UX, Backend..."
-              />
-            </div>
-            <div className="profile-field">
-              <label>Email & Team</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div>{user.email}</div>
-                <div style={{ color: 'var(--text-muted)' }}>|</div>
-                {user.team ? (
-                  <div className="team-badge">{user.team}</div>
-                ) : (
-                  <div className="no-team-cta" onClick={() => window.open('https://discord.gg/starlet', '_blank')}>
-                    TEAM NOT FOUND? FIND SQUAD →
+
+              <div className="admin-stats-strip">
+                <div className="admin-stat-card">
+                  <div className="stat-icon"><img src="/icons/users.svg" alt="users" /></div>
+                  <div className="stat-info">
+                    <strong>{allUsers.length}</strong>
+                    <span>Total Users</span>
                   </div>
-                )}
+                </div>
+                <div className="admin-stat-card">
+                  <div className="stat-icon"><img src="/icons/trophy.svg" alt="verified" /></div>
+                  <div className="stat-info">
+                    <strong>{allMentors.filter(m => m.is_approved).length}</strong>
+                    <span>Verified Mentors</span>
+                  </div>
+                </div>
+                <div className="admin-stat-card warning">
+                  <div className="stat-icon"><img src="/icons/calendar.svg" alt="pending" /></div>
+                  <div className="stat-info">
+                    <strong>{allMentors.filter(m => !m.is_approved).length}</strong>
+                    <span>Pending Approval</span>
+                  </div>
+                </div>
+                <div className="admin-stat-card blue">
+                  <div className="stat-icon"><img src="/icons/warning.svg" alt="requests" /></div>
+                  <div className="stat-info">
+                    <strong>{mentorRequests.length}</strong>
+                    <span>Active Requests</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-actions-bar" style={{ marginBottom: '3rem' }}>
+                <button className="join-btn" onClick={handleRunAutoTeaming}>
+                  RUN AUTO-TEAMING ALGORITHM
+                </button>
+              </div>
+
+              <div className="admin-teams-section" style={{ marginBottom: '4rem' }}>
+                <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Active Squads</h2>
+                <div className="teams-grid">
+                  {Object.entries(
+                    allUsers.reduce((acc, user) => {
+                      if (user.team_name) {
+                        if (!acc[user.team_name]) acc[user.team_name] = [];
+                        acc[user.team_name].push(user);
+                      }
+                      return acc;
+                    }, {})
+                  ).map(([teamName, members]) => (
+                    <div key={teamName} className="admin-team-card">
+                      <div className="team-header">
+                        <h3>{teamName}</h3>
+                        <span className="member-count">{members.length} Members</span>
+                      </div>
+                      <div className="team-track">
+                        <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
+                      </div>
+                      <div className="team-members-list">
+                        {members.map(m => (
+                          <div key={m.id} className="team-member-item">
+                            <span>{m.full_name}</span>
+                            <small>{m.email}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-main-grid">
+                <div className="admin-panel mentor-queue">
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>System Reports</h2>
+                  <div className="admin-issues-list">
+                    {systemIssues.length === 0 ? (
+                      <p>No active issues reported.</p>
+                    ) : (
+                      systemIssues.map(issue => (
+                        <div key={issue.id} className="approval-card">
+                          <div className="user-meta">
+                            <strong>{issue.profiles?.full_name || 'Anonymous'}</strong>
+                            <p>{issue.description}</p>
+                            <small>{new Date(issue.created_at).toLocaleString()}</small>
+                          </div>
+                          <button className="btn-small accept" onClick={() => {/* Logic to close issue */}}>
+                            RESOLVE
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-panel mentor-queue">
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mentor Approval Queue</h2>
+                  <div className="approval-list">
+                    {allMentors.filter(m => !m.is_approved).map(mentor => (
+                      <div key={mentor.id} className="approval-card">
+                        <div className="user-meta">
+                          <strong>{mentor.full_name}</strong>
+                          <span>{mentor.email}</span>
+                          <div className="role-tag">{mentor.role_title || 'Expert'}</div>
+                        </div>
+                        <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
+                      </div>
+                    ))}
+                    {allMentors.filter(m => !m.is_approved).length === 0 && (
+                      <div className="empty-state">
+                        <p>All clear! No pending mentors.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-panel user-directory">
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Global User Directory</h2>
+                  <div className="user-table-wrapper">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Role</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allUsers.map(u => (
+                          <tr key={u.id}>
+                            <td>
+                              <div className="table-user">
+                                <strong>{u.full_name}</strong>
+                                <span>{u.email}</span>
+                              </div>
+                            </td>
+                            <td><span className="role-badge">{u.user_role}</span></td>
+                            <td>
+                              <span className={`status-dot ${u.is_approved ? 'active' : 'idle'}`}></span>
+                              {u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending')}
+                            </td>
+                            <td>
+                              <div className="table-actions">
+                                <button className="btn-table-action" title="View details">DETAILS</button>
+                                <button className="btn-table-action delete" title="Delete user">REMOVE</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="profile-field">
-              <label>My Tech Stack</label>
-              <div className="tech-tag-container">
-                {user.stack.map(s => <span key={s} className="tech-tag">{s}</span>)}
-                <span className="tech-tag" style={{ opacity: 0.5, cursor: 'pointer' }}>+ Add Tool</span>
-              </div>
-            </div>
-            <div className="profile-field">
-              <label>Social Connectivity</label>
-              <div className="social-connect-grid">
-                <div className="social-connect-item">
-                  <img src="/icons/github.svg" alt="GitHub" />
-                  <input
-                    type="text"
-                    placeholder="GitHub Username"
-                    value={user.socials.github}
-                    onChange={(e) => setUser({ ...user, socials: { ...user.socials, github: e.target.value } })}
+
+          ) : user.role === 'mentor' ? (
+            /* MENTOR PROFILE VIEW */
+            <>
+              <div className="profile-sidebar">
+                <div className="profile-avatar" style={{ position: 'relative' }}>
+                  <img
+                    src={user.avatarUrl || '/icons/user-profile.svg'}
+                    alt="avatar"
+                    style={{ objectFit: user.avatarUrl ? 'cover' : 'contain', borderRadius: '50%', width: '100%', height: '100%' }}
+                  />
+                  <label className="upload-overlay" title="Change photo">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleAvatarUpload}
+                    />
+                    ✎
+                  </label>
+                </div>
+                <h2 className="text-3d">{user.name}</h2>
+                <div className={`status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
+                  {user.isApproved ? 'VERIFIED MENTOR' : 'AWAITING APPROVAL'}
+                </div>
+
+                <div className="profile-field" style={{ marginTop: '2rem' }}>
+                  <label>Mentor Bio</label>
+                  <textarea
+                    value={user.bio}
+                    onChange={(e) => setUser({ ...user, bio: e.target.value })}
+                    placeholder="Share your expertise and how you can help..."
                   />
                 </div>
-                <div className="social-connect-item">
-                  <img src="/icons/linkedin.svg" alt="LinkedIn" />
-                  <input
-                    type="text"
-                    placeholder="LinkedIn Profile"
-                    value={user.socials.linkedin}
-                    onChange={(e) => setUser({ ...user, socials: { ...user.socials, linkedin: e.target.value } })}
+
+                <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+                  <button className="join-btn" onClick={updateProfile}>SAVE CHANGES</button>
+                  <button className="logout-btn" onClick={handleLogout}>LOGOUT</button>
+                </div>
+                <div onClick={() => setActiveView('landing')} style={{ marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
+              </div>
+
+              <div className="profile-info">
+                <div className="profile-card-group">
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Professional Info</h2>
+                  <div className="profile-field">
+                    <label>Expertise / Role</label>
+                    <input
+                      type="text"
+                      className="profile-input"
+                      value={user.role_title || ''}
+                      onChange={(e) => setUser({ ...user, role_title: e.target.value })}
+                      placeholder="e.g. Senior Software Architect, Product Designer..."
+                    />
+                  </div>
+                  <div className="profile-field">
+                    <label>Company / Organization</label>
+                    <input
+                      type="text"
+                      className="profile-input"
+                      value={user.venue || ''} // Using venue field for company as per common profile patterns
+                      onChange={(e) => setUser({ ...user, venue: e.target.value })}
+                      placeholder="e.g. Google, Meta, Independent..."
+                    />
+                  </div>
+                  <div className="profile-field">
+                    <label>My Mentoring Stack</label>
+                    <div className="tech-tag-container">
+                      {user.stack.map(s => <span key={s} className="tech-tag">{s}</span>)}
+                      <span className="tech-tag" style={{ opacity: 0.5, cursor: 'pointer' }}>+ Add Skill</span>
+                    </div>
+                  </div>
+                  <div className="profile-field">
+                    <label>Social Links</label>
+                    <div className="social-connect-grid">
+                      <div className="social-connect-item">
+                        <img src="/icons/github.svg" alt="GitHub" />
+                        <input
+                          type="text"
+                          placeholder="GitHub Username"
+                          value={user.socials.github}
+                          onChange={(e) => setUser({ ...user, socials: { ...user.socials, github: e.target.value } })}
+                        />
+                      </div>
+                      <div className="social-connect-item">
+                        <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                        <input
+                          type="text"
+                          placeholder="LinkedIn Profile"
+                          value={user.socials.linkedin}
+                          onChange={(e) => setUser({ ...user, socials: { ...user.socials, linkedin: e.target.value } })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="requests-section" style={{ marginTop: '3rem' }}>
+                  <h2 className="text-3d" style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>Attendee Requests</h2>
+                  {!user.isApproved && (
+                    <div className="warning-box" style={{ marginBottom: '1.5rem', background: '#fff9e6', border: '2px solid #ffcc00', padding: '1rem', borderRadius: '15px', color: '#856404' }}>
+                      Your account is pending approval. You will be able to accept requests once verified by the Admin!
+                    </div>
+                  )}
+                  <div className="request-list">
+                    {mentorRequests.map(req => (
+                      <div key={req.id} className="request-card">
+                        <div className="request-user">
+                          <strong>{req.profiles?.full_name || 'Anonymous'}</strong>
+                          <span>{req.profiles?.email}</span>
+                        </div>
+                        <p className="request-msg">"{req.message}"</p>
+                        <div className="request-actions">
+                          <button className="btn-small accept" disabled={!user.isApproved} onClick={() => handleAcceptRequest(req.id)}>ACCEPT</button>
+                          <button className="btn-small decline" onClick={() => handleDeclineRequest(req.id)}>DECLINE</button>
+                        </div>
+                      </div>
+                    ))}
+                    {mentorRequests.length === 0 && <p className="empty-msg" style={{ opacity: 0.5 }}>No active help requests yet. Stay tuned!</p>}
+                  </div>
+                </div>
+              </div>
+            </>
+
+          ) : (
+            /* EXISTING ATTENDEE PROFILE VIEW */
+            <>
+              <div className="profile-sidebar">
+                <div className="profile-avatar" style={{ position: 'relative' }}>
+                  <img
+                    src={user.avatarUrl || '/icons/user-profile.svg'}
+                    alt="avatar"
+                    style={{ objectFit: user.avatarUrl ? 'cover' : 'contain', borderRadius: '50%', width: '100%', height: '100%' }}
+                  />
+                  <label className="upload-overlay" title="Change photo">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleAvatarUpload}
+                    />
+                    ✎
+                  </label>
+                </div>
+                <h2 className="text-3d">{user.name}</h2>
+                <div className="profile-field" style={{ marginTop: '2rem' }}>
+                  <label>Hacker Bio</label>
+                  <textarea
+                    value={user.bio}
+                    onChange={(e) => setUser({ ...user, bio: e.target.value })}
+                    placeholder="Tell us about yourself..."
                   />
                 </div>
-              </div>
-            </div>
-            <div className="profile-field" style={{ borderBottom: 'none' }}>
-              <label>Support & Assistance</label>
-              <div className="support-cta-grid">
-                <div className="support-btn mentor" onClick={() => alert('Mentor request sent! Stay tuned.')}>
-                  REQUEST A MENTOR
+                <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+                  <div className="sound-toggle-large" onClick={() => setIsSoundEnabled(!isSoundEnabled)}>
+                    <span>Volume Control</span>
+                    <div className={`toggle-switch ${isSoundEnabled ? 'active' : ''}`}>
+                      {isSoundEnabled ? "AUDIO ON" : "AUDIO OFF"}
+                    </div>
+                  </div>
+                  <button className="join-btn" onClick={updateProfile}>SAVE CHANGES</button>
+                  <button className="logout-btn" onClick={handleLogout}>LOGOUT</button>
                 </div>
-                <div className="support-btn issue" onClick={() => alert('Our team has been notified. We will reach out soon!')}>
-                  REPORT AN ISSUE
+                <div onClick={() => setActiveView('landing')} style={{ marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
+              </div>
+              <div className="profile-info">
+                <div className="profile-field">
+                  <label>Hacking Role</label>
+                  <input
+                    type="text"
+                    className="profile-input"
+                    value={user.role_title || user.role}
+                    onChange={(e) => setUser({ ...user, role_title: e.target.value })}
+                    placeholder="e.g. Frontend, UI/UX, Backend..."
+                  />
+                </div>
+                <div className="profile-field">
+                  <label>My Tech Stack</label>
+                  <div className="tech-tag-container">
+                    {user.stack.map(s => <span key={s} className="tech-tag">{s}</span>)}
+                    <span className="tech-tag" style={{ opacity: 0.5, cursor: 'pointer' }}>+ Add Tool</span>
+                  </div>
+                </div>
+                <div className="profile-field">
+                  <label>Team Status</label>
+                  <div className="field-value">
+                    <strong>{user.teamName ? user.teamName : 'Solo Hacker'}</strong>
+                    {user.teamName ? (
+                      <button className="btn-small decline" style={{ marginLeft: '1rem' }} onClick={handleLeaveTeam}>
+                        LEAVE TEAM
+                      </button>
+                    ) : (
+                      <button className="btn-small accept" style={{ marginLeft: '1rem' }} onClick={handleFindTeam}>
+                        FIND MY SQUAD
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="profile-field">
+                  <label>Selected Innovation Track</label>
+                  <div className="field-value">
+                    <strong>{user.selectedTrack || 'No track chosen yet'}</strong>
+                    <button className="btn-small" style={{ marginLeft: '1rem', border: '2px solid var(--text-navy)' }} onClick={() => setActiveView('landing')}>
+                      CHANGE TRACK
+                    </button>
+                  </div>
+                </div>
+                <div className="profile-field">
+                  <label>Social Connectivity</label>
+                  <div className="social-connect-grid">
+                    <div className="social-connect-item">
+                      <img src="/icons/github.svg" alt="GitHub" />
+                      <input
+                        type="text"
+                        placeholder="GitHub Username"
+                        value={user.socials.github}
+                        onChange={(e) => setUser({ ...user, socials: { ...user.socials, github: e.target.value } })}
+                      />
+                    </div>
+                    <div className="social-connect-item">
+                      <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                      <input
+                        type="text"
+                        placeholder="LinkedIn Profile"
+                        value={user.socials.linkedin}
+                        onChange={(e) => setUser({ ...user, socials: { ...user.socials, linkedin: e.target.value } })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="profile-field" style={{ borderBottom: 'none' }}>
+                  <label>Support & Assistance</label>
+                  <div className="support-cta-grid">
+                    <div className="support-btn mentor" onClick={() => setActiveView('landing')}>
+                      GO TO MENTOR LIST
+                    </div>
+                    <div className="support-btn issue" onClick={handleReportIssue}>
+                      REPORT AN ISSUE
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       ) : activeView === 'venue' ? (
         <div className="venue-container">
           <div className="venue-header">
             <h1 className="text-3d">VENUE DETAILS</h1>
-            <p className="handwritten">Everything you need to know about where the magic happens! ✨</p>
+            <p className="handwritten">Everything you need to know about where the magic happens!</p>
           </div>
 
           <div className="venue-grid">
@@ -830,7 +1785,7 @@ function App() {
               <h2 className="text-3d">Transport</h2>
               <div className="transport-list">
                 <div className="transport-item">
-                  <div className="transport-icon">🚇</div>
+                  <div className="transport-icon"><img src="/icons/metro.svg" alt="metro" style={{ width: '40px' }} /></div>
                   <div className="transport-info">
                     <h3>Metro (Line 5)</h3>
                     <p>From <strong>Central Station</strong> to <strong>Innovation Park</strong></p>
@@ -838,7 +1793,7 @@ function App() {
                   </div>
                 </div>
                 <div className="transport-item">
-                  <div className="transport-icon">🚌</div>
+                  <div className="transport-icon"><img src="/icons/bus.svg" alt="bus" style={{ width: '40px' }} /></div>
                   <div className="transport-info">
                     <h3>Shuttle Bus</h3>
                     <p>From <strong>City Plaza</strong> to <strong>Venue Entrance</strong></p>
@@ -846,7 +1801,7 @@ function App() {
                   </div>
                 </div>
                 <div className="transport-item">
-                  <div className="transport-icon">🚗</div>
+                  <div className="transport-icon"><img src="/icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
                   <div className="transport-info">
                     <h3>Car / Ride Share</h3>
                     <p>Drop-off at <strong>Main Gate</strong></p>
@@ -897,6 +1852,11 @@ function App() {
               <div className="track-modal-header">
                 <span className="track-id-badge">CHALLENGE #{selectedTrack.id}</span>
                 <h2 className="text-3d">{selectedTrack.title}</h2>
+                {user.role === 'attendee' && (
+                  <button className="join-btn" onClick={() => handleSelectTrack(selectedTrack.title)}>
+                    CHOOSE THIS TRACK
+                  </button>
+                )}
               </div>
               <div className="track-modal-body">
                 <div className="track-description">
@@ -917,6 +1877,32 @@ function App() {
               <div className="modal-footer-brand">
                 Starlet 5.0 Innovation Track
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeAlert && (
+        <div className="realtime-alert-overlay">
+          <div className="realtime-alert-card">
+            <div className="alert-header">NEW HELP REQUEST</div>
+            <div className="alert-body">
+              <div className="alert-user-photo">
+                <img src={activeAlert.attendee?.avatar_url || '/icons/user-profile.svg'} alt="attendee" />
+              </div>
+              <div className="alert-content">
+                <h3>{activeAlert.attendee?.full_name}</h3>
+                <span className="alert-team-tag">{activeAlert.attendee?.team_name || 'Solo Hacker'}</span>
+                <p>"{activeAlert.message}"</p>
+              </div>
+            </div>
+            <div className="alert-footer">
+              <button className="join-btn" style={{ width: '100%', marginBottom: '0.5rem' }} onClick={() => { handleAcceptRequest(activeAlert.id); setActiveAlert(null); }}>
+                ACCEPT NOW
+              </button>
+              <button className="btn-secondary" style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '2px solid #eee', cursor: 'pointer' }} onClick={() => setActiveAlert(null)}>
+                DISMISS
+              </button>
             </div>
           </div>
         </div>
