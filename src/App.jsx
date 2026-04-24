@@ -202,6 +202,21 @@ function App() {
     };
   }, [isSoundEnabled]);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isMenuOpen) {
+      document.body.classList.add('menu-open');
+      html.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+      html.classList.remove('menu-open');
+    }
+    return () => {
+      document.body.classList.remove('menu-open');
+      html.classList.remove('menu-open');
+    };
+  }, [isMenuOpen]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
