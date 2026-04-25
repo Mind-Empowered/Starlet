@@ -517,6 +517,21 @@ function App() {
     }
   };
 
+  const handleManualVenueChange = async (userId, newVenue) => {
+    const { error } = await supabase.from('profiles').update({ venue: newVenue }).eq('id', userId);
+    if (error) alert(error.message);
+    else fetchAllUsers();
+  };
+
+  const handleTeamVenueChange = async (teamName, newVenue) => {
+    const teamMembers = allUsers.filter(u => u.team_name === teamName);
+    for (const member of teamMembers) {
+      await supabase.from('profiles').update({ venue: newVenue }).eq('id', member.id);
+    }
+    alert(`Team ${teamName} relocated to ${newVenue}`);
+    fetchAllUsers();
+  };
+
   const handleAddVenue = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -1603,6 +1618,19 @@ function App() {
                       <div className="team-track">
                         <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
                       </div>
+                      <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
+                        <select 
+                          className="admin-select-small"
+                          value={members[0].venue || ''}
+                          onChange={(e) => handleTeamVenueChange(teamName, e.target.value)}
+                        >
+                          <option value="">No Venue Assigned</option>
+                          {venues.map(v => (
+                            <option key={v.id} value={v.name}>{v.name}</option>
+                          ))}
+                          <option value="Waitlisted/Overflow">Waitlisted/Overflow</option>
+                        </select>
+                      </div>
                       <div className="team-members-list">
                         {members.map(m => (
                           <div key={m.id} className="team-member-item">
@@ -1669,6 +1697,7 @@ function App() {
                           <th>User</th>
                           <th>Role</th>
                           <th>Status</th>
+                          <th>Venue</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
@@ -1685,6 +1714,21 @@ function App() {
                             <td>
                               <span className={`status-dot ${u.is_approved ? 'active' : 'idle'}`}></span>
                               {u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending')}
+                            </td>
+                            <td>
+                              <div className="table-venue-select">
+                                <select 
+                                  className="admin-select-small"
+                                  value={u.venue || ''}
+                                  onChange={(e) => handleManualVenueChange(u.id, e.target.value)}
+                                >
+                                  <option value="">Unassigned</option>
+                                  {venues.map(v => (
+                                    <option key={v.id} value={v.name}>{v.name}</option>
+                                  ))}
+                                  <option value="Waitlisted/Overflow">Waitlisted</option>
+                                </select>
+                              </div>
                             </td>
                             <td>
                               <div className="table-actions">
