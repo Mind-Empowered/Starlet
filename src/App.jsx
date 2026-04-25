@@ -500,6 +500,14 @@ function App() {
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const files = e.target.photos.files;
+    
+    const uploadedUrls = [];
+    for (let i = 0; i < files.length; i++) {
+      const url = await handleFileUpload(files[i], 'projects');
+      if (url) uploadedUrls.push(url);
+    }
+
     const submissionData = {
       team_name: user.teamName || `Individual-${session.user.id}`,
       project_name: formData.get('projectName'),
@@ -507,7 +515,7 @@ function App() {
       github_url: formData.get('github'),
       demo_url: formData.get('demo'),
       submitted_by: session.user.id,
-      image_urls: []
+      image_urls: uploadedUrls
     };
 
     const { error } = await supabase.from('project_submissions').insert([submissionData]);
@@ -673,12 +681,20 @@ function App() {
   const handleAddVenue = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const imageFile = e.target.image.files[0];
+    
+    let imageUrl = '';
+    if (imageFile) {
+      imageUrl = await handleFileUpload(imageFile, 'venues');
+    }
+
     const updates = {
       name: formData.get('name'),
       address: formData.get('address'),
       google_maps_url: formData.get('mapsUrl'),
       description: formData.get('description'),
-      capacity: parseInt(formData.get('capacity')) || 0
+      capacity: parseInt(formData.get('capacity')) || 0,
+      image_url: imageUrl
     };
 
     const { error } = await supabase.from('venues').insert([updates]);
@@ -732,12 +748,20 @@ function App() {
   const handleAddMentor = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const photoFile = e.target.photo.files[0];
+    
+    let photoUrl = '';
+    if (photoFile) {
+      photoUrl = await handleFileUpload(photoFile, 'avatars');
+    }
+
     const { error } = await supabase.from('mentors').insert([{
       full_name: formData.get('name'),
       role_title: formData.get('role'),
       company: formData.get('company'),
       bio: formData.get('bio'),
-      expertise: formData.get('expertise').split(',').map(s => s.trim())
+      expertise: formData.get('expertise').split(',').map(s => s.trim()),
+      avatar_url: photoUrl
     }]);
     
     if (error) alert(error.message);
@@ -841,18 +865,7 @@ function App() {
       if (authData.user) {
         let avatarUrl = '';
         if (signupAvatar) {
-          const fileExt = signupAvatar.name.split('.').pop();
-          const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(fileName, signupAvatar);
-
-          if (!uploadError) {
-            const { data: publicUrlData } = supabase.storage
-              .from('avatars')
-              .getPublicUrl(fileName);
-            avatarUrl = publicUrlData.publicUrl;
-          }
+          avatarUrl = await handleFileUpload(signupAvatar, 'avatars');
         }
 
         let finalTeamId = null;
@@ -960,10 +973,32 @@ function App() {
         .insert([{ user_id: session.user.id, description: desc }]);
 
       if (error) throw error;
-      alert('Issue reported successfully. The admin team has been notified.');
+      alert('Issue reported. Admin will look into it!');
     } catch (error) {
       alert(error.message);
     }
+  };
+
+  const handleFileUpload = async (file, bucket) => {
+    if (!file) return null;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+
+    if (uploadError) {
+      alert(`Upload failed: ${uploadError.message}`);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   };
 
   const handleResolveIssue = async (issueId) => {
@@ -1856,6 +1891,10 @@ function App() {
                       <input name="mapsUrl" type="url" placeholder="Google Maps URL" required />
                       <input name="capacity" type="number" placeholder="Max Capacity (e.g. 60)" required />
                       <textarea name="description" placeholder="Description / Accessibility Details" required></textarea>
+                      <div className="input-group">
+                        <label>Venue Header Image</label>
+                        <input name="image" type="file" accept="image/*" required />
+                      </div>
                       <button type="submit" className="join-btn" style={{ width: '100%' }}>ADD VENUE</button>
                     </form>
                   </div>
@@ -2065,6 +2104,10 @@ function App() {
                       <input name="company" type="text" placeholder="Company" required />
                       <input name="expertise" type="text" placeholder="Expertise (comma separated: React, AI)" required />
                       <textarea name="bio" placeholder="Brief bio..." required></textarea>
+                      <div className="input-group">
+                        <label>Mentor Photo</label>
+                        <input name="photo" type="file" accept="image/*" required />
+                      </div>
                       <button type="submit" className="join-btn" style={{ width: '100%' }}>ADD MENTOR</button>
                     </form>
                   </div>
@@ -2541,6 +2584,10 @@ function App() {
                       <div className="input-group" style={{ marginTop: '1rem' }}>
                         <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description</label>
                         <textarea name="description" placeholder="Tell us what you built and how it helps..." required style={{ width: '100%', minHeight: '100px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}></textarea>
+                      </div>
+                      <div className="input-group" style={{ marginTop: '1rem' }}>
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Photos (Max 3)</label>
+                        <input name="photos" type="file" accept="image/*" multiple style={{ width: '100%', padding: '0.8rem' }} />
                       </div>
                       <button type="submit" className="join-btn" style={{ width: '100%', marginTop: '1.5rem' }}>
                         SUBMIT FINAL PROJECT
