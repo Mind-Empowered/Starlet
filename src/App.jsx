@@ -357,6 +357,7 @@ function App() {
     const { data: issues } = await supabase
       .from('system_issues')
       .select('*, profiles(full_name)')
+      .eq('status', 'open')
       .order('created_at', { ascending: false });
     if (issues) setSystemIssues(issues);
   };
@@ -757,6 +758,18 @@ function App() {
       alert('Issue reported successfully. The admin team has been notified.');
     } catch (error) {
       alert(error.message);
+    }
+  };
+
+  const handleResolveIssue = async (issueId) => {
+    const { error } = await supabase
+      .from('system_issues')
+      .update({ status: 'resolved' })
+      .eq('id', issueId);
+    if (error) alert(error.message);
+    else {
+      alert('Issue marked as resolved!');
+      fetchAllUsers();
     }
   };
 
@@ -1704,7 +1717,7 @@ function App() {
                             <p>{issue.description}</p>
                             <small>{new Date(issue.created_at).toLocaleString()}</small>
                           </div>
-                          <button className="btn-small accept" onClick={() => {/* Logic to close issue */ }}>
+                          <button className="btn-small accept" onClick={() => handleResolveIssue(issue.id)}>
                             RESOLVE
                           </button>
                         </div>
