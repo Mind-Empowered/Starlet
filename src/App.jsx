@@ -2931,13 +2931,6 @@ function App() {
           <button className="lightbox-close" onClick={() => setSelectedGalleryImage(null)}>×</button>
           
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-            <button 
-              className="lightbox-nav-btn prev" 
-              onClick={() => setSelectedGalleryImage(prev => (prev > 0 ? prev - 1 : 41))}
-            >
-              ←
-            </button>
-            
             <div className="lightbox-image-container">
               <img 
                 src={selectedGalleryImage + 1 <= 9 ? `/gallery/${selectedGalleryImage + 1}.JPG` : `/gallery/${selectedGalleryImage + 1}.jpeg`} 
@@ -2948,12 +2941,20 @@ function App() {
               </div>
             </div>
 
-            <button 
-              className="lightbox-nav-btn next" 
-              onClick={() => setSelectedGalleryImage(prev => (prev < 41 ? prev + 1 : 0))}
-            >
-              →
-            </button>
+            <div className="lightbox-controls-bottom">
+              <button 
+                className="lightbox-nav-btn prev" 
+                onClick={() => setSelectedGalleryImage(prev => (prev > 0 ? prev - 1 : 41))}
+              >
+                ←
+              </button>
+              <button 
+                className="lightbox-nav-btn next" 
+                onClick={() => setSelectedGalleryImage(prev => (prev < 41 ? prev + 1 : 0))}
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
       )}
