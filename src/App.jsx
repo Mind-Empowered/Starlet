@@ -169,6 +169,8 @@ function App() {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [mentorRequestModal, setMentorRequestModal] = useState(null);
+  const [projectSubmissions, setProjectSubmissions] = useState([]);
+  const [mySubmission, setMySubmission] = useState(null);
 
   const galleryRef = useRef(null);
   const requestRef = useRef();
@@ -250,6 +252,8 @@ function App() {
     fetchProblemStatements();
     fetchSettings();
     fetchAllMentors();
+    if (isLoggedIn && user.role === 'admin') fetchSubmissions();
+    if (isLoggedIn && user.role === 'attendee') fetchMySubmission();
 
     // 4. Realtime listener for venues, settings, and mentors
     const venueChannel = supabase
@@ -442,6 +446,42 @@ function App() {
     else {
       alert('Mentor approved!');
       fetchAllMentors();
+    }
+  };
+
+  const fetchSubmissions = async () => {
+    const { data } = await supabase.from('project_submissions').select('*');
+    if (data) setProjectSubmissions(data);
+  };
+
+  const fetchMySubmission = async () => {
+    if (!session) return;
+    const { data } = await supabase
+      .from('project_submissions')
+      .select('*')
+      .or(`submitted_by.eq.${session.user.id},team_name.eq.${user.teamName}`)
+      .single();
+    if (data) setMySubmission(data);
+  };
+
+  const handleProjectSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const submissionData = {
+      team_name: user.teamName || `Solo-${user.name}`,
+      project_name: formData.get('projectName'),
+      description: formData.get('description'),
+      github_url: formData.get('github'),
+      demo_url: formData.get('demo'),
+      submitted_by: session.user.id,
+      image_urls: [] // Photos would be uploaded to storage in a full implementation
+    };
+
+    const { error } = await supabase.from('project_submissions').insert([submissionData]);
+    if (error) alert(error.message);
+    else {
+      alert('Project submitted successfully! Good luck!');
+      fetchMySubmission();
     }
   };
 
@@ -2111,6 +2151,59 @@ function App() {
                     </table>
                   </div>
                 </div>
+
+                {/* PROJECT SUBMISSIONS OVERVIEW */}
+                <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <h2 className="text-3d" style={{ fontSize: '2rem', margin: 0 }}>Project Submissions</h2>
+                    <div className="admin-stats-strip" style={{ margin: 0, padding: '0.5rem 1rem', background: 'transparent' }}>
+                      <div className="admin-stat-card" style={{ padding: '0.5rem 1rem', minWidth: 'auto' }}>
+                        <strong>{projectSubmissions.length}</strong>
+                        <span style={{ fontSize: '0.7rem' }}>Submitted</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="user-table-wrapper">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Team / Project</th>
+                          <th>Links</th>
+                          <th>Status</th>
+                          <th>Submitted At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Show all unique teams and their submission status */}
+                        {Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Solo-${u.full_name}`))).map(team => {
+                          const sub = projectSubmissions.find(s => s.team_name === team);
+                          return (
+                            <tr key={team}>
+                              <td>
+                                <strong>{team}</strong>
+                                {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
+                              </td>
+                              <td>
+                                {sub ? (
+                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
+                                    <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
+                                  </div>
+                                ) : '-'}
+                              </td>
+                              <td>
+                                <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
+                                  {sub ? 'SUBMITTED' : 'PENDING'}
+                                </span>
+                              </td>
+                              <td>{sub ? new Date(sub.submitted_at).toLocaleDateString() : '-'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2381,6 +2474,46 @@ function App() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* PROJECT SUBMISSION SECTION */}
+                <div className="profile-card" style={{ marginTop: '2rem', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '20px' }}>
+                  <h3 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Project Submission</h3>
+                  {mySubmission ? (
+                    <div className="submission-success" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚀</div>
+                      <h3>Project Submitted!</h3>
+                      <p>Your team's project <strong>"{mySubmission.project_name}"</strong> has been received.</p>
+                      <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                        <a href={mySubmission.github_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW CODE</a>
+                        <a href={mySubmission.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW DEMO</a>
+                      </div>
+                    </div>
+                  ) : (
+                    <form className="auth-form" onSubmit={handleProjectSubmit} style={{ marginTop: '1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="input-group">
+                          <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Name</label>
+                          <input name="projectName" type="text" placeholder="My Awesome Hack" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        </div>
+                        <div className="input-group">
+                          <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>GitHub Repository</label>
+                          <input name="github" type="url" placeholder="https://github.com/..." required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        </div>
+                      </div>
+                      <div className="input-group" style={{ marginTop: '1rem' }}>
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Demo Link (Video or URL)</label>
+                        <input name="demo" type="url" placeholder="https://youtube.com/... or https://myapp.com" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      </div>
+                      <div className="input-group" style={{ marginTop: '1rem' }}>
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description</label>
+                        <textarea name="description" placeholder="Tell us what you built and how it helps..." required style={{ width: '100%', minHeight: '100px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}></textarea>
+                      </div>
+                      <button type="submit" className="join-btn" style={{ width: '100%', marginTop: '1.5rem' }}>
+                        SUBMIT FINAL PROJECT
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             </>
