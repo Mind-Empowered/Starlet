@@ -267,6 +267,10 @@ function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'mentors' }, () => {
         fetchAllMentors();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_submissions' }, () => {
+        if (isLoggedIn && user.role === 'admin') fetchSubmissions();
+        if (isLoggedIn && user.role === 'attendee') fetchMySubmission();
+      })
       .subscribe();
 
     return () => {
@@ -468,13 +472,13 @@ function App() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const submissionData = {
-      team_name: user.teamName || `Solo-${user.name}`,
+      team_name: user.teamName || `Individual-${session.user.id}`,
       project_name: formData.get('projectName'),
       description: formData.get('description'),
       github_url: formData.get('github'),
       demo_url: formData.get('demo'),
       submitted_by: session.user.id,
-      image_urls: [] // Photos would be uploaded to storage in a full implementation
+      image_urls: []
     };
 
     const { error } = await supabase.from('project_submissions').insert([submissionData]);
@@ -2175,7 +2179,7 @@ function App() {
                       </thead>
                       <tbody>
                         {/* Show all unique teams and their submission status */}
-                        {Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Solo-${u.full_name}`))).map(team => {
+                        {Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`))).map(team => {
                           const sub = projectSubmissions.find(s => s.team_name === team);
                           return (
                             <tr key={team}>
