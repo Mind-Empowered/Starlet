@@ -157,7 +157,12 @@ function App() {
   const [needsTeaming, setNeedsTeaming] = useState(false);
   const [activeAlert, setActiveAlert] = useState(null);
   const [systemIssues, setSystemIssues] = useState([]);
-  const [certsReleased, setCertsReleased] = useState(false);
+  const [settings, setSettings] = useState({
+    registration_open: 'true',
+    certificates_released: 'false',
+    event_announcement: ''
+  });
+  const [auditLogs, setAuditLogs] = useState([]);
   const [venues, setVenues] = useState([]);
   const [problemStatements, setProblemStatements] = useState([]);
 
@@ -236,15 +241,19 @@ function App() {
       }
     });
 
-    // 3. Fetch venues and problem statements
+    // 3. Fetch venues, problem statements, and settings
     fetchVenues();
     fetchProblemStatements();
+    fetchSettings();
 
-    // 4. Realtime listener for venues
+    // 4. Realtime listener for venues and settings
     const venueChannel = supabase
       .channel('venue-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'venues' }, () => {
         fetchVenues();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_settings' }, () => {
+        fetchSettings();
       })
       .subscribe();
 
@@ -335,6 +344,7 @@ function App() {
     if (isLoggedIn && user.role === 'admin') {
       fetchAllMentors();
       fetchAllUsers();
+      fetchAuditLogs();
     }
   }, [isLoggedIn, user.role]);
 
@@ -368,6 +378,45 @@ function App() {
       .eq('status', 'open')
       .order('created_at', { ascending: false });
     if (issues) setSystemIssues(issues);
+  };
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('event_settings').select('*');
+    if (data) {
+      const settingsMap = {};
+      data.forEach(s => settingsMap[s.id] = s.value);
+      setSettings(settingsMap);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    const { data } = await supabase
+      .from('audit_logs')
+      .select('*, profiles(full_name)')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (data) setAuditLogs(data);
+  };
+
+  const logAction = async (action, details = {}) => {
+    await supabase.from('audit_logs').insert([{
+      admin_id: session.user.id,
+      action,
+      details
+    }]);
+    fetchAuditLogs();
+  };
+
+  const updateSetting = async (key, value) => {
+    const { error } = await supabase
+      .from('event_settings')
+      .update({ value: String(value) })
+      .eq('id', key);
+    
+    if (!error) {
+      logAction(`Updated Setting: ${key}`, { value });
+      fetchSettings();
+    }
   };
 
   const handleRequestMentor = async (mentorId) => {
@@ -456,8 +505,7 @@ function App() {
   };
   const handleAllocateCertificates = async () => {
     try {
-      // Logic to release certificates for all participants
-      setCertsReleased(true);
+      await updateSetting('certificates_released', 'true');
       alert('Certificates have been successfully released for all participants!');
     } catch (error) {
       alert('Failed to release certificates: ' + error.message);
@@ -1625,16 +1673,64 @@ function App() {
               </div>
 
               <div className="admin-actions-bar" style={{ marginBottom: '3rem', display: 'flex', gap: '1rem' }}>
-                <button className="join-btn" onClick={handleRunAutoTeaming}>
+                <button className="join-btn" onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
                   RUN AUTO-TEAMING ALGORITHM
                 </button>
                 <button 
                   className="join-btn" 
-                  style={{ background: certsReleased ? '#4caf50' : 'var(--pink-primary)' }}
+                  style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)' }}
                   onClick={handleAllocateCertificates}
                 >
-                  {certsReleased ? 'CERTIFICATES ALLOCATED ✓' : 'ALLOCATE CERTIFICATES'}
+                  {settings.certificates_released === 'true' ? 'CERTIFICATES ALLOCATED ✓' : 'ALLOCATE CERTIFICATES'}
                 </button>
+              </div>
+
+              {/* EVENT CONFIGURATION */}
+              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+                <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Global Configuration</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+                  <div className="admin-card">
+                    <h3>Event Toggles</h3>
+                    <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Public Registration</span>
+                        <button 
+                          className={`btn-small ${settings.registration_open === 'true' ? 'accept' : 'decline'}`}
+                          onClick={() => updateSetting('registration_open', settings.registration_open === 'true' ? 'false' : 'true')}
+                        >
+                          {settings.registration_open === 'true' ? 'OPEN' : 'CLOSED'}
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Certificate Claiming</span>
+                        <button 
+                          className={`btn-small ${settings.certificates_released === 'true' ? 'accept' : 'decline'}`}
+                          onClick={() => updateSetting('certificates_released', settings.certificates_released === 'true' ? 'false' : 'true')}
+                        >
+                          {settings.certificates_released === 'true' ? 'ENABLED' : 'DISABLED'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="admin-card">
+                    <h3>Live Announcement</h3>
+                    <div style={{ marginTop: '1rem' }}>
+                      <textarea 
+                        style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                        value={settings.event_announcement || ''}
+                        onChange={(e) => setSettings({ ...settings, event_announcement: e.target.value })}
+                        placeholder="Type a message for the landing page banner..."
+                      />
+                      <button 
+                        className="join-btn" 
+                        style={{ width: '100%', marginTop: '1rem' }}
+                        onClick={() => updateSetting('event_announcement', settings.event_announcement)}
+                      >
+                        UPDATE LIVE BANNER
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* VENUE MANAGEMENT SECTION */}
@@ -1756,6 +1852,40 @@ function App() {
                       This ensures that only people who filled out the Google Form can access the platform.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* AUDIT LOGS */}
+              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                  <h2 className="text-3d" style={{ fontSize: '2rem', margin: 0 }}>Security Audit Logs</h2>
+                  <button className="btn-small" onClick={fetchAuditLogs}>REFRESH LOGS</button>
+                </div>
+                <div className="user-table-wrapper" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Timestamp</th>
+                        <th>Admin</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.length === 0 ? (
+                        <tr><td colSpan="4" style={{ textAlign: 'center' }}>No logs recorded yet.</td></tr>
+                      ) : (
+                        auditLogs.map(log => (
+                          <tr key={log.id}>
+                            <td><small>{new Date(log.created_at).toLocaleString()}</small></td>
+                            <td><strong>{log.profiles?.full_name}</strong></td>
+                            <td><span className="role-badge" style={{ background: '#eee', color: '#333' }}>{log.action}</span></td>
+                            <td><code style={{ fontSize: '0.7rem' }}>{JSON.stringify(log.details)}</code></td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -2163,7 +2293,7 @@ function App() {
                     <div className="support-btn issue" onClick={handleReportIssue}>
                       REPORT AN ISSUE
                     </div>
-                    {certsReleased && (
+                    {settings.certificates_released === 'true' && (
                       <div 
                         className="support-btn mentor" 
                         style={{ 
