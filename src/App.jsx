@@ -1866,7 +1866,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="admin-actions-bar" style={{ marginBottom: '3rem', display: 'flex', gap: '1rem' }}>
+              <div className="admin-actions-bar" style={{ marginBottom: '3rem' }}>
                 <button className="join-btn" onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
                   RUN AUTO-TEAMING ALGORITHM
                 </button>
@@ -1882,7 +1882,7 @@ function App() {
               {/* EVENT CONFIGURATION */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Global Configuration</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+                <div className="admin-two-col-grid">
                   <div className="admin-card">
                     <h3>Event Toggles</h3>
                     <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -1930,7 +1930,7 @@ function App() {
               {/* VENUE MANAGEMENT SECTION */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Venue Management</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                <div className="admin-two-col-grid">
                   <div className="admin-card">
                     <h3>Add New Venue</h3>
                     <form className="auth-form" onSubmit={handleAddVenue} style={{ marginTop: '1rem' }}>
@@ -2027,7 +2027,7 @@ function App() {
               {/* EMAIL WHITELIST MANAGEMENT */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Registration Whitelist</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                <div className="admin-two-col-grid">
                   <div className="admin-card">
                     <h3>Add Registered Email</h3>
                     <form className="auth-form" style={{ marginTop: '1rem' }} onSubmit={async (e) => {
@@ -2090,7 +2090,7 @@ function App() {
               {/* PROBLEM STATEMENT MANAGEMENT */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Problem Statement Library</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem' }}>
+                <div className="admin-two-col-grid">
                   <div className="admin-card">
                     <h3>Current Statements</h3>
                     <div className="admin-issues-list" style={{ marginTop: '1rem' }}>
@@ -2125,7 +2125,7 @@ function App() {
               {/* MENTOR MANAGEMENT */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Mentor Management</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem' }}>
+                <div className="admin-two-col-grid">
                   <div className="admin-card">
                     <h3>Active Mentors</h3>
                     <div className="admin-issues-list" style={{ marginTop: '1rem' }}>
@@ -2615,7 +2615,7 @@ function App() {
                     </div>
                   ) : (
                     <form className="auth-form" onSubmit={handleProjectSubmit} style={{ marginTop: '1rem' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-two-col-grid" style={{ gap: '1rem' }}>
                         <div className="input-group">
                           <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Name</label>
                           <input name="projectName" type="text" placeholder="My Awesome Hack" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
