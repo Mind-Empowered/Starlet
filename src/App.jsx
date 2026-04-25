@@ -445,7 +445,11 @@ function App() {
       alert(error.message);
     }
   };
-
+  const handleAllocateCertificates = async () => {
+    try {
+      // Logic to release certificates for all participants
+      setCertsReleased(true);
+      alert('Certificates have been successfully released for all participants!');
     } catch (error) {
       alert('Failed to release certificates: ' + error.message);
     }
