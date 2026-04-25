@@ -2037,7 +2037,7 @@ function App() {
                           color: '#001f3f',
                           gridColumn: 'span 2'
                         }} 
-                        onClick={() => window.open(`/certificate/template.html?name=${encodeURIComponent(user.name)}`, '_blank')}
+                        onClick={() => setActiveView('certificate')}
                       >
                         🎓 CLAIM ACHIEVEMENT CERTIFICATE
                       </div>
