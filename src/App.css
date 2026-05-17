@@ -932,26 +932,37 @@ header.header-minimal {
 
 .section-visual-small {
     flex: 1.2;
-    /* Increased flex to give more space */
     max-width: 550px;
-    /* Larger card size */
     width: 100%;
     border: 3px solid var(--text-navy);
-    border-radius: 20px;
+    border-radius: 25px;
     overflow: hidden;
     background: var(--bg-cream);
-    box-shadow: 10px 10px 0px var(--blue-shadow);
+    box-shadow: 12px 12px 0px var(--blue-shadow);
     display: flex;
-    aspect-ratio: 16 / 9;
-    /* Professional widescreen look */
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 4 / 3;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.section-visual-small img {
+.section-visual-small:hover {
+    transform: translateY(-5px);
+    box-shadow: 15px 15px 0px var(--pink-primary);
+}
+
+.section-visual-small img,
+.section-visual-small video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Fills the card completely */
+    object-position: center;
     display: block;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.section-visual-small:hover img {
+    transform: scale(1.05);
 }
 
 /* Global Responsiveness Tweak */

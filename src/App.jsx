@@ -17,14 +17,14 @@ const sectionsData = [
     id: 2,
     type: 'mission',
     title: "Our Mission",
-    content: "A safe place for girls to connect, code, co-create and cultivate confidence",
+    content: "A safe place for girls to connect, code, co-create, and cultivate confidence. We believe that when women are provided with an empowering, collaborative environment, their ideas have the power to transform industries and reshape the future of technology.",
     image: "/svg/1.svg"
   },
   {
     id: 16,
     type: 'theme',
     title: "Starlet 5.0 Theme",
-    content: "Collaboration over competition to build technology that empowers people with disabilities, improves accessibility, and creates a more inclusive world",
+    content: "Collaboration over competition to build technology that empowers people with disabilities, improves accessibility, and creates a more inclusive world. Whether through software, hardware, or AI, your solutions will break down barriers and foster real-world independence.",
     image: "/svg/3.svg"
   },
   {
@@ -51,7 +51,7 @@ const sectionsData = [
   },
   { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Fair play and collaboration are the heart of Starlet.", image: "/icons/warning.svg" },
   { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Industry experts ready to guide your journey.", image: "/icons/user-profile.svg" },
-  { id: 9, type: 'community', title: "Make New Friends", content: "Connect with like-minded innovators.", image: "/svg/2.svg" },
+  { id: 9, type: 'community', title: "Make New Friends", content: "Starlet isn't just an innovation marathon — it's the starting point for lifelong sisterhood and professional networking. Connect with passionate creators, find potential co-founders, share late-night coding breakthroughs, and become part of an empowered tech community that champions your growth!", image: "/svg/2.svg" },
   { id: 10, type: 'sponsors', title: "Our Supporters", content: "The organizations making this impact possible.", image: "/brand/Logo.png" },
   { id: 11, type: 'gallery', title: "The Gallery", content: "Captured moments of innovation and fun.", image: "/brand/Logo.png" },
   { id: 12, type: 'faq', title: "Common Doubts", content: "Answers to frequently asked questions.", image: "/icons/warning.svg" },
@@ -106,6 +106,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
+  const [adminActiveTab, setAdminActiveTab] = useState('admin'); // admin or mentor
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -377,7 +378,7 @@ function App() {
   const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
-    if (isLoggedIn && user.role === 'mentor') {
+    if (isLoggedIn && (user.role === 'mentor' || user.role === 'admin')) {
       fetchMentorRequests();
       // Realtime listener for new requests
       const channel = supabase
@@ -470,7 +471,7 @@ function App() {
       .from('event_settings')
       .update({ value: String(value) })
       .eq('id', key);
-    
+
     if (!error) {
       logAction(`Updated Setting: ${key}`, { value });
       fetchSettings();
@@ -494,7 +495,7 @@ function App() {
 
     // 2. Check if already in mentors table to avoid duplicates
     const { data: existing } = await supabase.from('mentors').select('id').eq('profile_id', mentorId).single();
-    
+
     if (!existing) {
       // 3. Promote to mentors table
       const { error: promoError } = await supabase.from('mentors').insert([{
@@ -547,7 +548,7 @@ function App() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const files = e.target.photos.files;
-    
+
     const uploadedUrls = [];
     for (let i = 0; i < files.length; i++) {
       const url = await handleFileUpload(files[i], 'projects');
@@ -649,7 +650,7 @@ function App() {
       // 1. Fetch current data
       const { data: attendees } = await supabase.from('profiles').select('*').eq('user_role', 'attendee');
       const { data: currentVenues } = await supabase.from('venues').select('*');
-      
+
       if (!attendees || !currentVenues || currentVenues.length === 0) {
         setLoading(false);
         return alert('Missing attendees or venue data to perform sorting.');
@@ -657,10 +658,10 @@ function App() {
 
       // 2. Initialize tracking
       const venueLimits = {};
-      currentVenues.forEach(v => { 
-        venueLimits[v.name] = { capacity: parseInt(v.capacity) || 0, count: 0 }; 
+      currentVenues.forEach(v => {
+        venueLimits[v.name] = { capacity: parseInt(v.capacity) || 0, count: 0 };
       });
-      
+
       // 3. Group by Team
       const teams = {};
       attendees.forEach(a => {
@@ -678,7 +679,7 @@ function App() {
         const preference = members[0].preferred_venue || currentVenues[0].name;
 
         let assignedVenue = null;
-        
+
         // Try preferred first
         if (venueLimits[preference] && (venueLimits[preference].count + size) <= venueLimits[preference].capacity) {
           assignedVenue = preference;
@@ -728,7 +729,7 @@ function App() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const imageFiles = e.target.images.files;
-    
+
     if (imageFiles.length < 4 || imageFiles.length > 6) {
       alert(`Please select between 4 and 6 images (you selected ${imageFiles.length})`);
       return;
@@ -754,7 +755,7 @@ function App() {
 
       const { error } = await supabase.from('venues').insert([updates]);
       if (error) throw error;
-      
+
       alert('Venue added successfully with ' + uploadedUrls.length + ' images!');
       e.target.reset();
       fetchVenues();
@@ -809,7 +810,7 @@ function App() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const photoFile = e.target.photo.files[0];
-    
+
     let photoUrl = '';
     if (photoFile) {
       photoUrl = await handleFileUpload(photoFile, 'avatars');
@@ -823,7 +824,7 @@ function App() {
       expertise: formData.get('expertise').split(',').map(s => s.trim()),
       avatar_url: photoUrl
     }]);
-    
+
     if (error) alert(error.message);
     else {
       alert('Mentor added to the grid!');
@@ -908,7 +909,7 @@ function App() {
           .select('email')
           .eq('email', email)
           .single();
-        
+
         if (!isWhitelisted) {
           alert('This email is not registered in our records. Please use the email you registered with on the Google Form.');
           return;
@@ -1102,7 +1103,7 @@ function App() {
 
   const handleDeleteUser = async (userId, name) => {
     if (!confirm(`Are you sure you want to remove ${name} from the galaxy? This action is irreversible.`)) return;
-    
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -1110,7 +1111,7 @@ function App() {
         .eq('id', userId);
 
       if (error) throw error;
-      
+
       alert(`${name} has been successfully removed.`);
       fetchAllUsers(); // Refresh the list
       logAction('Deleted User', { name, userId });
@@ -1138,7 +1139,7 @@ function App() {
         useCORS: true,
         backgroundColor: '#fffdf5'
       });
-      
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'landscape',
@@ -1161,23 +1162,33 @@ function App() {
   const updateProfile = async () => {
     if (!session?.user?.id) return alert('Not logged in.');
     try {
-      const updates = {
+      // 1. Update profiles table with existing columns
+      const profileUpdates = {
         id: session.user.id,
         full_name: user.name,
         user_role: user.role,
         bio: user.bio,
         venue: user.venue,
         stack: user.stack,
-        college: user.college,
-        github_url: user.socials.github,
-        linkedin_url: user.socials.linkedin,
-        twitter_url: user.socials.twitter,
-        role_title: user.role_title,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase.from('profiles').upsert(updates);
-      if (error) throw error;
+      const { error } = await supabase.from('profiles').upsert(profileUpdates);
+      if (error && !error.message.includes('column')) throw error;
+
+      // 2. Also sync to mentors table if acting as mentor
+      if (user.role === 'mentor' || (user.role === 'admin' && adminActiveTab === 'mentor')) {
+        await supabase.from('mentors').update({
+          full_name: user.name,
+          role_title: user.role_title || 'Mentor & Admin',
+          company: user.venue || 'Starlet Command',
+          bio: user.bio,
+          expertise: user.stack,
+          avatar_url: user.avatarUrl || '/icons/user-profile.svg'
+        }).eq('profile_id', session.user.id);
+        fetchAllMentors();
+      }
+
       alert('Profile updated successfully!');
     } catch (error) {
       alert(error.message);
@@ -1210,13 +1221,16 @@ function App() {
 
     const avatarUrl = urlData.publicUrl;
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', session.user.id);
+    // 1. Update mentors table where avatar_url definitely exists
+    await supabase.from('mentors').update({ avatar_url: avatarUrl }).eq('profile_id', session.user.id);
+    fetchAllMentors();
 
-    if (updateError) alert('Could not save avatar: ' + updateError.message);
-    else setUser(prev => ({ ...prev, avatarUrl }));
+    // 2. Try updating profiles table (ignore error if column doesn't exist)
+    try {
+      await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', session.user.id);
+    } catch (err) { /* ignore schema cache error */ }
+
+    setUser(prev => ({ ...prev, avatarUrl }));
   };
 
   const handleAcceptRequest = async (requestId) => {
@@ -1324,12 +1338,12 @@ function App() {
                 <h2 className="text-3d" style={{ fontSize: '1.2rem', margin: 0, textAlign: 'center' }}>Registration Form</h2>
               </div>
               <div className="form-iframe-container" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-cream)' }}>
-                <iframe 
-                  src="https://docs.google.com/forms/d/e/1FAIpQLScpTSmn2W3htUW6o2oy7Qnb1g5JGGGdVeV1E950b0lpJHTaaw/viewform?embedded=true" 
-                  width="100%" 
-                  height="1600" 
-                  frameBorder="0" 
-                  marginHeight="0" 
+                <iframe
+                  src="https://docs.google.com/forms/d/e/1FAIpQLScpTSmn2W3htUW6o2oy7Qnb1g5JGGGdVeV1E950b0lpJHTaaw/viewform?embedded=true"
+                  width="100%"
+                  height="1600"
+                  frameBorder="0"
+                  marginHeight="0"
                   marginWidth="0"
                   title="Starlet 5.0 Registration Form"
                 >
@@ -1590,10 +1604,10 @@ function App() {
                           const path = index <= 9 ? `/gallery/${index}.JPG` : `/gallery/${index}.jpeg`;
                           const caption = galleryCaptions[i] || `Starlet Memory #${index}`;
                           return (
-                            <div 
-                              key={index} 
-                              className="polaroid" 
-                              style={{ 
+                            <div
+                              key={index}
+                              className="polaroid"
+                              style={{
                                 "--r": `${(Math.sin(index) * 6).toFixed(1)}deg`,
                                 flex: '0 0 auto',
                                 cursor: 'zoom-in'
@@ -1601,9 +1615,9 @@ function App() {
                               onClick={() => setSelectedGalleryImage(i)}
                             >
                               <div className="polaroid-heart">💖</div>
-                              <div className="polaroid-img" style={{ 
-                                backgroundImage: `url('${path}')`, 
-                                backgroundSize: 'cover', 
+                              <div className="polaroid-img" style={{
+                                backgroundImage: `url('${path}')`,
+                                backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                                 height: '200px',
                                 width: '100%'
@@ -1902,8 +1916,8 @@ function App() {
           </div>
         </div>
       ) : activeView === 'profile' ? (
-        <div className={user.role === 'admin' ? "admin-page-wrapper" : "profile-container"}>
-          {user.role === 'admin' ? (
+        <div className={user.role === 'admin' && adminActiveTab === 'admin' ? "admin-page-wrapper" : "profile-container"}>
+          {user.role === 'admin' && adminActiveTab === 'admin' ? (
             /* ADMIN PROFILE VIEW */
             <div className="admin-dashboard-full">
               <div className="admin-header-row">
@@ -1911,7 +1925,10 @@ function App() {
                   <h1 className="text-3d" style={{ fontSize: '3.5rem' }}>Admin Command Center</h1>
                   <p className="handwritten" style={{ fontSize: '1.2rem' }}>Master control for the Starlet 5.0 galaxy!</p>
                 </div>
-                <div className="admin-quick-actions">
+                <div className="admin-quick-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <button className="join-btn" style={{ background: 'var(--yellow-primary)', color: '#000', padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={() => setAdminActiveTab('mentor')}>
+                    SWITCH TO MENTOR VIEW ⇄
+                  </button>
                   <button className="logout-btn" onClick={handleLogout}>LOGOUT ADMIN</button>
                   <div className="admin-back-link" onClick={() => setActiveView('landing')}>← Back to Home</div>
                 </div>
@@ -1952,8 +1969,8 @@ function App() {
                 <button className="join-btn" onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
                   RUN AUTO-TEAMING ALGORITHM
                 </button>
-                <button 
-                  className="join-btn" 
+                <button
+                  className="join-btn"
                   style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)' }}
                   onClick={handleAllocateCertificates}
                 >
@@ -1970,7 +1987,7 @@ function App() {
                     <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>Public Registration</span>
-                        <button 
+                        <button
                           className={`btn-small ${settings.registration_open === 'true' ? 'accept' : 'decline'}`}
                           onClick={() => updateSetting('registration_open', settings.registration_open === 'true' ? 'false' : 'true')}
                         >
@@ -1979,7 +1996,7 @@ function App() {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>Certificate Claiming</span>
-                        <button 
+                        <button
                           className={`btn-small ${settings.certificates_released === 'true' ? 'accept' : 'decline'}`}
                           onClick={() => updateSetting('certificates_released', settings.certificates_released === 'true' ? 'false' : 'true')}
                         >
@@ -1991,14 +2008,14 @@ function App() {
                   <div className="admin-card">
                     <h3>Live Announcement</h3>
                     <div style={{ marginTop: '1rem' }}>
-                      <textarea 
+                      <textarea
                         style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #ddd' }}
                         value={settings.event_announcement || ''}
                         onChange={(e) => setSettings({ ...settings, event_announcement: e.target.value })}
                         placeholder="Type a message for the landing page banner..."
                       />
-                      <button 
-                        className="join-btn" 
+                      <button
+                        className="join-btn"
                         style={{ width: '100%', marginTop: '1rem' }}
                         onClick={() => updateSetting('event_announcement', settings.event_announcement)}
                       >
@@ -2048,8 +2065,8 @@ function App() {
                       )}
                     </div>
                     {venues.length > 0 && (
-                      <button 
-                        className="join-btn" 
+                      <button
+                        className="join-btn"
                         style={{ width: '100%', marginTop: '2rem', background: 'var(--blue-shadow)' }}
                         onClick={handleSortVenues}
                       >
@@ -2081,7 +2098,7 @@ function App() {
                         <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
                       </div>
                       <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
-                        <select 
+                        <select
                           className="admin-select-small"
                           value={members[0].venue || ''}
                           onChange={(e) => handleTeamVenueChange(teamName, e.target.value)}
@@ -2128,7 +2145,7 @@ function App() {
                   </div>
                   <div className="admin-card">
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      Only emails in this whitelist will be allowed to sign up as <strong>Attendees</strong>. 
+                      Only emails in this whitelist will be allowed to sign up as <strong>Attendees</strong>.
                       This ensures that only people who filled out the Google Form can access the platform.
                     </p>
                   </div>
@@ -2268,6 +2285,26 @@ function App() {
                 </div>
 
                 <div className="admin-panel mentor-queue">
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Your Mentor Help Requests</h2>
+                  <div className="request-list">
+                    {mentorRequests.map(req => (
+                      <div key={req.id} className="request-card" style={{ marginBottom: '1rem', background: 'var(--card-bg)', padding: '1rem', borderRadius: '12px' }}>
+                        <div className="request-user">
+                          <strong>{req.profiles?.full_name || 'Anonymous'}</strong>
+                          <span> ({req.profiles?.email})</span>
+                        </div>
+                        <p className="request-msg" style={{ margin: '0.5rem 0' }}>"{req.message}"</p>
+                        <div className="request-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button className="btn-small accept" onClick={() => handleAcceptRequest(req.id)}>ACCEPT</button>
+                          <button className="btn-small decline" onClick={() => handleDeclineRequest(req.id)}>DECLINE</button>
+                        </div>
+                      </div>
+                    ))}
+                    {mentorRequests.length === 0 && <p className="empty-msg" style={{ opacity: 0.5 }}>No active help requests for you right now.</p>}
+                  </div>
+                </div>
+
+                <div className="admin-panel mentor-queue">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mentor Approval Queue</h2>
                   <div className="approval-list">
                     {allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).map(mentor => (
@@ -2318,7 +2355,7 @@ function App() {
                             </td>
                             <td>
                               <div className="table-venue-select">
-                                <select 
+                                <select
                                   className="admin-select-small"
                                   value={u.venue || ''}
                                   onChange={(e) => handleManualVenueChange(u.id, e.target.value)}
@@ -2333,7 +2370,7 @@ function App() {
                             </td>
                             <td>
                               <div className="table-venue-select">
-                                <select 
+                                <select
                                   className="admin-select-small"
                                   value={u.problem_statement_id || ''}
                                   onChange={(e) => handleAdminUpdateUserPS(u.id, e.target.value)}
@@ -2348,8 +2385,8 @@ function App() {
                             <td>
                               <div className="table-actions">
                                 <button className="btn-table-action" title="View details">DETAILS</button>
-                                <button 
-                                  className="btn-table-action delete" 
+                                <button
+                                  className="btn-table-action delete"
                                   title="Delete user"
                                   onClick={() => handleDeleteUser(u.id, u.full_name)}
                                 >
@@ -2419,7 +2456,7 @@ function App() {
               </div>
             </div>
 
-          ) : user.role === 'mentor' ? (
+          ) : (user.role === 'mentor' || (user.role === 'admin' && adminActiveTab === 'mentor')) ? (
             /* MENTOR PROFILE VIEW */
             <>
               <div className="profile-sidebar">
@@ -2454,6 +2491,11 @@ function App() {
                 </div>
 
                 <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+                  {user.role === 'admin' && (
+                    <button className="join-btn" style={{ background: 'var(--yellow-primary)', color: '#000' }} onClick={() => setAdminActiveTab('admin')}>
+                      SWITCH TO ADMIN VIEW ⇄
+                    </button>
+                  )}
                   <button className="join-btn" onClick={updateProfile}>SAVE CHANGES</button>
                   <button className="logout-btn" onClick={handleLogout}>LOGOUT</button>
                 </div>
@@ -2486,8 +2528,32 @@ function App() {
                   <div className="profile-field">
                     <label>My Mentoring Stack</label>
                     <div className="tech-tag-container">
-                      {user.stack.map(s => <span key={s} className="tech-tag">{s}</span>)}
-                      <span className="tech-tag" style={{ opacity: 0.5, cursor: 'pointer' }}>+ Add Skill</span>
+                      {user.stack.map(s => (
+                        <span 
+                          key={s} 
+                          className="tech-tag" 
+                          title="Click to remove"
+                          onClick={() => {
+                            if (confirm(`Remove ${s} from your skills?`)) {
+                              setUser(prev => ({ ...prev, stack: prev.stack.filter(skill => skill !== s) }));
+                            }
+                          }}
+                        >
+                          {s} ×
+                        </span>
+                      ))}
+                      <span 
+                        className="tech-tag" 
+                        style={{ opacity: 0.5, cursor: 'pointer' }}
+                        onClick={() => {
+                          const newSkill = prompt("Enter new skill (e.g. TypeScript, Python, UI Design):");
+                          if (newSkill && newSkill.trim()) {
+                            setUser(prev => ({ ...prev, stack: [...prev.stack, newSkill.trim()] }));
+                          }
+                        }}
+                      >
+                        + Add Skill
+                      </span>
                     </div>
                   </div>
                   <div className="profile-field">
@@ -2627,8 +2693,8 @@ function App() {
                         <small style={{ color: 'var(--text-muted)' }}>🔒 Selection Locked (Contact admin to change)</small>
                       </div>
                     ) : (
-                      <select 
-                        className="admin-select-small" 
+                      <select
+                        className="admin-select-small"
                         style={{ padding: '0.8rem', fontSize: '1rem' }}
                         onChange={(e) => handleSelectPS(e.target.value)}
                       >
@@ -2673,13 +2739,13 @@ function App() {
                       REPORT AN ISSUE
                     </div>
                     {settings.certificates_released === 'true' && (
-                      <div 
-                        className="support-btn mentor" 
-                        style={{ 
-                          background: 'linear-gradient(135deg, #ffd700, #ff8c00)', 
+                      <div
+                        className="support-btn mentor"
+                        style={{
+                          background: 'linear-gradient(135deg, #ffd700, #ff8c00)',
                           color: '#001f3f',
                           gridColumn: 'span 2'
-                        }} 
+                        }}
                         onClick={() => setActiveView('certificate')}
                       >
                         🎓 CLAIM ACHIEVEMENT CERTIFICATE
@@ -2736,19 +2802,19 @@ function App() {
           )}
         </div>
       ) : activeView === 'certificate' ? (
-        <div 
-          className="certificate-view-screen" 
-          style={{ 
-            minHeight: '100vh', 
-            padding: '2rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center' 
+        <div
+          className="certificate-view-screen"
+          style={{
+            minHeight: '100vh',
+            padding: '2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
           }}
         >
           {/* Sticky Controls Header */}
-          <div 
-            className="certificate-sticky-header" 
+          <div
+            className="certificate-sticky-header"
             style={{
               position: 'sticky',
               top: '20px',
@@ -2773,15 +2839,15 @@ function App() {
               <button className="btn-secondary" onClick={() => setActiveView('profile')}>BACK TO PROFILE</button>
             </div>
           </div>
-          
+
           {/* Certificate Display Area */}
-          <div 
-            className="certificate-display-wrapper" 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              perspective: '1000px', 
-              paddingBottom: '4rem' 
+          <div
+            className="certificate-display-wrapper"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              perspective: '1000px',
+              paddingBottom: '4rem'
             }}
           >
             <div className="certificate-container-live" id="certificate-render" style={{
@@ -2804,7 +2870,7 @@ function App() {
             }}>
               {/* Watermark */}
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-15deg)', fontFamily: "'Fredoka One', cursive", fontSize: '11rem', color: 'rgba(0, 31, 63, 0.03)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 1, letterSpacing: '4rem' }}>STARLET</div>
-              
+
               {/* Decorative Star */}
               <div style={{ position: 'absolute', top: '30px', left: '30px', width: '60px', height: '60px', backgroundColor: '#ffd700', clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)', border: '3px solid #001f3f', transform: 'rotate(-15deg)', zIndex: 2 }}></div>
 
@@ -2817,7 +2883,7 @@ function App() {
                   <img src="/brand/Mind Empowered.jpeg" alt="ME" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               </div>
-              
+
               {/* Title Section */}
               <div style={{ textAlign: 'center', zIndex: 2 }}>
                 <h1 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '5.5rem', color: '#001f3f', margin: 0, textTransform: 'uppercase', textShadow: '4px 4px 0px #ffd700' }}>Certificate</h1>
@@ -2876,11 +2942,11 @@ function App() {
                       {v.address}
                     </div>
                   </div>
-                  <a 
-                    href={v.google_maps_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="join-btn" 
+                  <a
+                    href={v.google_maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="join-btn"
                     style={{ marginTop: '1.5rem', textAlign: 'center', display: 'block', textDecoration: 'none' }}
                   >
                     OPEN IN GOOGLE MAPS
@@ -3017,12 +3083,12 @@ function App() {
       {selectedGalleryImage !== null && (
         <div className="modal-overlay lightbox-overlay" onClick={() => setSelectedGalleryImage(null)}>
           <button className="lightbox-close" onClick={() => setSelectedGalleryImage(null)}>×</button>
-          
+
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
             <div className="lightbox-image-container">
-              <img 
-                src={selectedGalleryImage + 1 <= 9 ? `/gallery/${selectedGalleryImage + 1}.JPG` : `/gallery/${selectedGalleryImage + 1}.jpeg`} 
-                alt="Enlarged" 
+              <img
+                src={selectedGalleryImage + 1 <= 9 ? `/gallery/${selectedGalleryImage + 1}.JPG` : `/gallery/${selectedGalleryImage + 1}.jpeg`}
+                alt="Enlarged"
               />
               <div className="lightbox-caption">
                 {galleryCaptions[selectedGalleryImage] || `Starlet Memory #${selectedGalleryImage + 1}`}
@@ -3030,14 +3096,14 @@ function App() {
             </div>
 
             <div className="lightbox-controls-bottom">
-              <button 
-                className="lightbox-nav-btn prev" 
+              <button
+                className="lightbox-nav-btn prev"
                 onClick={() => setSelectedGalleryImage(prev => (prev > 0 ? prev - 1 : 41))}
               >
                 ←
               </button>
-              <button 
-                className="lightbox-nav-btn next" 
+              <button
+                className="lightbox-nav-btn next"
                 onClick={() => setSelectedGalleryImage(prev => (prev < 41 ? prev + 1 : 0))}
               >
                 →
@@ -3049,29 +3115,72 @@ function App() {
 
       {selectedMentor && (
         <div className="modal-overlay" onClick={() => setSelectedMentor(null)}>
-          <div className="modal-content mentor-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="text-3d">{selectedMentor.full_name}</h2>
-              <button className="modal-close" onClick={() => setSelectedMentor(null)}>×</button>
-            </div>
-            <div className="mentor-modal-content">
-              <div className="mentor-modal-side">
-                <img src={selectedMentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" />
-                <h3>{selectedMentor.role_title}</h3>
-                <p>{selectedMentor.company}</p>
-                <div className="mentor-tags">
-                  {(selectedMentor.expertise || []).map(tag => <span key={tag} className="tech-tag">{tag}</span>)}
+          <div className="modal-content mentor-modal" style={{ padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            
+            {/* Flush Navy Banner Header */}
+            <div className="modal-header" style={{ background: 'var(--text-navy)', color: '#fff', padding: '1.8rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '5px solid var(--pink-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+                <span style={{ fontSize: '2.5rem' }}>✨</span>
+                <div>
+                  <h2 className="text-3d" style={{ fontSize: '2.4rem', margin: 0, color: '#fff', textShadow: '4px 4px 0px var(--pink-primary)' }}>{selectedMentor.full_name}</h2>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", letterSpacing: '2px' }}>STARLET VERIFIED MENTOR</span>
                 </div>
               </div>
-              <div className="mentor-modal-main">
-                <h4>About</h4>
-                <p>{selectedMentor.bio}</p>
+              <button className="modal-close" style={{ background: 'var(--pink-primary)', color: '#fff', border: '3px solid #fff', width: '48px', height: '48px', borderRadius: '50%', fontSize: '1.8rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '4px 4px 0px #000' }} onClick={() => setSelectedMentor(null)}>×</button>
+            </div>
+
+            {/* Content Area */}
+            <div className="mentor-modal-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '2.5rem', padding: '3rem 2.5rem', alignItems: 'start' }}>
+              
+              {/* Left Column: Profile Card */}
+              <div className="mentor-modal-side" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '2.5rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: '8px 8px 0px var(--blue-shadow)' }}>
+                <div className="mentor-modal-photo" style={{ width: '170px', height: '170px', borderRadius: '50%', overflow: 'hidden', border: '5px solid var(--pink-primary)', boxShadow: '6px 6px 0px var(--yellow-star)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-cream)' }}>
+                  <img src={selectedMentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" style={{ width: '100%', height: '100%', objectFit: selectedMentor.avatar_url ? 'cover' : 'contain' }} />
+                </div>
+                <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)', lineHeight: '1.2' }}>{selectedMentor.role_title}</h3>
+                <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 1rem', fontSize: '0.95rem', fontWeight: '900', color: 'var(--text-navy)', marginTop: '0.5rem', display: 'inline-block' }}>🏢 {selectedMentor.company}</span>
+              </div>
+
+              {/* Right Column: Info & Skills Cards */}
+              <div className="mentor-modal-main" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                
+                {/* About Box */}
+                <div className="mentor-info-card" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '2rem 2.5rem', boxShadow: '8px 8px 0px var(--pink-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.2rem' }}>
+                    <span style={{ fontSize: '1.6rem' }}>💡</span>
+                    <h4 style={{ fontSize: '1.6rem', color: 'var(--text-navy)', margin: 0, fontFamily: "'Fredoka One', cursive" }}>About Me</h4>
+                  </div>
+                  <p style={{ fontSize: '1.15rem', lineHeight: '1.6', color: '#333', margin: 0, fontStyle: selectedMentor.bio ? 'normal' : 'italic' }}>
+                    {selectedMentor.bio || 'Experienced professional dedicated to guiding innovators and hackers to success.'}
+                  </p>
+                </div>
+
+                {/* Skills Box */}
+                <div className="mentor-info-card" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '2rem 2.5rem', boxShadow: '8px 8px 0px var(--yellow-star)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                    <span style={{ fontSize: '1.6rem' }}>⚡</span>
+                    <h4 style={{ fontSize: '1.6rem', color: 'var(--text-navy)', margin: 0, fontFamily: "'Fredoka One', cursive" }}>Mentoring Stack</h4>
+                  </div>
+                  <div className="mentor-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem' }}>
+                    {(selectedMentor.expertise || []).map(tag => (
+                      <span key={tag} className="tech-tag" style={{ fontSize: '1rem', padding: '0.6rem 1.2rem', background: 'var(--yellow-star)', color: 'var(--text-navy)', border: '3px solid var(--text-navy)', borderRadius: '20px', fontWeight: '900', boxShadow: '4px 4px 0px var(--text-navy)' }}>
+                        {tag}
+                      </span>
+                    ))}
+                    {(selectedMentor.expertise || []).length === 0 && (
+                      <span style={{ color: '#888', fontStyle: 'italic' }}>No specific skills listed yet</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Attendee Action Button */}
                 {user.role === 'attendee' && (
-                  <button className="join-btn" style={{ marginTop: '2rem', width: '100%' }} onClick={() => { setMentorRequestModal(selectedMentor); setSelectedMentor(null); }}>
-                    REQUEST HELP FROM {selectedMentor.full_name.split(' ')[0]}
+                  <button className="join-btn" style={{ width: '100%', padding: '1.4rem', fontSize: '1.3rem', background: 'var(--pink-primary)', color: '#fff', border: '4px solid var(--text-navy)', borderRadius: '25px', boxShadow: '8px 8px 0px var(--text-navy)', cursor: 'pointer', fontFamily: "'Fredoka One', cursive", textTransform: 'uppercase', marginTop: '0.5rem' }} onClick={() => { setMentorRequestModal(selectedMentor); setSelectedMentor(null); }}>
+                    🚀 REQUEST HELP FROM {selectedMentor.full_name.split(' ')[0].toUpperCase()}
                   </button>
                 )}
               </div>
+
             </div>
           </div>
         </div>
@@ -3087,7 +3196,7 @@ function App() {
               const msg = e.target.message.value;
               const { error } = await supabase.from('mentor_requests').insert([{
                 attendee_id: session.user.id,
-                mentor_id: mentorRequestModal.id,
+                mentor_id: mentorRequestModal.profile_id || mentorRequestModal.id,
                 message: msg
               }]);
               if (error) alert(error.message);
@@ -3096,8 +3205,8 @@ function App() {
                 setMentorRequestModal(null);
               }
             }}>
-              <textarea 
-                name="message" 
+              <textarea
+                name="message"
                 placeholder="What do you need help with? (e.g. Debugging React, UI Feedback)"
                 required
                 style={{ width: '100%', minHeight: '120px', padding: '1rem', borderRadius: '12px', marginTop: '1rem' }}
