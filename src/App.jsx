@@ -400,7 +400,6 @@ function App() {
     }
 
     if (isLoggedIn && user.role === 'admin') {
-      console.log("This works!");
       fetchAllMentors();
       fetchAllUsers();
       fetchAuditLogs();
@@ -423,7 +422,6 @@ function App() {
   };
 
   const fetchAllUsers = async () => {
-    console.log("Called me!");
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -436,7 +434,6 @@ function App() {
       .eq('status', 'open')
       .order('created_at', { ascending: false });
     if (issues) setSystemIssues(issues);
-    console.log(data);
   };
 
   const getDisplayTeamName = (teamName) => {
@@ -2555,6 +2552,7 @@ function App() {
                                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
                                     <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
+                                    <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
                                   </div>
                                 ) : '-'}
                               </td>
@@ -2780,6 +2778,17 @@ function App() {
                   />
                 </div>
                 <div className="profile-field">
+                  <label>Allocated Venue</label>
+                  <input
+                    type="text"
+                    className="profile-input"
+                    value={user.venue.toUpperCase() || user.venue.toUpperCase()}
+                    onChange={(e) => setUser({ ...user, venue: e.target.value })}
+                    placeholder="e.g. Frontend, UI/UX, Backend..."
+                    readOnly
+                  />
+                </div>
+                <div className="profile-field">
                   <label>My Tech Stack</label>
                   <div className="tech-tag-container">
                     {user.stack.map(s => (
@@ -2913,6 +2922,14 @@ function App() {
                       <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                         <a href={mySubmission.github_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW CODE</a>
                         <a href={mySubmission.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW DEMO</a>
+                        <a href={mySubmission.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">VIEW PRESENTATION</a>
+                      </div>
+                      <div className="submission-images-grid" style={{ marginTop: '1.5rem' }}>
+                        {(mySubmission.image_urls || []).map((img, i) => (
+                          <div key={i} className="submission-img-placeholder">
+                            <img src={img} alt={`submission-${i}`} />
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : (
