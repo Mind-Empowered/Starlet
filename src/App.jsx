@@ -2132,12 +2132,12 @@ function App() {
               </div>
 
               <div className="admin-actions-bar" style={{ marginBottom: '3rem'}}>
-                <button className="join-btn" style={{ marginRight: '12px' }} onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
+                <button className="join-btn" style={{ margin: '12px' }} onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
                   RUN AUTO-TEAMING ALGORITHM
                 </button>
                 <button
                   className="join-btn"
-                  style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)' }}
+                  style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)' , margin: '12px'}}
                   onClick={handleAllocateCertificates}
                 >
                   {settings.certificates_released === 'true' ? 'CERTIFICATES ALLOCATED ✓' : 'ALLOCATE CERTIFICATES'}
