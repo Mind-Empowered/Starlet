@@ -97,7 +97,7 @@ const SponsorsPage = ({ onBack }) => {
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
               <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginTop: '1.5rem' }} />
               <div style={{ textAlign: 'center' }}>
-                <p className="text-3d" style={{ fontSize: '1.1rem', color: 'var(--text-navy)', margin: 0 }}>MAIN VENUE PARTNER</p>
+                <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
               </div>
             </div>
 

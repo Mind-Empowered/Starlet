@@ -474,6 +474,9 @@ header.header-minimal {
     font-size: 0.85rem;
     transform: rotate(-3deg);
     margin-bottom: 2rem;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0px var(--text-navy) !important;
+    letter-spacing: normal !important;
 }
 
 .hero h1 {
