@@ -1659,6 +1659,9 @@ function App() {
               <div className="subtitle-large">
                 A place where your ideas make you a star
               </div>
+              <div className="handwritten" style={{ fontSize: '1.4rem', color: 'var(--text-navy)', marginTop: '1rem', background: 'rgba(255, 253, 240, 0.8)', padding: '0.5rem 1.5rem', borderRadius: '15px', border: '2px dashed var(--text-navy)', display: 'inline-block' }}>
+                In Collaboration with <strong>Adi Shankara</strong> & <strong>NSS ASIET</strong>
+              </div>
 
               <div className="hero-ctas">
                 <button className="join-btn" onClick={() => setShowRegPopup(true)}>REGISTER NOW</button>
@@ -1781,7 +1784,20 @@ function App() {
                           <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" />
                           <h3 className="text-3d" style={{ fontSize: '1.2rem' }}>MIND EMPOWERED</h3>
                         </div>
-                        {[1, 2, 3, 4].map(i => (
+
+                        <div className="sponsor-card collaborator-card">
+                          <span className="badge-main" style={{ background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" />
+                          <h3 className="text-3d" style={{ fontSize: '1rem' }}>ADI SHANKARA</h3>
+                        </div>
+
+                        <div className="sponsor-card collaborator-card">
+                          <span className="badge-main" style={{ background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+                          <img src="/collaborators/nss.png" alt="NSS ASIET" />
+                          <h3 className="text-3d" style={{ fontSize: '1rem' }}>NSS ASIET</h3>
+                        </div>
+
+                        {[1, 2].map(i => (
                           <div key={i} className="sponsor-placeholder">
                             YOUR LOGO HERE
                           </div>
