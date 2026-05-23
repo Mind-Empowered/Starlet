@@ -1780,23 +1780,24 @@ function App() {
                       <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                       
                       {/* Organizers & Collaborators Grid */}
-                      <div className="partners-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2.5rem', marginBottom: '4rem', marginTop: '2.5rem' }}>
-                        <div className="sponsor-card main-organizer clickable" onClick={() => setShowAboutPopup(true)} style={{ margin: 0, height: '100%', gridColumn: 'span 1' }}>
-                          <span className="badge-main">MAIN ORGANIZER</span>
-                          <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '90px', width: 'auto', objectFit: 'contain' }} />
-                          <h3 className="text-3d" style={{ fontSize: '1.2rem' }}>MIND EMPOWERED</h3>
+                      <div className="partners-grid-custom">
+                        <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
+                          <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" />
                         </div>
 
-                        <div className="sponsor-card collaborator-card" style={{ height: '100%' }}>
-                          <span className="badge-main" style={{ background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain' }} />
-                          <h3 className="text-3d" style={{ fontSize: '1.1rem' }}>ADI SHANKARA</h3>
+                        <div className="partner-card-wide">
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginTop: '1rem' }} />
+                          <div style={{ textAlign: 'center' }}>
+                            <h3 className="text-3d" style={{ fontSize: '1rem', color: 'var(--text-navy)', margin: '0 0 0.2rem 0' }}>ADI SHANKARA</h3>
+                            <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold' }}>MAIN VENUE PARTNER</p>
+                          </div>
                         </div>
 
-                        <div className="sponsor-card collaborator-card" style={{ height: '100%' }}>
-                          <span className="badge-main" style={{ background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ height: '90px', width: 'auto', objectFit: 'contain' }} />
-                          <h3 className="text-3d" style={{ fontSize: '1.1rem' }}>NSS ASIET</h3>
+                        <div className="partner-card-square collab-nss">
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+                          <img src="/collaborators/nss.png" alt="NSS ASIET" />
                         </div>
                       </div>
 

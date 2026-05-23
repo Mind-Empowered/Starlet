@@ -91,24 +91,20 @@ const SponsorsPage = ({ onBack }) => {
 
         <div style={{ background: 'var(--glass-bg)', padding: '3rem 2rem', borderRadius: '20px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(15px)' }}>
           <h2 className="text-3d" style={{ color: 'var(--text-navy)', marginBottom: '2.5rem', textAlign: 'center', fontSize: '2.2rem' }}>In Collaboration With</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '3rem' }}>
+          <div className="partners-grid-custom">
             
-            <div className="collaborator-card" style={{ width: '300px', height: '320px', margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="badge-main" style={{ background: 'var(--pink-primary)', transform: 'rotate(-2deg)', marginBottom: '0.5rem' }}>COLLABORATOR</span>
-              <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain' }} />
+            <div className="partner-card-wide" style={{ margin: 0 }}>
+              <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+              <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginTop: '1rem' }} />
               <div style={{ textAlign: 'center' }}>
                 <h3 className="text-3d" style={{ fontSize: '1rem', color: 'var(--text-navy)', margin: '0 0 0.2rem 0' }}>ADI SHANKARA</h3>
                 <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold' }}>MAIN VENUE PARTNER</p>
               </div>
             </div>
 
-            <div className="collaborator-card" style={{ width: '300px', height: '320px', margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="badge-main" style={{ background: 'var(--pink-primary)', transform: 'rotate(-2deg)', marginBottom: '0.5rem' }}>COLLABORATOR</span>
-              <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ height: '90px', width: 'auto', objectFit: 'contain' }} />
-              <div style={{ textAlign: 'center' }}>
-                <h3 className="text-3d" style={{ fontSize: '1rem', color: 'var(--text-navy)', margin: '0 0 0.2rem 0' }}>NSS ASIET</h3>
-                <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold' }}>STUDENT SUPPORT PARTNER</p>
-              </div>
+            <div className="partner-card-square collab-nss" style={{ margin: 0 }}>
+              <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+              <img src="/collaborators/nss.png" alt="NSS ASIET" />
             </div>
 
           </div>

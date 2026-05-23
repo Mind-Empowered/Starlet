@@ -4347,28 +4347,75 @@ html.menu-open {
      }
  }
  
- /* Collaborator Cards */
- .collaborator-card {
+ /* Collaborator & Partner Cards */
+ .partners-grid-custom {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: center;
+     align-items: stretch;
+     gap: 2.5rem;
+     margin: 2.5rem 0 4rem;
+ }
+ 
+ .partner-card-square {
+     width: 240px;
+     height: 240px;
+     position: relative;
      background: #fff;
      border: 4px solid var(--text-navy) !important;
-     padding: 2.5rem !important;
+     border-radius: 30px !important;
+     padding: 0 !important;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     transition: all 0.3s ease;
+     cursor: pointer;
+     overflow: visible;
+ }
+ 
+ .partner-card-square.main-org {
+     box-shadow: 15px 15px 0px var(--blue-shadow);
+ }
+ 
+ .partner-card-square.collab-nss {
+     box-shadow: 15px 15px 0px var(--pink-primary);
+ }
+ 
+ .partner-card-wide {
+     width: 480px;
+     height: 240px;
+     position: relative;
+     background: #fff;
+     border: 4px solid var(--text-navy) !important;
+     border-radius: 30px !important;
+     padding: 2.5rem 1.5rem 1.5rem !important;
      display: flex;
      flex-direction: column;
      align-items: center;
      justify-content: space-between;
-     gap: 1.5rem;
-     border-radius: 30px !important;
      box-shadow: 15px 15px 0px var(--pink-primary);
      transition: all 0.3s ease;
  }
  
- .collaborator-card:hover {
+ .partner-card-square:hover, .partner-card-wide:hover {
      transform: translateY(-10px) scale(1.02);
-     box-shadow: 15px 15px 0px var(--yellow-star);
+     box-shadow: 15px 15px 0px var(--yellow-star) !important;
  }
  
- .collaborator-card img {
-     max-height: 90px;
-     max-width: 100%;
-     object-fit: contain;
+ .partner-card-square img {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+     border-radius: 26px;
+ }
+ 
+ @media (max-width: 1000px) {
+     .partners-grid-custom {
+         flex-direction: column;
+         align-items: center;
+     }
+     .partner-card-wide {
+         width: 100%;
+         max-width: 480px;
+     }
  }
