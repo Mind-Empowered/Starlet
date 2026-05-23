@@ -1959,7 +1959,6 @@ function App() {
                             <div key={mentor.id} className="mentor-card" onClick={() => setSelectedMentor(mentor)}>
                               <div className="mentor-photo-wrapper">
                                 <img src={mentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" />
-                                <div className="mentor-hover-hint">VIEW PROFILE →</div>
                               </div>
                               <h3>{mentor.full_name}</h3>
                               <p className="mentor-role">{mentor.role_title}</p>

@@ -2970,9 +2970,10 @@ html.menu-open {
 }
 
 .mentor-photo-wrapper img {
-    width: 60%;
-    height: auto;
-    opacity: 0.5;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
 }
 
 .mentor-hover-hint {
