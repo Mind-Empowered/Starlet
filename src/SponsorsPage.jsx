@@ -111,6 +111,40 @@ const SponsorsPage = ({ onBack }) => {
           </div>
         </div>
 
+        <div style={{ background: 'var(--glass-bg)', padding: '3rem 2rem', borderRadius: '20px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(15px)' }}>
+          <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', textAlign: 'center' }}>Past Sponsors</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', textAlign: 'center' }}>
+            Empowering our journey year after year. Meet the brands that supported us.
+          </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1.5rem',
+            marginTop: '1.5rem'
+          }}>
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div key={i} className="past-sponsor-placeholder" style={{
+                height: '90px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '2px dashed var(--glass-border)',
+                borderRadius: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                fontWeight: 'bold',
+                fontSize: '0.85rem',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
+              }}>
+                Sponsor #{i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ background: 'var(--glass-bg)', padding: '2rem', borderRadius: '20px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(15px)', overflow: 'hidden' }}>
           <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>Testimonials</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Hear from our past partners and participants.</p>

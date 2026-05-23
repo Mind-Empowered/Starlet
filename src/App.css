@@ -4632,3 +4632,16 @@ html.menu-open {
         justify-content: space-between !important;
     }
 }
+
+/* Past Sponsor Placeholders */
+.past-sponsor-placeholder {
+    transition: all 0.3s ease;
+}
+
+.past-sponsor-placeholder:hover {
+    transform: translateY(-5px) scale(1.02);
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+    color: var(--accent-gold) !important;
+}
