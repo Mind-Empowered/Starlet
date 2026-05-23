@@ -448,8 +448,15 @@ function App() {
       fetchAllMentors();
       fetchAllUsers();
       fetchAuditLogs();
+      fetchSubmissions();
     }
   }, [isLoggedIn, user.role]);
+
+  useEffect(() => {
+    if (isLoggedIn && user.role === 'admin') {
+      fetchSubmissions();
+    }
+  }, [isLoggedIn, user.role, adminActiveTab]);
 
   const fetchMentorRequests = async () => {
     const { data, error } = await supabase
@@ -1315,6 +1322,7 @@ function App() {
         id: session.user.id,
         full_name: user.name,
         user_role: user.role,
+        role_title: user.role_title,
         bio: user.bio,
         venue: user.venue,
         stack: user.stack,
@@ -1334,9 +1342,7 @@ function App() {
           company: user.venue || 'Starlet Command',
           bio: user.bio,
           expertise: user.stack,
-          avatar_url: user.avatarUrl || '/icons/user-profile.svg',
-          github_url: user.socials.github,
-          linkedin_url: user.socials.linkedin,
+          avatar_url: user.avatarUrl || '/icons/user-profile.svg'
         }).eq('profile_id', session.user.id);
         fetchAllMentors();
       }
@@ -2829,7 +2835,7 @@ function App() {
                     className="profile-input"
                     value={user.venue.toUpperCase() || user.venue.toUpperCase()}
                     onChange={(e) => setUser({ ...user, venue: e.target.value })}
-                    placeholder="e.g. Frontend, UI/UX, Backend..."
+                    placeholder="Not assigned yet"
                     readOnly
                   />
                 </div>
@@ -3011,7 +3017,7 @@ function App() {
                         <input name="demo" type="url" placeholder="https://youtube.com/... or https://myapp.com" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
                       </div>
                       <div className="input-group" style={{ marginTop: '1rem' }}>
-                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description</label>
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description (min 100 words)</label>
                         <textarea name="description" placeholder="Tell us what you built and how it helps..." required style={{ width: '100%', minHeight: '100px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}></textarea>
                       </div>
                       <div className="input-group" style={{ marginTop: '1rem' }}>
