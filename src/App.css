@@ -4528,3 +4528,94 @@ html.menu-open {
          max-width: 480px;
      }
  }
+ 
+ .mobile-scroll-btns {
+     display: none !important;
+ }
+ 
+ @media (max-width: 768px) {
+     .mobile-scroll-btns {
+         display: flex !important;
+     }
+ 
+     /* Horizontal Scroll for Partners Grid (Organizers & Collaborators) on Mobile */
+     .partners-grid-custom {
+         display: flex !important;
+         flex-direction: row !important;
+         overflow-x: auto !important;
+         justify-content: flex-start !important;
+         align-items: stretch !important;
+         gap: 1.5rem !important;
+         padding: 1.5rem 1rem 2.5rem !important;
+         scroll-snap-type: x mandatory !important;
+         -webkit-overflow-scrolling: touch !important;
+         width: 100% !important;
+         margin: 0 auto !important;
+     }
+     
+     .partners-grid-custom::-webkit-scrollbar {
+         height: 6px;
+     }
+     
+     .partners-grid-custom::-webkit-scrollbar-thumb {
+         background: var(--pink-primary);
+         border-radius: 4px;
+     }
+     
+     .partners-grid-custom .partner-card-square,
+     .partners-grid-custom .partner-card-wide {
+         flex: 0 0 260px !important;
+         width: 260px !important;
+         height: 280px !important;
+         scroll-snap-align: center !important;
+         margin: 0 !important;
+         padding: 1.5rem !important;
+     }
+ 
+     .partners-grid-custom .partner-card-square img {
+         width: 100% !important;
+         height: 100% !important;
+         object-fit: cover !important;
+     }
+ 
+     .partners-grid-custom .partner-card-wide img {
+         height: 80px !important;
+         width: auto !important;
+         margin-top: 1rem !important;
+     }
+ 
+     /* Horizontal Scroll for Epic Prizes Grid on Mobile */
+     .prize-grid {
+         display: flex !important;
+         flex-direction: row !important;
+         overflow-x: auto !important;
+         justify-content: flex-start !important;
+         align-items: stretch !important;
+         gap: 1.5rem !important;
+         padding: 1.5rem 1rem 2.5rem !important;
+         scroll-snap-type: x mandatory !important;
+         -webkit-overflow-scrolling: touch !important;
+         width: 100% !important;
+         margin: 0 auto !important;
+     }
+     
+     .prize-grid::-webkit-scrollbar {
+         height: 6px;
+     }
+     
+     .prize-grid::-webkit-scrollbar-thumb {
+         background: var(--pink-primary);
+         border-radius: 4px;
+     }
+     
+     .prize-grid .prize-card {
+         flex: 0 0 260px !important;
+         width: 260px !important;
+         scroll-snap-align: center !important;
+         margin: 0 !important;
+         padding: 2rem !important;
+         display: flex !important;
+         flex-direction: column !important;
+         justify-content: space-between !important;
+     }
+ }

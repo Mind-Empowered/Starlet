@@ -205,6 +205,8 @@ function App() {
 
   const galleryRef = useRef(null);
   const requestRef = useRef();
+  const partnersRef = useRef(null);
+  const prizesRef = useRef(null);
 
 
   useEffect(() => {
@@ -1777,10 +1779,16 @@ function App() {
                     </div>
                   ) : section.type === 'sponsors' ? (
                     <div className="section-content">
-                      <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1.5rem' }}>
+                        <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
+                        <div className="mobile-scroll-btns" style={{ display: 'flex', gap: '1rem' }}>
+                          <button className="nav-btn-round" onClick={() => partnersRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => partnersRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}>→</button>
+                        </div>
+                      </div>
                       
                       {/* Organizers & Collaborators Grid */}
-                      <div className="partners-grid-custom">
+                      <div className="partners-grid-custom" ref={partnersRef}>
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
                           <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" />
@@ -1853,8 +1861,14 @@ function App() {
                     </div>
                   ) : section.type === 'prizes' ? (
                     <div className="section-content">
-                      <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
-                      <div className="prize-grid">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1.5rem' }}>
+                        <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
+                        <div className="mobile-scroll-btns" style={{ display: 'flex', gap: '1rem' }}>
+                          <button className="nav-btn-round" onClick={() => prizesRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => prizesRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}>→</button>
+                        </div>
+                      </div>
+                      <div className="prize-grid" ref={prizesRef}>
                         <div className="prize-card">
                           <div className="prize-icon"><img src="/icons/trophy.svg" style={{ width: '80px' }} alt="trophy" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>1st Prize</h3>
