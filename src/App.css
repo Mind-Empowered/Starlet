@@ -80,7 +80,8 @@ header {
 }
 
 header.header-minimal {
-    justify-content: flex-start;
+    justify-content: space-between;
+    width: 100%;
     background: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
