@@ -204,6 +204,7 @@ function App() {
   const [teamMembers, setTeamMembers] = useState([]);
 
   const galleryRef = useRef(null);
+  const landingGalleryRef = useRef(null);
   const requestRef = useRef();
   const partnersRef = useRef(null);
   const prizesRef = useRef(null);
@@ -1435,10 +1436,21 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollGallery = (direction) => {
-    if (!galleryRef.current) return;
+  const scrollGallery = (direction, e) => {
     try {
-      const container = galleryRef.current;
+      let container = null;
+      if (e && e.currentTarget) {
+        const btn = e.currentTarget;
+        const card = btn.closest('.gallery-section-venue');
+        if (card) {
+          container = card.querySelector('.venue-image-grid');
+        }
+      }
+      if (!container) {
+        container = galleryRef.current;
+      }
+      if (!container) return;
+
       const firstItem = container.querySelector('.venue-img-placeholder');
       let scrollAmount = container.clientWidth;
 
@@ -1454,8 +1466,7 @@ function App() {
         behavior: 'smooth'
       });
     } catch (err) {
-      // Fallback: scroll by visible width
-      galleryRef.current.scrollBy({ left: direction === 'left' ? -galleryRef.current.clientWidth : galleryRef.current.clientWidth, behavior: 'smooth' });
+      console.error("Error scrolling gallery:", err);
     }
   };
 
@@ -1843,11 +1854,11 @@ function App() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
                         <div className="gallery-nav-btns" style={{ display: 'flex', gap: '1rem' }}>
-                          <button className="nav-btn-round" onClick={() => galleryRef.current.scrollBy({ left: -400, behavior: 'smooth' })}>←</button>
-                          <button className="nav-btn-round" onClick={() => galleryRef.current.scrollBy({ left: 400, behavior: 'smooth' })}>→</button>
+                          <button className="nav-btn-round" onClick={() => landingGalleryRef.current.scrollBy({ left: -400, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => landingGalleryRef.current.scrollBy({ left: 400, behavior: 'smooth' })}>→</button>
                         </div>
                       </div>
-                      <div className="gallery-grid" ref={galleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
+                      <div className="gallery-grid" ref={landingGalleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
                         {Array.from({ length: 42 }, (_, i) => {
                           const index = i + 1;
                           const path = index <= 9 ? `/gallery/${index}.JPG` : `/gallery/${index}.jpeg`;
@@ -3279,11 +3290,11 @@ function App() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h2 className="text-3d" style={{ margin: 0 }}>Venue Gallery</h2>
                         <div className="gallery-nav-btns">
-                          <button className="nav-icon-btn small" onClick={() => scrollGallery('left')}>←</button>
-                          <button className="nav-icon-btn small" onClick={() => scrollGallery('right')}>→</button>
+                          <button className="nav-icon-btn small" onClick={(e) => scrollGallery('left', e)}>←</button>
+                          <button className="nav-icon-btn small" onClick={(e) => scrollGallery('right', e)}>→</button>
                         </div>
                       </div>
-                      <div className="venue-image-grid" ref={galleryRef}>
+                      <div className="venue-image-grid">
                         {v.image_urls.replace(/\[|\]/g,'').replace(/"/g, '').split(',').map((img, idx) => (
                           <div key={idx} className="venue-img-placeholder">
                             <img src={img} alt={`venue-${idx}`} />
