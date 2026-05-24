@@ -159,40 +159,41 @@ const SponsorsPage = ({ onBack }) => {
           
           <div style={{ 
             display: 'flex', 
-            gap: '1.5rem', 
+            gap: '2.5rem', 
             overflowX: 'auto', 
-            paddingBottom: '1rem',
+            padding: '1.5rem 1rem',
             scrollbarWidth: 'thin',
             scrollbarColor: 'var(--accent-gold) transparent'
           }}>
             {[
-              { id: 1, src: '/testimonials/1.mp4', title: 'Partner Testimonial' },
-              { id: 2, src: '/testimonials/2.mp4', title: 'Hacker Testimonial' }
+              { id: 1, src: '/testimonials/1.mp4' },
+              { id: 2, src: '/testimonials/2.mp4' }
             ].map((video) => (
               <div key={video.id} style={{ 
-                flex: '0 0 320px', 
-                background: 'rgba(0,0,0,0.6)', 
-                borderRadius: '15px', 
-                display: 'flex', 
-                flexDirection: 'column',
-                border: '3px solid var(--accent-gold)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                overflow: 'hidden'
-              }}>
+                flex: '0 0 300px', 
+                height: '533px', 
+                background: '#000', 
+                borderRadius: '24px', 
+                border: '4px solid var(--glass-border)',
+                boxShadow: '12px 12px 0px var(--accent-gold)',
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+              >
                 <video 
                   src={video.src} 
                   controls 
                   preload="metadata"
                   style={{ 
                     width: '100%', 
-                    height: '240px', 
-                    objectFit: 'contain',
-                    background: '#000'
+                    height: '100%', 
+                    objectFit: 'cover',
+                    display: 'block'
                   }} 
                 />
-                <div style={{ padding: '0.8rem', textAlign: 'center', background: 'rgba(0,0,0,0.8)', borderTop: '1px solid var(--glass-border)' }}>
-                  <p style={{ color: 'var(--text-white)', fontWeight: '600', margin: 0, fontSize: '0.95rem' }}>{video.title}</p>
-                </div>
               </div>
             ))}
           </div>
