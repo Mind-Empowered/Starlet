@@ -1679,7 +1679,7 @@ function App() {
                 A place where your ideas make you a star
               </div>
               <div className="handwritten" style={{ fontSize: '1.4rem', color: 'var(--text-navy)', margin: '1rem auto 3.5rem', background: 'rgba(255, 253, 240, 0.9)', padding: '0.8rem 2rem', borderRadius: '15px', border: '2px dashed var(--text-navy)', display: 'inline-block', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)' }}>
-                In Collaboration with <strong>Adi Shankara</strong> & <strong>NSS ASIET</strong>
+                In Collaboration with <strong>Adi Shankara</strong>, <strong>NSS ASIET</strong> & <strong>Aikyam Space</strong>
               </div>
 
               <div className="hero-ctas">
