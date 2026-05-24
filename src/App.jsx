@@ -196,6 +196,9 @@ function App() {
   const [mentors, setMentors] = useState([]);
   const [problemStatements, setProblemStatements] = useState([]);
   const [visibleProblemStatementsCount, setVisibleProblemStatementsCount] = useState(5);
+  const [visibleActiveMentorsCount, setVisibleActiveMentorsCount] = useState(5);
+  const [visiblePendingMentorsCount, setVisiblePendingMentorsCount] = useState(5);
+  const [visibleProjectSubmissionsCount, setVisibleProjectSubmissionsCount] = useState(5);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [mentorRequestModal, setMentorRequestModal] = useState(null);
@@ -2514,15 +2517,38 @@ function App() {
                       {mentors.length === 0 ? (
                         <p>No mentors in the library.</p>
                       ) : (
-                        mentors.map(m => (
-                          <div key={m.id} className="approval-card" style={{ marginBottom: '1rem' }}>
-                            <div className="user-meta">
-                              <strong>{m.full_name}</strong>
-                              <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{m.role_title} @ {m.company}</small>
+                        <>
+                          {mentors.slice(0, visibleActiveMentorsCount).map(m => (
+                            <div key={m.id} className="approval-card" style={{ marginBottom: '1rem' }}>
+                              <div className="user-meta">
+                                <strong>{m.full_name}</strong>
+                                <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{m.role_title} @ {m.company}</small>
+                              </div>
+                              <button className="btn-small delete" onClick={() => handleDeleteMentor(m.id, m.full_name)}>REMOVE</button>
                             </div>
-                            <button className="btn-small delete" onClick={() => handleDeleteMentor(m.id, m.full_name)}>REMOVE</button>
+                          ))}
+                          
+                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            {mentors.length > visibleActiveMentorsCount && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleActiveMentorsCount(prev => prev + 5)}
+                              >
+                                SHOW MORE
+                              </button>
+                            )}
+                            {visibleActiveMentorsCount > 5 && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleActiveMentorsCount(5)}
+                              >
+                                SHOW LESS
+                              </button>
+                            )}
                           </div>
-                        ))
+                        </>
                       )}
                     </div>
                   </div>
@@ -2590,21 +2616,51 @@ function App() {
                 <div className="admin-panel mentor-queue">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mentor Approval Queue</h2>
                   <div className="approval-list">
-                    {allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).map(mentor => (
-                      <div key={mentor.id} className="approval-card">
-                        <div className="user-meta">
-                          <strong>{mentor.full_name}</strong>
-                          <span>{mentor.email}</span>
-                          <div className="role-tag">{mentor.role_title || 'Expert'}</div>
-                        </div>
-                        <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
-                      </div>
-                    ))}
-                    {allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).length === 0 && (
-                      <div className="empty-state">
-                        <p>All clear! No pending mentors.</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const pendingMentors = allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved);
+                      if (pendingMentors.length === 0) {
+                        return (
+                          <div className="empty-state">
+                            <p>All clear! No pending mentors.</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <>
+                          {pendingMentors.slice(0, visiblePendingMentorsCount).map(mentor => (
+                            <div key={mentor.id} className="approval-card">
+                              <div className="user-meta">
+                                <strong>{mentor.full_name}</strong>
+                                <span>{mentor.email}</span>
+                                <div className="role-tag">{mentor.role_title || 'Expert'}</div>
+                              </div>
+                              <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
+                            </div>
+                          ))}
+                          
+                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            {pendingMentors.length > visiblePendingMentorsCount && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisiblePendingMentorsCount(prev => prev + 5)}
+                              >
+                                SHOW MORE
+                              </button>
+                            )}
+                            {visiblePendingMentorsCount > 5 && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisiblePendingMentorsCount(5)}
+                              >
+                                SHOW LESS
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -2707,35 +2763,66 @@ function App() {
                       </thead>
                       <tbody>
                         {/* Show all unique teams and their submission status */}
-                        {Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`))).map(team => {
-                          const sub = projectSubmissions.find(s => s.team_name === team);
-                          return (
-                            <tr key={team}>
-                              <td>
-                                <strong>{getDisplayTeamName(team)}</strong>
-                                {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
-                              </td>
-                              <td>
-                                {sub ? (
-                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
-                                    <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
-                                    <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
-                                  </div>
-                                ) : '-'}
-                              </td>
-                              <td>
-                                <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
-                                  {sub ? 'SUBMITTED' : 'PENDING'}
-                                </span>
-                              </td>
-                              <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
-                            </tr>
-                          );
-                        })}
+                        {(() => {
+                          const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                          return teamsList.slice(0, visibleProjectSubmissionsCount).map(team => {
+                            const sub = projectSubmissions.find(s => s.team_name === team);
+                            return (
+                              <tr key={team}>
+                                <td>
+                                  <strong>{getDisplayTeamName(team)}</strong>
+                                  {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
+                                </td>
+                                <td>
+                                  {sub ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                      <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
+                                      <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
+                                      <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
+                                    </div>
+                                  ) : '-'}
+                                </td>
+                                <td>
+                                  <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
+                                    {sub ? 'SUBMITTED' : 'PENDING'}
+                                  </span>
+                                </td>
+                                <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
+                              </tr>
+                            );
+                          });
+                        })()}
                       </tbody>
                     </table>
                   </div>
+                  
+                  {(() => {
+                    const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                    if (teamsList.length > 5) {
+                      return (
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                          {teamsList.length > visibleProjectSubmissionsCount && (
+                            <button 
+                              className="btn-small" 
+                              style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                              onClick={() => setVisibleProjectSubmissionsCount(prev => prev + 5)}
+                            >
+                              SHOW MORE
+                            </button>
+                          )}
+                          {visibleProjectSubmissionsCount > 5 && (
+                            <button 
+                              className="btn-small" 
+                              style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                              onClick={() => setVisibleProjectSubmissionsCount(5)}
+                            >
+                              SHOW LESS
+                            </button>
+                          )}
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
             </div>
