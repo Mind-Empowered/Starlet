@@ -130,26 +130,45 @@ const SponsorsPage = ({ onBack }) => {
             gap: '1.5rem',
             marginTop: '1.5rem'
           }}>
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div key={i} className="past-sponsor-placeholder" style={{
-                height: '90px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '2px dashed var(--glass-border)',
-                borderRadius: '15px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-muted)',
-                fontWeight: 'bold',
-                fontSize: '0.85rem',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-                textTransform: 'uppercase',
-                letterSpacing: '1px'
-              }}>
-                Sponsor #{i + 1}
-              </div>
-            ))}
+            {Array.from({ length: 20 }).map((_, i) => {
+              const hasRealSponsor = i < 3;
+              return (
+                <div key={i} className="past-sponsor-placeholder" style={{
+                  height: '90px',
+                  background: hasRealSponsor ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)',
+                  border: hasRealSponsor ? '1px solid var(--glass-border)' : '2px dashed var(--glass-border)',
+                  borderRadius: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: hasRealSponsor ? '0.75rem' : '0',
+                  color: 'var(--text-muted)',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  overflow: 'hidden'
+                }}>
+                  {hasRealSponsor ? (
+                    <img 
+                      src={`/sponsors/${i + 1}.png`} 
+                      alt={`Sponsor ${i + 1}`} 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '100%', 
+                        objectFit: 'contain',
+                        opacity: 0.85,
+                        transition: 'opacity 0.3s ease'
+                      }} 
+                    />
+                  ) : (
+                    `Sponsor #${i + 1}`
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
