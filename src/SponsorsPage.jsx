@@ -157,32 +157,34 @@ const SponsorsPage = ({ onBack }) => {
             scrollbarWidth: 'thin',
             scrollbarColor: 'var(--accent-gold) transparent'
           }}>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} style={{ 
-                flex: '0 0 300px', 
-                height: '200px', 
-                background: 'rgba(0,0,0,0.4)', 
+            {[
+              { id: 1, src: '/testimonials/1.mp4', title: 'Partner Testimonial' },
+              { id: 2, src: '/testimonials/2.mp4', title: 'Hacker Testimonial' }
+            ].map((video) => (
+              <div key={video.id} style={{ 
+                flex: '0 0 320px', 
+                background: 'rgba(0,0,0,0.6)', 
                 borderRadius: '15px', 
                 display: 'flex', 
                 flexDirection: 'column',
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                border: '2px dashed var(--accent-gold)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                border: '3px solid var(--accent-gold)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                overflow: 'hidden'
               }}>
-                <div style={{ 
-                  width: '50px', 
-                  height: '50px', 
-                  borderRadius: '50%', 
-                  background: 'var(--accent-gold)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  marginBottom: '10px'
-                }}>
-                  <span style={{ color: 'var(--bg-color)', fontSize: '1.5rem', marginLeft: '5px' }}>▶</span>
+                <video 
+                  src={video.src} 
+                  controls 
+                  preload="metadata"
+                  style={{ 
+                    width: '100%', 
+                    height: '240px', 
+                    objectFit: 'contain',
+                    background: '#000'
+                  }} 
+                />
+                <div style={{ padding: '0.8rem', textAlign: 'center', background: 'rgba(0,0,0,0.8)', borderTop: '1px solid var(--glass-border)' }}>
+                  <p style={{ color: 'var(--text-white)', fontWeight: '600', margin: 0, fontSize: '0.95rem' }}>{video.title}</p>
                 </div>
-                <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Video Placeholder {i + 1}</p>
               </div>
             ))}
           </div>
