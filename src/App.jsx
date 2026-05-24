@@ -566,7 +566,7 @@ function App() {
         profile_id: mentorId,
         full_name: profile.full_name,
         role_title: profile.role_title || 'Expert',
-        company: profile.company || 'Independent',
+        company: profile.venue || 'Independent',
         bio: profile.bio || '',
         expertise: profile.stack || [],
         avatar_url: profile.avatar_url,
