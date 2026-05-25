@@ -1016,7 +1016,32 @@ header.header-minimal {
     }
 
     .prize-grid {
-        grid-template-columns: 1fr;
+        display: flex;
+        overflow-x: auto;
+        gap: 2rem;
+        padding: 2rem 5% 3rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        grid-template-columns: none;
+    }
+    
+    .prize-grid::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .prize-grid::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .prize-grid::-webkit-scrollbar-thumb {
+        background: var(--pink-primary);
+        border-radius: 4px;
+    }
+    
+    .prize-grid .prize-card {
+        flex: 0 0 280px;
+        scroll-snap-align: center;
+        margin: 0;
     }
 
     /* Horizontal Winner Carousel for Mobile */
@@ -2945,9 +2970,10 @@ html.menu-open {
 }
 
 .mentor-photo-wrapper img {
-    width: 60%;
-    height: auto;
-    opacity: 0.5;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
 }
 
 .mentor-hover-hint {
@@ -3138,7 +3164,72 @@ html.menu-open {
     }
 }
 
+.mentor-modal-header {
+    background: var(--text-navy);
+    color: #fff;
+    padding: 1.8rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 5px solid var(--pink-primary);
+}
+
+.mentor-modal-header h2 {
+    font-size: 2.4rem;
+    margin: 0;
+    color: #fff;
+    text-shadow: 4px 4px 0px var(--pink-primary);
+}
+
+.mentor-modal-close {
+    background: var(--pink-primary);
+    color: #fff;
+    border: 3px solid #fff;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 4px 4px 0px #000;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.mentor-modal-close:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
 @media (max-width: 768px) {
+    .mentor-modal {
+        width: 90% !important;
+        max-width: 450px;
+        margin: 20px auto;
+        box-shadow: 10px 10px 0px var(--yellow-star) !important;
+    }
+    
+    .mentor-modal-header {
+        padding: 1.2rem 1.5rem !important;
+    }
+    
+    .mentor-modal-header h2 {
+        font-size: 1.8rem !important;
+    }
+    
+    .mentor-modal-header span.sparkle-emoji {
+        font-size: 1.8rem !important;
+    }
+    
+    .mentor-modal-close {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.4rem !important;
+        box-shadow: 2px 2px 0px #000 !important;
+    }
+
     .mentor-modal-content {
         grid-template-columns: 1fr;
         padding: 3rem 2rem;
@@ -3540,6 +3631,7 @@ html.menu-open {
     background-image: radial-gradient(var(--grid-color) 2px, transparent 2px);
     background-size: 20px 20px;
     scroll-snap-align: center;
+    overflow: hidden;
 }
 
 .venue-img-placeholder:hover {
@@ -4438,3 +4530,119 @@ html.menu-open {
          max-width: 480px;
      }
  }
+ 
+ .mobile-scroll-btns {
+     display: none !important;
+ }
+ 
+ @media (max-width: 768px) {
+    .mobile-scroll-btns {
+        display: flex !important;
+    }
+
+    /* Horizontal Scroll for Partners Grid (Organizers & Collaborators) on Mobile */
+    .partners-grid-custom {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        gap: 1.5rem !important;
+        padding: 1.5rem 1rem 2.5rem !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+    
+    .partners-grid-custom::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .partners-grid-custom::-webkit-scrollbar-thumb {
+        background: var(--pink-primary);
+        border-radius: 4px;
+    }
+    
+    .partners-grid-custom .partner-card-square {
+        flex: 0 0 260px !important;
+        width: 260px !important;
+        height: 280px !important;
+        scroll-snap-align: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .partners-grid-custom .partner-card-wide {
+        flex: 0 0 260px !important;
+        width: 260px !important;
+        height: 280px !important;
+        scroll-snap-align: center !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+    }
+
+    .partners-grid-custom .partner-card-square img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    .partners-grid-custom .partner-card-wide img {
+        height: 80px !important;
+        width: auto !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+        margin-top: 1rem !important;
+    }
+
+    /* Horizontal Scroll for Epic Prizes Grid on Mobile */
+    .prize-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        gap: 1.5rem !important;
+        padding: 1.5rem 1rem 2.5rem !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+    
+    .prize-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .prize-grid::-webkit-scrollbar-thumb {
+        background: var(--pink-primary);
+        border-radius: 4px;
+    }
+    
+    .prize-grid .prize-card {
+        flex: 0 0 260px !important;
+        width: 260px !important;
+        scroll-snap-align: center !important;
+        margin: 0 !important;
+        padding: 2rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+}
+
+/* Past Sponsor Placeholders */
+.past-sponsor-placeholder {
+    transition: all 0.3s ease;
+}
+
+.past-sponsor-placeholder:hover {
+    transform: translateY(-5px) scale(1.02);
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+    color: var(--accent-gold) !important;
+}

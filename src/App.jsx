@@ -195,6 +195,10 @@ function App() {
   const [venues, setVenues] = useState([]);
   const [mentors, setMentors] = useState([]);
   const [problemStatements, setProblemStatements] = useState([]);
+  const [visibleProblemStatementsCount, setVisibleProblemStatementsCount] = useState(5);
+  const [visibleActiveMentorsCount, setVisibleActiveMentorsCount] = useState(5);
+  const [visiblePendingMentorsCount, setVisiblePendingMentorsCount] = useState(5);
+  const [visibleProjectSubmissionsCount, setVisibleProjectSubmissionsCount] = useState(5);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [mentorRequestModal, setMentorRequestModal] = useState(null);
@@ -204,7 +208,10 @@ function App() {
   const [teamMembers, setTeamMembers] = useState([]);
 
   const galleryRef = useRef(null);
+  const landingGalleryRef = useRef(null);
   const requestRef = useRef();
+  const partnersRef = useRef(null);
+  const prizesRef = useRef(null);
 
 
   useEffect(() => {
@@ -564,7 +571,7 @@ function App() {
         profile_id: mentorId,
         full_name: profile.full_name,
         role_title: profile.role_title || 'Expert',
-        company: profile.company || 'Independent',
+        company: profile.venue || 'Independent',
         bio: profile.bio || '',
         expertise: profile.stack || [],
         avatar_url: profile.avatar_url,
@@ -1433,10 +1440,21 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollGallery = (direction) => {
-    if (!galleryRef.current) return;
+  const scrollGallery = (direction, e) => {
     try {
-      const container = galleryRef.current;
+      let container = null;
+      if (e && e.currentTarget) {
+        const btn = e.currentTarget;
+        const card = btn.closest('.gallery-section-venue');
+        if (card) {
+          container = card.querySelector('.venue-image-grid');
+        }
+      }
+      if (!container) {
+        container = galleryRef.current;
+      }
+      if (!container) return;
+
       const firstItem = container.querySelector('.venue-img-placeholder');
       let scrollAmount = container.clientWidth;
 
@@ -1452,8 +1470,7 @@ function App() {
         behavior: 'smooth'
       });
     } catch (err) {
-      // Fallback: scroll by visible width
-      galleryRef.current.scrollBy({ left: direction === 'left' ? -galleryRef.current.clientWidth : galleryRef.current.clientWidth, behavior: 'smooth' });
+      console.error("Error scrolling gallery:", err);
     }
   };
 
@@ -1576,10 +1593,16 @@ function App() {
 
               <div className="mobile-auth-wrapper">
                 {isLoggedIn ? (
-                  <div className="mobile-profile-link" onClick={() => { setActiveView('profile'); setIsMenuOpen(false); }}>
-                    <img src="/icons/user-profile.svg" alt="profile" />
-                    <span>My Profile</span>
-                  </div>
+                  <>
+                    <div className="mobile-profile-link" onClick={() => { setActiveView('venue'); setIsMenuOpen(false); }}>
+                      <img src="/icons/location.svg" alt="venue" />
+                      <span>Venue Details</span>
+                    </div>
+                    <div className="mobile-profile-link" onClick={() => { setActiveView('profile'); setIsMenuOpen(false); }}>
+                      <img src="/icons/user-profile.svg" alt="profile" />
+                      <span>My Profile</span>
+                    </div>
+                  </>
                 ) : (
                   <div className="mobile-auth-btns">
                     <div className="login-btn" onClick={() => { setActiveView('login'); setIsMenuOpen(false); }}>LOGIN</div>
@@ -1660,7 +1683,7 @@ function App() {
                 A place where your ideas make you a star
               </div>
               <div className="handwritten" style={{ fontSize: '1.4rem', color: 'var(--text-navy)', margin: '1rem auto 3.5rem', background: 'rgba(255, 253, 240, 0.9)', padding: '0.8rem 2rem', borderRadius: '15px', border: '2px dashed var(--text-navy)', display: 'inline-block', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)' }}>
-                In Collaboration with <strong>Adi Shankara</strong> & <strong>NSS ASIET</strong>
+                In Collaboration with <strong>Adi Shankara</strong>, <strong>NSS ASIET</strong> & <strong>Aikyam Space</strong>
               </div>
 
               <div className="hero-ctas">
@@ -1777,26 +1800,44 @@ function App() {
                     </div>
                   ) : section.type === 'sponsors' ? (
                     <div className="section-content">
-                      <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1.5rem' }}>
+                        <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
+                        <div className="mobile-scroll-btns" style={{ display: 'flex', gap: '1rem' }}>
+                          <button className="nav-btn-round" onClick={() => partnersRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => partnersRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}>→</button>
+                        </div>
+                      </div>
                       
                       {/* Organizers & Collaborators Grid */}
-                      <div className="partners-grid-custom">
+                      <div className="partners-grid-custom" ref={partnersRef}>
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
-                          <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" />
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
+                            <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
                         </div>
 
                         <div className="partner-card-wide">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
                           </div>
                         </div>
 
+                        <div className="partner-card-wide">
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+                          <img src="/collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <div style={{ textAlign: 'center' }}>
+                            <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
+                          </div>
+                        </div>
+
                         <div className="partner-card-square collab-nss">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/nss.png" alt="NSS ASIET" />
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
+                            <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
                         </div>
                       </div>
 
@@ -1817,11 +1858,11 @@ function App() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
                         <div className="gallery-nav-btns" style={{ display: 'flex', gap: '1rem' }}>
-                          <button className="nav-btn-round" onClick={() => galleryRef.current.scrollBy({ left: -400, behavior: 'smooth' })}>←</button>
-                          <button className="nav-btn-round" onClick={() => galleryRef.current.scrollBy({ left: 400, behavior: 'smooth' })}>→</button>
+                          <button className="nav-btn-round" onClick={() => landingGalleryRef.current.scrollBy({ left: -400, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => landingGalleryRef.current.scrollBy({ left: 400, behavior: 'smooth' })}>→</button>
                         </div>
                       </div>
-                      <div className="gallery-grid" ref={galleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
+                      <div className="gallery-grid" ref={landingGalleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
                         {Array.from({ length: 42 }, (_, i) => {
                           const index = i + 1;
                           const path = index <= 9 ? `/gallery/${index}.JPG` : `/gallery/${index}.jpeg`;
@@ -1853,8 +1894,14 @@ function App() {
                     </div>
                   ) : section.type === 'prizes' ? (
                     <div className="section-content">
-                      <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
-                      <div className="prize-grid">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1.5rem' }}>
+                        <h2 className="text-3d" style={{ fontSize: '2.5rem', margin: 0 }}>{section.title}</h2>
+                        <div className="mobile-scroll-btns" style={{ display: 'flex', gap: '1rem' }}>
+                          <button className="nav-btn-round" onClick={() => prizesRef.current?.scrollBy({ left: -300, behavior: 'smooth' })}>←</button>
+                          <button className="nav-btn-round" onClick={() => prizesRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}>→</button>
+                        </div>
+                      </div>
+                      <div className="prize-grid" ref={prizesRef}>
                         <div className="prize-card">
                           <div className="prize-icon"><img src="/icons/trophy.svg" style={{ width: '80px' }} alt="trophy" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>1st Prize</h3>
@@ -1945,7 +1992,6 @@ function App() {
                             <div key={mentor.id} className="mentor-card" onClick={() => setSelectedMentor(mentor)}>
                               <div className="mentor-photo-wrapper">
                                 <img src={mentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" />
-                                <div className="mentor-hover-hint">VIEW PROFILE →</div>
                               </div>
                               <h3>{mentor.full_name}</h3>
                               <p className="mentor-role">{mentor.role_title}</p>
@@ -2413,16 +2459,39 @@ function App() {
                       {problemStatements.length === 0 ? (
                         <p>Library is empty.</p>
                       ) : (
-                        problemStatements.map(ps => (
-                          <div key={ps.id} className="approval-card" style={{ marginBottom: '1rem' }}>
-                            <div className="user-meta">
-                              <strong>{ps.title}</strong>
-                              <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{ps.track_category}</small>
-                              <p style={{ fontSize: '0.8rem', marginTop: '0.3rem' }}>{ps.description}</p>
+                        <>
+                          {problemStatements.slice(0, visibleProblemStatementsCount).map(ps => (
+                            <div key={ps.id} className="approval-card" style={{ marginBottom: '1rem' }}>
+                              <div className="user-meta">
+                                <strong>{ps.title}</strong>
+                                <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{ps.track_category}</small>
+                                <p style={{ fontSize: '0.8rem', marginTop: '0.3rem' }}>{ps.description}</p>
+                              </div>
+                              <button className="btn-small delete" onClick={() => handleDeleteProblemStatement(ps.id)}>REMOVE</button>
                             </div>
-                            <button className="btn-small delete" onClick={() => handleDeleteProblemStatement(ps.id)}>REMOVE</button>
+                          ))}
+                          
+                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            {problemStatements.length > visibleProblemStatementsCount && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleProblemStatementsCount(prev => prev + 5)}
+                              >
+                                SHOW MORE
+                              </button>
+                            )}
+                            {visibleProblemStatementsCount > 5 && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleProblemStatementsCount(5)}
+                              >
+                                SHOW LESS
+                              </button>
+                            )}
                           </div>
-                        ))
+                        </>
                       )}
                     </div>
                   </div>
@@ -2448,15 +2517,38 @@ function App() {
                       {mentors.length === 0 ? (
                         <p>No mentors in the library.</p>
                       ) : (
-                        mentors.map(m => (
-                          <div key={m.id} className="approval-card" style={{ marginBottom: '1rem' }}>
-                            <div className="user-meta">
-                              <strong>{m.full_name}</strong>
-                              <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{m.role_title} @ {m.company}</small>
+                        <>
+                          {mentors.slice(0, visibleActiveMentorsCount).map(m => (
+                            <div key={m.id} className="approval-card" style={{ marginBottom: '1rem' }}>
+                              <div className="user-meta">
+                                <strong>{m.full_name}</strong>
+                                <small style={{ display: 'block', color: 'var(--blue-shadow)' }}>{m.role_title} @ {m.company}</small>
+                              </div>
+                              <button className="btn-small delete" onClick={() => handleDeleteMentor(m.id, m.full_name)}>REMOVE</button>
                             </div>
-                            <button className="btn-small delete" onClick={() => handleDeleteMentor(m.id, m.full_name)}>REMOVE</button>
+                          ))}
+                          
+                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            {mentors.length > visibleActiveMentorsCount && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleActiveMentorsCount(prev => prev + 5)}
+                              >
+                                SHOW MORE
+                              </button>
+                            )}
+                            {visibleActiveMentorsCount > 5 && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisibleActiveMentorsCount(5)}
+                              >
+                                SHOW LESS
+                              </button>
+                            )}
                           </div>
-                        ))
+                        </>
                       )}
                     </div>
                   </div>
@@ -2524,21 +2616,51 @@ function App() {
                 <div className="admin-panel mentor-queue">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mentor Approval Queue</h2>
                   <div className="approval-list">
-                    {allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).map(mentor => (
-                      <div key={mentor.id} className="approval-card">
-                        <div className="user-meta">
-                          <strong>{mentor.full_name}</strong>
-                          <span>{mentor.email}</span>
-                          <div className="role-tag">{mentor.role_title || 'Expert'}</div>
-                        </div>
-                        <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
-                      </div>
-                    ))}
-                    {allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).length === 0 && (
-                      <div className="empty-state">
-                        <p>All clear! No pending mentors.</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const pendingMentors = allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved);
+                      if (pendingMentors.length === 0) {
+                        return (
+                          <div className="empty-state">
+                            <p>All clear! No pending mentors.</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <>
+                          {pendingMentors.slice(0, visiblePendingMentorsCount).map(mentor => (
+                            <div key={mentor.id} className="approval-card">
+                              <div className="user-meta">
+                                <strong>{mentor.full_name}</strong>
+                                <span>{mentor.email}</span>
+                                <div className="role-tag">{mentor.role_title || 'Expert'}</div>
+                              </div>
+                              <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
+                            </div>
+                          ))}
+                          
+                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            {pendingMentors.length > visiblePendingMentorsCount && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisiblePendingMentorsCount(prev => prev + 5)}
+                              >
+                                SHOW MORE
+                              </button>
+                            )}
+                            {visiblePendingMentorsCount > 5 && (
+                              <button 
+                                className="btn-small" 
+                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                                onClick={() => setVisiblePendingMentorsCount(5)}
+                              >
+                                SHOW LESS
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -2641,35 +2763,66 @@ function App() {
                       </thead>
                       <tbody>
                         {/* Show all unique teams and their submission status */}
-                        {Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`))).map(team => {
-                          const sub = projectSubmissions.find(s => s.team_name === team);
-                          return (
-                            <tr key={team}>
-                              <td>
-                                <strong>{getDisplayTeamName(team)}</strong>
-                                {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
-                              </td>
-                              <td>
-                                {sub ? (
-                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
-                                    <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
-                                    <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
-                                  </div>
-                                ) : '-'}
-                              </td>
-                              <td>
-                                <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
-                                  {sub ? 'SUBMITTED' : 'PENDING'}
-                                </span>
-                              </td>
-                              <td>{sub ? new Date(sub.submitted_at).toLocaleDateString() : '-'}</td>
-                            </tr>
-                          );
-                        })}
+                        {(() => {
+                          const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                          return teamsList.slice(0, visibleProjectSubmissionsCount).map(team => {
+                            const sub = projectSubmissions.find(s => s.team_name === team);
+                            return (
+                              <tr key={team}>
+                                <td>
+                                  <strong>{getDisplayTeamName(team)}</strong>
+                                  {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
+                                </td>
+                                <td>
+                                  {sub ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                      <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
+                                      <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
+                                      <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
+                                    </div>
+                                  ) : '-'}
+                                </td>
+                                <td>
+                                  <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
+                                    {sub ? 'SUBMITTED' : 'PENDING'}
+                                  </span>
+                                </td>
+                                <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
+                              </tr>
+                            );
+                          });
+                        })()}
                       </tbody>
                     </table>
                   </div>
+                  
+                  {(() => {
+                    const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                    if (teamsList.length > 5) {
+                      return (
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                          {teamsList.length > visibleProjectSubmissionsCount && (
+                            <button 
+                              className="btn-small" 
+                              style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                              onClick={() => setVisibleProjectSubmissionsCount(prev => prev + 5)}
+                            >
+                              SHOW MORE
+                            </button>
+                          )}
+                          {visibleProjectSubmissionsCount > 5 && (
+                            <button 
+                              className="btn-small" 
+                              style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
+                              onClick={() => setVisibleProjectSubmissionsCount(5)}
+                            >
+                              SHOW LESS
+                            </button>
+                          )}
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
             </div>
@@ -3219,77 +3372,123 @@ function App() {
                 <p>We are finalizing the coordinates for the Starlet 5.0 hubs. Check back later!</p>
               </div>
             ) : (
-              venues.map(v => (
-                <><div key={v.id} className="venue-card map-section">
-                  <h2 className="text-3d">{v.name}</h2>
-                  <div className="map-placeholder">
-                    <img src="/icons/location.svg" alt="map" className="map-icon" />
-                    <p>{v.description}</p>
-                    <div className="venue-address">
-                      <strong>Address:</strong><br />
-                      {v.address}
+              venues.map(v => {
+                const isAdiShankara = v.name.toLowerCase().includes('adi shankara') || v.name.toLowerCase().includes('adi sankara');
+                const isAikyamSpace = v.name.toLowerCase().includes('aikyam space');
+                return (
+                  <React.Fragment key={v.id}>
+                    <div className="venue-card map-section">
+                      <h2 className="text-3d">{v.name}</h2>
+                      <div className="map-placeholder">
+                        <p>{v.description}</p>
+                        <div className="venue-address">
+                          <img src="/icons/location.svg" alt="map" className="map-icon" style={{ width: '30px', height: '30px', opacity: 0.8, display: 'block', margin: '0 auto 0.5rem auto' }} />
+                          <strong>Address:</strong><br />
+                          {v.address}
+                        </div>
+                      </div>
+                      <a
+                        href={v.google_maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="join-btn"
+                        style={{ marginTop: '1.5rem', textAlign: 'center', display: 'block', textDecoration: 'none' }}
+                      >
+                        OPEN IN GOOGLE MAPS
+                      </a>
                     </div>
-                  </div>
-                  <a
-                    href={v.google_maps_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="join-btn"
-                    style={{ marginTop: '1.5rem', textAlign: 'center', display: 'block', textDecoration: 'none' }}
-                  >
-                    OPEN IN GOOGLE MAPS
-                  </a>
-                </div><div className="venue-card gallery-section-venue">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                      <h2 className="text-3d" style={{ margin: 0 }}>Venue Gallery</h2>
-                      <div className="gallery-nav-btns">
-                        <button className="nav-icon-btn small" onClick={() => scrollGallery('left')}>←</button>
-                        <button className="nav-icon-btn small" onClick={() => scrollGallery('right')}>→</button>
+                    <div className="venue-card gallery-section-venue">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h2 className="text-3d" style={{ margin: 0 }}>Venue Gallery</h2>
+                        <div className="gallery-nav-btns">
+                          <button className="nav-icon-btn small" onClick={(e) => scrollGallery('left', e)}>←</button>
+                          <button className="nav-icon-btn small" onClick={(e) => scrollGallery('right', e)}>→</button>
+                        </div>
+                      </div>
+                      <div className="venue-image-grid">
+                        {(() => {
+                          const imgs = v.image_urls.replace(/\[|\]/g,'').replace(/"/g, '').split(',');
+                          const gateImgIndex = imgs.findIndex(img => img.includes('0.7359368490637637'));
+                          if (gateImgIndex > 0) {
+                            const [gateImg] = imgs.splice(gateImgIndex, 1);
+                            imgs.unshift(gateImg);
+                          }
+                          return imgs.map((img, idx) => (
+                            <div key={idx} className="venue-img-placeholder">
+                              <img src={img} alt={`venue-${idx}`} />
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
-                    <div className="venue-image-grid" ref={galleryRef}>
-                    { v.image_urls.replace(/\[|\]/g,'').replace(/"/g, '').split(',').map(img => (
-                        <div className="venue-img-placeholder">
-                          <img src={img} />
+                    {isAdiShankara && (
+                      <div className="venue-card transport-section">
+                        <h2 className="text-3d">Transport</h2>
+                        <div className="transport-list">
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>By Train</h3>
+                              <p><strong>Nearest Railway Station:</strong> Angamaly for Kalady (AFK) is the closest station, located roughly 7 to 8 km away from the campus.</p>
+                              <p><strong>Alternative Station:</strong> Aluva (AWY) railway station is about 17 km away and is a major stop for almost all express trains.</p>
+                              <small><strong>How to proceed:</strong> You can easily find local KSRTC buses, private buses, or auto-rickshaws from either station heading toward Kalady.</small>
+                            </div>
+                          </div>
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/bus.svg" alt="bus" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>By Bus</h3>
+                              <p><strong>Local Buses:</strong> Frequent private and KSRTC buses run between Angamaly and Perumbavoor via Kalady.</p>
+                              <small><strong>Drop-off Point:</strong> You can get down at the Mattoor Junction or the designated Adi Shankara college bus stop on the Angamaly-Kalady road. The campus is just a short walk or quick auto ride from the main road.</small>
+                            </div>
+                          </div>
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>Car / Ride Share</h3>
+                              <p><strong>Location:</strong> The campus is situated at Vidya Bharathi Nagar, Mattoor, Kalady, right along the main road connecting Angamaly and Kalady.</p>
+                              <small><strong>Parking:</strong> The campus provides extensive, designated parking spaces on-site.</small>
+                            </div>
+                          </div>
                         </div>
-                    ))}
-                    </div>
-                    
-                  </div></>
-              ))
+                      </div>
+                    )}
+                    {isAikyamSpace && (
+                      <div className="venue-card transport-section">
+                        <h2 className="text-3d">Transport</h2>
+                        <div className="transport-list">
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/ferry.svg" alt="transit" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>By Public Bus & Ferry (Transit)</h3>
+                              <p>Public transportation from Thrissur takes approximately 3 hours and 45 minutes to reach the venue.</p>
+                              <p><strong>Bus Route:</strong> You can take a KSRTC or private transport bus down to Ernakulam (Vytilla Hub or Ernakulam Jetty).</p>
+                              <small><strong>Ferry Option:</strong> From Ernakulam Jetty, taking the public ferry to Mattancherry or Fort Kochi is often faster and more scenic than sitting through city road traffic. The space is a short auto-rickshaw ride or walk from the Mattancherry jetty.</small>
+                            </div>
+                          </div>
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>By Train</h3>
+                              <p><strong>Nearest Major Stations:</strong> Ernakulam Junction (ERS) (South) or Ernakulam Town (ERN) (North).</p>
+                              <small><strong>Connection:</strong> Once you deboard at Ernakulam, you can take a local city bus directly to Mattancherry/Kappalandimukku, or take an auto-rickshaw to the Ernakulam Jetty to catch the ferry across to Fort Kochi.</small>
+                            </div>
+                          </div>
+                          <div className="transport-item">
+                            <div className="transport-icon"><img src="/icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
+                            <div className="transport-info">
+                              <h3>Car / Ride Share</h3>
+                              <p><strong>Route:</strong> If you are driving down from Thrissur, follow the National Highway 544 (NH544) toward Ernakulam, then navigate through the Vikrant Bhairon Road or Thoppumpady bridge into Fort Kochi/Mattancherry.</p>
+                              <small><strong>Location Hint:</strong> The space is situated on Lalan Road near the Kappalandimukku junction. Keep in mind that parking in the historic streets of Mattancherry can occasionally be tight.</small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
-
-
-
-            <div className="venue-card transport-section">
-              <h2 className="text-3d">Transport</h2>
-              <div className="transport-list">
-                <div className="transport-item">
-                  <div className="transport-icon"><img src="/icons/location.svg" alt="metro" style={{ width: '40px' }} /></div>
-                  <div className="transport-info">
-                    <h3>Metro (Line 5)</h3>
-                    <p>From <strong>Central Station</strong> to <strong>Innovation Park</strong></p>
-                    <small>Runs every 10 minutes. 5-minute walk to venue.</small>
-                  </div>
-                </div>
-                <div className="transport-item">
-                  <div className="transport-icon"><img src="/icons/users.svg" alt="bus" style={{ width: '40px' }} /></div>
-                  <div className="transport-info">
-                    <h3>Shuttle Bus</h3>
-                    <p>From <strong>City Plaza</strong> to <strong>Venue Entrance</strong></p>
-                    <small>Complimentary for Starlet attendees. Hourly service.</small>
-                  </div>
-                </div>
-                <div className="transport-item">
-                  <div className="transport-icon"><img src="/icons/location.svg" alt="car" style={{ width: '40px' }} /></div>
-                  <div className="transport-info">
-                    <h3>Car / Ride Share</h3>
-                    <p>Drop-off at <strong>Main Gate</strong></p>
-                    <small>Free parking available for the first 100 cars.</small>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div onClick={() => setActiveView('landing')} style={{ marginTop: '3rem', cursor: 'pointer', color: 'var(--blue-shadow)', textAlign: 'center', width: '100%' }}>← Back to Home</div>
@@ -3396,25 +3595,24 @@ function App() {
           </div>
         </div>
       )}
-
       {selectedMentor && (
         <div className="modal-overlay" onClick={() => setSelectedMentor(null)}>
-          <div className="modal-content mentor-modal" style={{ padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-content mentor-modal" onClick={e => e.stopPropagation()}>
             
             {/* Flush Navy Banner Header */}
-            <div className="modal-header" style={{ background: 'var(--text-navy)', color: '#fff', padding: '1.8rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '5px solid var(--pink-primary)' }}>
+            <div className="mentor-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-                <span style={{ fontSize: '2.5rem' }}>✨</span>
+                <span className="sparkle-emoji" style={{ fontSize: '2.5rem' }}>✨</span>
                 <div>
                   <h2 className="text-3d" style={{ fontSize: '2.4rem', margin: 0, color: '#fff', textShadow: '4px 4px 0px var(--pink-primary)' }}>{selectedMentor.full_name}</h2>
                   <span style={{ fontSize: '0.9rem', color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", letterSpacing: '2px' }}>STARLET VERIFIED MENTOR</span>
                 </div>
               </div>
-              <button className="modal-close" style={{ background: 'var(--pink-primary)', color: '#fff', border: '3px solid #fff', width: '48px', height: '48px', borderRadius: '50%', fontSize: '1.8rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '4px 4px 0px #000' }} onClick={() => setSelectedMentor(null)}>×</button>
+              <button className="mentor-modal-close" onClick={() => setSelectedMentor(null)}>×</button>
             </div>
 
             {/* Content Area */}
-            <div className="mentor-modal-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '2.5rem', padding: '3rem 2.5rem', alignItems: 'start' }}>
+            <div className="mentor-modal-content" style={{ alignItems: 'start' }}>
               
               {/* Left Column: Profile Card */}
               <div className="mentor-modal-side" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '2.5rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: '8px 8px 0px var(--blue-shadow)' }}>
