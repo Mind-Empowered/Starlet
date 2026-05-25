@@ -1,0 +1,39 @@
+name: Deploy App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+    
+      - name: 5. Create CNAME for Custom Domain
+        # Creates the CNAME file required by GitHub Pages for your custom domain
+        run: echo "starlet.mind-empowered.org" > dist/CNAME
+
+      - name: 6. Deploy to GitHub Pages
+        # Uses the popular action to deploy the build output to the gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # This token is provided by GitHub Actions for authentication
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # The directory that contains the built static files
+          publish_dir: ./dist
