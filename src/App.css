@@ -4634,9 +4634,185 @@ html.menu-open {
     }
 }
 
+/* ==========================================
+   UIC Overview (Sponsors Page) Styles
+   ========================================== */
+
+.sponsors-overview-container {
+    background-color: #001a3d;
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(135, 206, 235, 0.1) 0%, transparent 70%),
+        url('https://www.transparenttextures.com/patterns/stardust.png');
+    min-height: 100vh;
+    padding: 120px 5% 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    /* Scoped Dark Theme Variables */
+    --accent-gold: #FFD700;
+    --accent-maroon: #5a0001;
+    --accent-blue-light: #87ceeb;
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(0, 26, 61, 0.6);
+    --glass-border: rgba(255, 215, 0, 0.2);
+}
+
+.sponsors-overview-grid {
+    display: grid;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    color: var(--text-white);
+}
+
+.sponsors-venue-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.sponsors-venue-header h1.text-3d {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.sponsors-overview-subtitle {
+    font-size: 1.5rem;
+    color: var(--accent-gold);
+    font-family: 'Caveat', cursive;
+}
+
+.sponsors-overview-card {
+    background: var(--glass-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.sponsors-overview-card.padded-large {
+    padding: 3rem 2rem;
+}
+
+.sponsors-overview-card h2 {
+    color: var(--accent-gold);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-family: 'Fredoka One', cursive;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.sponsors-overview-card p {
+    line-height: 1.6;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+/* Impact Metrics */
+.sponsors-impact-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.sponsors-impact-card {
+    flex: 1 1 200px;
+    padding: 0.5rem;
+}
+
+.sponsors-impact-number {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--text-white);
+    text-shadow: 0 0 12px var(--accent-blue-light);
+}
+
+.sponsors-impact-label {
+    font-size: 1.1rem;
+    color: var(--accent-blue-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Sponsorship Pitch Table */
+.sponsors-pitch-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    text-align: center;
+    color: var(--text-white);
+}
+
+.sponsors-pitch-table th {
+    padding: 1.2rem;
+    color: var(--accent-gold) !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border-bottom: 2px solid var(--glass-border);
+}
+
+.sponsors-pitch-table th:first-child {
+    text-align: left;
+    width: 40%;
+    color: var(--text-white) !important;
+}
+
+.sponsors-pitch-table td {
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.05rem;
+}
+
+.sponsors-pitch-table td:first-child {
+    text-align: left;
+}
+
+/* Collaborators section */
+.sponsors-collab-title {
+    margin-bottom: 2.5rem;
+    text-align: center;
+    font-size: 2.2rem;
+}
+
+/* Past Sponsors Grid */
+.sponsors-past-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
 /* Past Sponsor Placeholders */
 .past-sponsor-placeholder {
+    height: 90px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-weight: bold;
+    font-size: 0.85rem;
     transition: all 0.3s ease;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    overflow: hidden;
+}
+
+.past-sponsor-placeholder.real-sponsor {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 0.75rem;
+}
+
+.past-sponsor-placeholder.placeholder-sponsor {
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px dashed var(--glass-border);
+    padding: 0;
 }
 
 .past-sponsor-placeholder:hover {
@@ -4645,4 +4821,183 @@ html.menu-open {
     border-color: var(--accent-gold) !important;
     box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
     color: var(--accent-gold) !important;
+}
+
+/* Testimonials Slider */
+.sponsors-testimonials-slider {
+    display: flex;
+    gap: 2.5rem;
+    overflow-x: auto;
+    padding: 1.5rem 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-gold) transparent;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sponsors-testimonials-slider::-webkit-scrollbar {
+    height: 6px;
+}
+
+.sponsors-testimonials-slider::-webkit-scrollbar-thumb {
+    background: var(--accent-gold);
+    border-radius: 4px;
+}
+
+.sponsors-testimonial-card {
+    flex: 0 0 300px;
+    height: 533px;
+    background: #000;
+    border-radius: 24px;
+    border: 4px solid var(--glass-border);
+    box-shadow: 12px 12px 0px var(--accent-gold);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.sponsors-testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+.sponsors-testimonial-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Back button */
+.sponsors-back-button {
+    margin-top: 3rem;
+    cursor: pointer;
+    color: var(--accent-blue-light);
+    text-align: center;
+    width: 100%;
+    font-weight: 600;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.sponsors-back-button:hover {
+    color: var(--accent-gold);
+    transform: translateX(-4px);
+}
+
+/* ==========================================
+   Mobile Responsive Adjustments for UIC Overview
+   ========================================== */
+
+@media (max-width: 768px) {
+    .sponsors-overview-container {
+        padding: 80px 1.25rem 3rem;
+    }
+
+    .sponsors-overview-grid {
+        gap: 1.5rem;
+    }
+
+    .sponsors-venue-header {
+        margin-bottom: 2rem;
+    }
+
+    .sponsors-venue-header h1.text-3d {
+        font-size: 2.2rem;
+    }
+
+    .sponsors-overview-subtitle {
+        font-size: 1.15rem;
+        padding: 0 0.5rem;
+    }
+
+    .sponsors-overview-card {
+        padding: 1.5rem 1.25rem;
+        border-radius: 16px;
+    }
+
+    .sponsors-overview-card.padded-large {
+        padding: 2rem 1.25rem;
+    }
+
+    .sponsors-overview-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .sponsors-overview-card p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        text-align: left;
+    }
+
+    /* Impact Metrics */
+    .sponsors-impact-grid {
+        gap: 1rem;
+    }
+
+    .sponsors-impact-card {
+        flex: 1 1 130px;
+        padding: 0.25rem;
+    }
+
+    .sponsors-impact-number {
+        font-size: 2.2rem;
+    }
+
+    .sponsors-impact-label {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Table adjustments */
+    .sponsors-pitch-table th {
+        font-size: 0.95rem;
+        padding: 0.8rem 0.5rem;
+    }
+
+    .sponsors-pitch-table td {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Collab Title */
+    .sponsors-collab-title {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Past Sponsors */
+    .sponsors-past-grid {
+        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+        gap: 1rem;
+    }
+
+    .past-sponsor-placeholder {
+        height: 70px;
+        font-size: 0.7rem;
+        border-radius: 12px;
+    }
+
+    .past-sponsor-placeholder.real-sponsor {
+        padding: 0.4rem;
+    }
+
+    /* Testimonials scale down */
+    .sponsors-testimonials-slider {
+        gap: 1.5rem;
+        padding: 1rem 0.25rem;
+    }
+
+    .sponsors-testimonial-card {
+        flex: 0 0 220px;
+        height: 391px;
+        border-radius: 18px;
+        border-width: 3px;
+        box-shadow: 8px 8px 0px var(--accent-gold);
+    }
+
+    /* Back button */
+    .sponsors-back-button {
+        margin-top: 2rem;
+        font-size: 0.95rem;
+    }
 }
