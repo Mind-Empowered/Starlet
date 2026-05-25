@@ -1813,13 +1813,13 @@ function App() {
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="brand/Mind Empowered.gif" alt="Mind Empowered" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="brand/Mind Empowered.gif" alt="Mind Empowered" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         </div>
 
                         <div className="partner-card-wide">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="collaborators/adi sankara.png" alt="Adi Shankara" loading="lazy" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
                           </div>
@@ -1827,7 +1827,7 @@ function App() {
 
                         <div className="partner-card-wide">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="collaborators/aikyam.webp" alt="Aikyam Space" loading="lazy" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
                           </div>
@@ -1836,7 +1836,7 @@ function App() {
                         <div className="partner-card-square collab-nss">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="collaborators/nss.png" alt="NSS ASIET" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         </div>
                       </div>
@@ -1880,12 +1880,18 @@ function App() {
                             >
                               <div className="polaroid-heart">💖</div>
                               <div className="polaroid-img" style={{
-                                backgroundImage: `url('${path}')`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
                                 height: '200px',
-                                width: '100%'
-                              }}></div>
+                                width: '100%',
+                                overflow: 'hidden',
+                                display: 'block'
+                              }}>
+                                <img 
+                                  src={path} 
+                                  alt={caption} 
+                                  loading="lazy" 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                                />
+                              </div>
                               <div className="polaroid-caption">{caption}</div>
                             </div>
                           );
@@ -1991,7 +1997,7 @@ function App() {
                           mentors.map(mentor => (
                             <div key={mentor.id} className="mentor-card" onClick={() => setSelectedMentor(mentor)}>
                               <div className="mentor-photo-wrapper">
-                                <img src={mentor.avatar_url || "icons/user-profile.svg"} alt="mentor" />
+                                <img src={mentor.avatar_url || "icons/user-profile.svg"} alt="mentor" loading="lazy" />
                               </div>
                               <h3>{mentor.full_name}</h3>
                               <p className="mentor-role">{mentor.role_title}</p>
@@ -2010,7 +2016,7 @@ function App() {
                           {section.image?.endsWith('.mp4') ? (
                             <video src={section.image} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            <img src={section.image} alt={section.title} />
+                            <img src={section.image} alt={section.title} loading="lazy" />
                           )}
                         </div>
                       </div>
