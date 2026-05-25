@@ -10,34 +10,43 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Export a dummy client if keys are missing to prevent app-wide crashes
 export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : {
-      auth: {
-        getSession: async () => ({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-        signInWithPassword: async () => ({ error: { message: 'Supabase not configured' } }),
-        signUp: async () => ({ error: { message: 'Supabase not configured' } }),
-        signOut: async () => ({ error: null }),
-      },
-      from: () => ({
-        select: () => ({
-          eq: () => ({ single: async () => ({ data: null, error: null }), order: () => ({ data: [], error: null }) }),
-          order: () => ({ data: [], error: null }),
-          is: () => ({ data: [], error: null }),
-        }),
+  : (() => {
+      const mockQuery = {
+        select: () => mockQuery,
+        eq: () => mockQuery,
+        order: () => mockQuery,
+        is: () => mockQuery,
+        single: async () => ({ data: null, error: null }),
         insert: async () => ({ error: { message: 'Supabase not configured' } }),
-        update: () => ({ eq: async () => ({ error: { message: 'Supabase not configured' } }) }),
+        update: () => mockQuery,
         upsert: async () => ({ error: { message: 'Supabase not configured' } }),
-      }),
-      storage: {
-        from: () => ({
-          upload: async () => ({ error: { message: 'Supabase not configured' } }),
-          getPublicUrl: () => ({ data: { publicUrl: '' } }),
-        }),
-      },
-      channel: () => ({
-        on: () => ({ subscribe: () => {} }),
-      }),
-      removeChannel: () => {},
-    };
+        delete: () => mockQuery,
+        then: (onfulfilled) => onfulfilled({ data: [], error: null }),
+      };
+
+      const mockChannel = {
+        on: () => mockChannel,
+        subscribe: () => mockChannel,
+      };
+
+      return {
+        auth: {
+          getSession: async () => ({ data: { session: null }, error: null }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+          signInWithPassword: async () => ({ error: { message: 'Supabase not configured' } }),
+          signUp: async () => ({ error: { message: 'Supabase not configured' } }),
+          signOut: async () => ({ error: null }),
+        },
+        from: () => mockQuery,
+        storage: {
+          from: () => ({
+            upload: async () => ({ error: { message: 'Supabase not configured' } }),
+            getPublicUrl: () => ({ data: { publicUrl: '' } }),
+          }),
+        },
+        channel: () => mockChannel,
+        removeChannel: () => {},
+      };
+    })();
 
 
