@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlet 5.0 | Participant Achievement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --navy: #001f3f;
+            --pink: #ff4d94;
+            --yellow: #ffd700;
+            --bg-off-white: #fffdf5;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--navy);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Download Button Styles */
+        .download-btn {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            background-color: var(--pink);
+            color: white;
+            border: 3px solid var(--navy);
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 8px 8px 0px var(--navy);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-btn:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px var(--navy);
+        }
+
+        .download-btn:active {
+            transform: translate(6px, 6px);
+            box-shadow: 2px 2px 0px var(--navy);
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+            }
+            .certificate-page {
+                box-shadow: none;
+                margin: 0;
+                border: none;
+            }
+        }
+
+        .certificate-page {
+            width: 1123px; /* A4 Landscape */
+            height: 794px;
+            background-color: var(--bg-off-white);
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            border: 8px solid var(--navy);
+            border-radius: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 80px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-family: 'Fredoka One', cursive;
+            font-size: 11rem;
+            color: rgba(0, 31, 63, 0.03);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+            letter-spacing: 4rem;
+        }
+
+        .metadata {
+            font-size: 0.7rem;
+            color: rgba(0, 31, 63, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .header-logos {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            z-index: 2;
+        }
+
+        .logo-box {
+            width: 85px;
+            height: 85px;
+            border-radius: 15px;
+            border: 3px solid var(--navy);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 5px 5px 0px var(--pink);
+            overflow: hidden;
+        }
+
+        .logo-main {
+            width: 85%;
+            height: auto;
+        }
+
+        .cert-title-group {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .cert-title-group h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 5.5rem;
+            color: var(--navy);
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0px var(--yellow);
+        }
+
+        .cert-title-group p {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--pink);
+            letter-spacing: 15px;
+            margin-top: -5px;
+            text-transform: uppercase;
+        }
+
+        .presented-to {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--navy);
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .recipient-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--navy);
+            margin: 5px 0;
+            padding: 10px 40px;
+            border-bottom: 4px solid var(--yellow);
+            display: inline-block;
+            z-index: 2;
+            min-width: 500px;
+            min-height: 60px;
+        }
+
+        .achievement-text {
+            max-width: 850px;
+            margin: 15px auto 40px auto;
+            text-align: center;
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #444;
+            font-weight: 400;
+            z-index: 2;
+        }
+
+        .achievement-text strong {
+            color: var(--pink);
+            font-weight: 800;
+        }
+
+        .footer-signatures {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding: 0 0 15px 0;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 350px;
+        }
+
+        .sig-box .line {
+            height: 4px;
+            background: var(--navy);
+            width: 280px;
+            margin: 0 auto 15px auto;
+            border-radius: 2px;
+        }
+
+        .sig-box strong {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--navy);
+            display: block;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        #capture-zone {
+            padding: 0;
+            display: inline-block;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <button class="download-btn no-print" onclick="downloadCertificateAsPDF()">
+        <span>Download PDF</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+    </button>
+
+    <div id="capture-zone">
+        <div class="certificate-page" id="certificate">
+            <div class="watermark">STARLET</div>
+            
+            <div class="header-logos">
+            <div class="logo-box">
+                <img src="../brand/Logo.png" alt="Starlet Logo" class="logo-main">
+            </div>
+            <div class="logo-box">
+                <img src="../brand/Mind Empowered.jpeg" alt="Mind Empowered" class="logo-main" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+            </div>
+        </div>
+
+        <div class="cert-title-group">
+            <h1>Certificate</h1>
+            <p>OF EXCELLENCE</p>
+        </div>
+
+        <div class="presented-to">This award is officially presented to</div>
+        
+        <div class="recipient-name"></div>
+
+        <div class="achievement-text">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Your contribution to <strong>Starlet 5.0</strong> has left an indelible mark on the galaxy of innovators.
+        </div>
+
+        <div class="footer-signatures">
+            <div class="sig-box">
+                <div class="line"></div>
+                <strong>MIND EMPOWERED</strong>
+            </div>
+            <div class="metadata">
+                ISSUE DATE: JULY 11, 2024
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        // Auto-fill name from URL parameter on load
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const name = urlParams.get('name');
+            if (name) {
+                const nameDisplay = document.querySelector('.recipient-name');
+                if (nameDisplay) {
+                    nameDisplay.textContent = decodeURIComponent(name);
+                }
+            }
+        };
+
+        async function downloadCertificateAsPDF() {
+            const { jsPDF } = window.jspdf;
+                const certElement = document.getElementById('certificate');
+                const btn = document.querySelector('.download-btn');
+                
+                btn.innerHTML = '<span>Generating...</span>';
+                btn.style.opacity = '0.7';
+                btn.style.pointerEvents = 'none';
+
+                try {
+                    const scale = 3;
+                    const canvas = await html2canvas(certElement, {
+                        scale: scale,
+                        useCORS: true,
+                        backgroundColor: '#001f3f', // Navy blue to match branding and fix corners
+                        logging: false,
+                        letterRendering: true,
+                        allowTaint: true
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.90);
+                    
+                    const imgWidth = canvas.width / scale;
+                    const imgHeight = canvas.height / scale;
+                    
+                    const pdf = new jsPDF({
+                        orientation: imgWidth > imgHeight ? 'l' : 'p',
+                        unit: 'px',
+                        format: [imgWidth, imgHeight]
+                    });
+
+                    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    pdf.save('Starlet5_Certificate_Rounded.pdf');
+                
+            } catch (error) {
+                console.error('PDF Generation Error:', error);
+                alert('Failed to generate PDF. Try using Chrome for best results!');
+            } finally {
+                btn.innerHTML = '<span>Download PDF</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+    </script>
+</body>
+</html>
