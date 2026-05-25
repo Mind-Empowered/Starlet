@@ -13,35 +13,35 @@ const sectionsData = [
     type: 'what-is-starlet',
     title: 'What is Starlet?',
     content: "Starlet is the ultimate innovation marathon for women where ideas meet execution and strangers become teammates. Whether you're a seasoned coder or just stepping into the world of tech, this event is built for everyone — solo innovators, dynamic duos, and full-fledged teams!",
-    image: '/brand/Starlet.mp4'
+    image: 'brand/Starlet.mp4'
   },
   {
     id: 2,
     type: 'mission',
     title: "Our Mission",
     content: "A safe place for girls to connect, code, co-create, and cultivate confidence. We believe that when women are provided with an empowering, collaborative environment, their ideas have the power to transform industries and reshape the future of technology.",
-    image: "/svg/1.svg"
+    image: "svg/1.svg"
   },
   {
     id: 16,
     type: 'theme',
     title: "Starlet 5.0 Theme",
     content: "Collaboration over competition to build technology that empowers people with disabilities, improves accessibility, and creates a more inclusive world. Whether through software, hardware, or AI, your solutions will break down barriers and foster real-world independence.",
-    image: "/svg/3.svg"
+    image: "svg/3.svg"
   },
   {
     id: 3,
     type: 'tracks',
     title: "Pick Your Track",
     content: "Choose a focus area within Assistive Tech: from Mobility Solutions and Visual/Auditory Aids to Neurodiversity Support and Inclusive Education. Your innovation can redefine independence.",
-    image: "/brand/Logo.png"
+    image: "brand/Logo.png"
   },
   {
     id: 4,
     type: 'timeline',
     title: "The Roadmap",
     content: "11th July 2026, Saturday 8:00am - 5:00pm and 12th July 2026, Sunday 8:00am - 5:00pm",
-    image: "/brand/Logo.png"
+    image: "brand/Logo.png"
   },
 
   {
@@ -49,16 +49,16 @@ const sectionsData = [
     type: 'prizes',
     title: "Epic Prizes",
     content: "A total prize pool of over ₹40,000 awaits the most innovative solutions!",
-    image: "/icons/trophy.svg"
+    image: "icons/trophy.svg"
   },
-  { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Fair play and collaboration are the heart of Starlet.", image: "/icons/warning.svg" },
-  { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Industry experts ready to guide your journey.", image: "/icons/user-profile.svg" },
-  { id: 9, type: 'community', title: "Make New Friends", content: "Starlet isn't just an innovation marathon — it's the starting point for lifelong sisterhood and professional networking. Connect with passionate creators, find potential co-founders, share exciting coding breakthroughs, and become part of an empowered tech community that champions your growth!", image: "/svg/2.svg" },
-  { id: 10, type: 'sponsors', title: "Our Supporters", content: "The organizations making this impact possible.", image: "/brand/Logo.png" },
-  { id: 11, type: 'gallery', title: "The Gallery", content: "Captured moments of innovation and fun.", image: "/brand/Logo.png" },
-  { id: 12, type: 'faq', title: "Common Doubts", content: "Answers to frequently asked questions.", image: "/icons/warning.svg" },
-  // { id: 13, type: 'newsletter', title: "Stay Updated", content: "Join our community to never miss an update.", image: "/icons/rocket.svg" },
-  { id: 14, type: 'contact', title: "Get in Touch", content: "Reach out for support or inquiries.", image: "/icons/location.svg" }
+  { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Fair play and collaboration are the heart of Starlet.", image: "icons/warning.svg" },
+  { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Industry experts ready to guide your journey.", image: "icons/user-profile.svg" },
+  { id: 9, type: 'community', title: "Make New Friends", content: "Starlet isn't just an innovation marathon — it's the starting point for lifelong sisterhood and professional networking. Connect with passionate creators, find potential co-founders, share exciting coding breakthroughs, and become part of an empowered tech community that champions your growth!", image: "svg/2.svg" },
+  { id: 10, type: 'sponsors', title: "Our Supporters", content: "The organizations making this impact possible.", image: "brand/Logo.png" },
+  { id: 11, type: 'gallery', title: "The Gallery", content: "Captured moments of innovation and fun.", image: "brand/Logo.png" },
+  { id: 12, type: 'faq', title: "Common Doubts", content: "Answers to frequently asked questions.", image: "icons/warning.svg" },
+  // { id: 13, type: 'newsletter', title: "Stay Updated", content: "Join our community to never miss an update.", image: "icons/rocket.svg" },
+  { id: 14, type: 'contact', title: "Get in Touch", content: "Reach out for support or inquiries.", image: "icons/location.svg" }
 ];
 
 const tracksData = Array.from({ length: 15 }, (_, i) => ({
@@ -85,7 +85,7 @@ const mentorsData = Array.from({ length: 6 }, (_, i) => ({
   role: "Tech Expert",
   company: "Industry Leader",
   bio: "Experienced professional dedicated to guiding the next generation of innovators.",
-  image: "/icons/user-profile.svg"
+  image: "icons/user-profile.svg"
 }));
 
 const galleryCaptions = [
@@ -1351,7 +1351,7 @@ function App() {
           company: user.venue || 'Starlet Command',
           bio: user.bio,
           expertise: user.stack,
-          avatar_url: user.avatarUrl || '/icons/user-profile.svg'
+          avatar_url: user.avatarUrl || 'icons/user-profile.svg'
         }).eq('profile_id', session.user.id);
         fetchAllMentors();
       }
@@ -1480,7 +1480,7 @@ function App() {
       <div className="splash-screen">
         <div className="splash-content">
           <div className="splash-logo-container">
-            <img src="/brand/Logo.png" alt="Starlet" className="splash-logo" />
+            <img src="brand/Logo.png" alt="Starlet" className="splash-logo" />
           </div>
           <div className="splash-text">INITIALIZING QUANTUM LINK...</div>
           <div className="splash-loading-container">
@@ -1498,7 +1498,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setSelectedMentor(null)}>
           <div className="mentor-modal" onClick={e => e.stopPropagation()}>
             <div className="close-modal" onClick={() => setSelectedMentor(null)}>
-              <img src="/icons/close.svg" alt="close" />
+              <img src="icons/close.svg" alt="close" />
             </div>
             <div className="mentor-modal-content">
               <div className="mentor-modal-photo">
@@ -1522,7 +1522,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowRegPopup(false)}>
           <div className="registration-modal" onClick={e => e.stopPropagation()}>
             <div className="close-modal" onClick={() => setShowRegPopup(false)}>
-              <img src="/icons/close.svg" alt="close" />
+              <img src="icons/close.svg" alt="close" />
             </div>
             <div className="registration-modal-content">
               <div className="registration-modal-header" style={{ padding: '1rem', borderBottom: '3px solid var(--text-navy)', background: 'var(--yellow-star)' }}>
@@ -1550,7 +1550,7 @@ function App() {
         <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
           <div className="splash-content">
             <div className="splash-logo-container">
-              <img src="/brand/Logo.png" alt="Starlet Logo" className="splash-logo" />
+              <img src="brand/Logo.png" alt="Starlet Logo" className="splash-logo" />
               <div className="splash-stars">
                 <span className="splash-star s1">✦</span>
                 <span className="splash-star s2">✧</span>
@@ -1564,7 +1564,7 @@ function App() {
             <p className="handwritten splash-text">Igniting your creativity...</p>
           </div>
           <div className="splash-footer handwritten">
-            <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '30px', verticalAlign: 'middle', marginRight: '10px', borderRadius: '5px' }} />
+            <img src="brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '30px', verticalAlign: 'middle', marginRight: '10px', borderRadius: '5px' }} />
             A Mind Empowered Initiative
           </div>
         </div>
@@ -1577,7 +1577,7 @@ function App() {
 
       <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' ? 'header-minimal' : ''}>
         <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
-          <img src="/brand/Logo.png" alt="Starlet Logo" />
+          <img src="brand/Logo.png" alt="Starlet Logo" />
         </div>
 
         {activeView === 'landing' && (
@@ -1595,11 +1595,11 @@ function App() {
                 {isLoggedIn ? (
                   <>
                     <div className="mobile-profile-link" onClick={() => { setActiveView('venue'); setIsMenuOpen(false); }}>
-                      <img src="/icons/location.svg" alt="venue" />
+                      <img src="icons/location.svg" alt="venue" />
                       <span>Venue Details</span>
                     </div>
                     <div className="mobile-profile-link" onClick={() => { setActiveView('profile'); setIsMenuOpen(false); }}>
-                      <img src="/icons/user-profile.svg" alt="profile" />
+                      <img src="icons/user-profile.svg" alt="profile" />
                       <span>My Profile</span>
                     </div>
                   </>
@@ -1617,14 +1617,14 @@ function App() {
                 {isLoggedIn ? (
                   <>
                     <img
-                      src="/icons/location.svg"
+                      src="icons/location.svg"
                       className="nav-icon-btn"
                       alt="venue"
                       onClick={() => setActiveView('venue')}
                       title="Venue Details"
                     />
                     <img
-                      src="/icons/user-profile.svg"
+                      src="icons/user-profile.svg"
                       className="nav-icon-btn"
                       alt="profile"
                       onClick={() => setActiveView('profile')}
@@ -1640,7 +1640,7 @@ function App() {
               </div>
 
               <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                <img src={isMenuOpen ? "/icons/close.svg" : "/icons/hamburger.svg"} alt="menu" />
+                <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
               </div>
             </div>
           </>
@@ -1649,8 +1649,8 @@ function App() {
         {activeView === 'sponsors-overview' && (
           <>
             <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
-              <a href="/pdf/Milaap%202026%20Starlet%20.pdf" download="Milaap 2026 Starlet.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Milaap 2026 Starlet PDF</a>
-              <a href="/pdf/Starlet%205.0%20adishankara.pdf" download="Starlet 5.0 adishankara.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Starlet 5.0 Adi Shankara PDF</a>
+              <a href="pdf/Milaap%202026%20Starlet%20.pdf" download="Milaap 2026 Starlet.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Milaap 2026 Starlet PDF</a>
+              <a href="pdf/Starlet%205.0%20adishankara.pdf" download="Starlet 5.0 adishankara.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Starlet 5.0 Adi Shankara PDF</a>
             </nav>
             <div className="header-actions">
               <div 
@@ -1664,7 +1664,7 @@ function App() {
                 </svg>
               </div>
               <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                <img src={isMenuOpen ? "/icons/close.svg" : "/icons/hamburger.svg"} alt="menu" />
+                <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
               </div>
             </div>
           </>
@@ -1712,17 +1712,17 @@ function App() {
                       <div className="magnetic-paper handwritten">
                         <div className="magnet"></div>
                         <strong>Note:</strong><br />
-                        Don't forget your laptops! <img src="/icons/laptop.svg" className="inline-icon" alt="laptop" />
+                        Don't forget your laptops! <img src="icons/laptop.svg" className="inline-icon" alt="laptop" />
                       </div>
                       <h3 className="whiteboard-title handwritten">Starlet 5.0 Timeline</h3>
                       <div className="handwritten">
                         <div className="timeline-event">
                           <span className="timeline-date">July 11th, Sat</span>
-                          <span className="timeline-desc">Day 1: 8:00am - 5:00pm - Kickoff, Ideation & Coding <img src="/icons/rocket.svg" className="inline-icon" alt="rocket" /></span>
+                          <span className="timeline-desc">Day 1: 8:00am - 5:00pm - Kickoff, Ideation & Coding <img src="icons/rocket.svg" className="inline-icon" alt="rocket" /></span>
                         </div>
                         <div className="timeline-event">
                           <span className="timeline-date">July 12th, Sun</span>
-                          <span className="timeline-desc">Day 2: 8:00am - 5:00pm - Finalizing, Pitches & Awards <img src="/icons/trophy.svg" className="inline-icon" alt="trophy" /></span>
+                          <span className="timeline-desc">Day 2: 8:00am - 5:00pm - Finalizing, Pitches & Awards <img src="icons/trophy.svg" className="inline-icon" alt="trophy" /></span>
                         </div>
                       </div>
                     </div>
@@ -1730,47 +1730,47 @@ function App() {
                     <div className="section-content rules-hazard-box">
                       <div className="rules-hazard-inner">
                         <h2 className="text-3d warning-title" style={{ fontSize: '3rem' }}>
-                          <img src="/icons/warning.svg" className="title-icon" alt="warning" /> RULES & REGS
+                          <img src="icons/warning.svg" className="title-icon" alt="warning" /> RULES & REGS
                         </h2>
                         <div className="rules-grid">
                           <div className="warning-item" style={{ "--r": -1 }}>
-                            <div className="warning-icon"><img src="/icons/users.svg" className="card-icon" alt="users" /></div>
+                            <div className="warning-icon"><img src="icons/users.svg" className="card-icon" alt="users" /></div>
                             <p><strong>TEAM FORMATION:</strong> Participants form teams of 3 to 4 members. Registering solo? The organizers will create a team for you!</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 1.5 }}>
-                            <div className="warning-icon"><img src="/icons/warning.svg" className="card-icon" alt="warning" /></div>
+                            <div className="warning-icon"><img src="icons/warning.svg" className="card-icon" alt="warning" /></div>
                             <p><strong>REGISTRATION & FEES:</strong> Everyone must submit the registration form with a fee payment screenshot. Registration fees are strictly non-refundable.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": -0.8 }}>
-                            <div className="warning-icon"><img src="/icons/laptop.svg" className="card-icon" alt="laptop" /></div>
+                            <div className="warning-icon"><img src="icons/laptop.svg" className="card-icon" alt="laptop" /></div>
                             <p><strong>CODE ORIGINALITY:</strong> All projects must be built from scratch during hackathon hours. Pre-existing code is prohibited, except open-source libraries or frameworks.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 1.2 }}>
-                            <div className="warning-icon"><img src="/icons/rocket.svg" className="card-icon" alt="rocket" /></div>
+                            <div className="warning-icon"><img src="icons/rocket.svg" className="card-icon" alt="rocket" /></div>
                             <p><strong>THEMES & SCOPE:</strong> Projects must align with official hackathon problem statements and guidelines. Teams own their original code and assets.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": -1.2 }}>
-                            <div className="warning-icon"><img src="/icons/users.svg" className="card-icon" alt="users" /></div>
+                            <div className="warning-icon"><img src="icons/users.svg" className="card-icon" alt="users" /></div>
                             <p><strong>COLLABORATION POWER:</strong> Cross-team collaboration is highly encouraged and will win extra points! Seek advice and guidance from mentors and organizers.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 0.8 }}>
-                            <div className="warning-icon"><img src="/icons/calendar.svg" className="card-icon" alt="calendar" /></div>
+                            <div className="warning-icon"><img src="icons/calendar.svg" className="card-icon" alt="calendar" /></div>
                             <p><strong>SUBMISSION DEADLINE:</strong> Submit project documentation, source code, and presentation before the deadline. Late submissions face penalties or disqualification.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": -1.5 }}>
-                            <div className="warning-icon"><img src="/icons/trophy.svg" className="card-icon" alt="trophy" /></div>
+                            <div className="warning-icon"><img src="icons/trophy.svg" className="card-icon" alt="trophy" /></div>
                             <p><strong>THE PITCH & JUDGING:</strong> Present your project functionality and innovation to the panel. Judging criteria are clear, and the judges' decision is final.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 1 }}>
-                            <div className="warning-icon"><img src="/icons/warning.svg" className="card-icon" alt="warning" /></div>
+                            <div className="warning-icon"><img src="icons/warning.svg" className="card-icon" alt="warning" /></div>
                             <p><strong>FAIR PLAY & CONDUCT:</strong> Uphold inclusivity, respect, and professional ethics. Any form of cheating, plagiarism, or harassment results in immediate disqualification.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": -0.5 }}>
-                            <div className="warning-icon"><img src="/icons/laptop.svg" className="card-icon" alt="laptop" /></div>
+                            <div className="warning-icon"><img src="icons/laptop.svg" className="card-icon" alt="laptop" /></div>
                             <p><strong>CODE VALIDATION:</strong> Organizers may conduct code validation to ensure development took place within the allotted timeframe and complies with all regulations.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 1.4 }}>
-                            <div className="warning-icon"><img src="/icons/warning.svg" className="card-icon" alt="warning" /></div>
+                            <div className="warning-icon"><img src="icons/warning.svg" className="card-icon" alt="warning" /></div>
                             <p><strong>TERMS & CONSENT:</strong> Organizers hold no liability for equipment or losses. Participants consent to promotional media release; organizer arbitration decisions are final.</p>
                           </div>
                         </div>
@@ -1813,13 +1813,13 @@ function App() {
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="brand/Mind Empowered.gif" alt="Mind Empowered" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         </div>
 
                         <div className="partner-card-wide">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
                           </div>
@@ -1827,7 +1827,7 @@ function App() {
 
                         <div className="partner-card-wide">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="/collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
                           </div>
@@ -1836,7 +1836,7 @@ function App() {
                         <div className="partner-card-square collab-nss">
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         </div>
                       </div>
@@ -1865,7 +1865,7 @@ function App() {
                       <div className="gallery-grid" ref={landingGalleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
                         {Array.from({ length: 42 }, (_, i) => {
                           const index = i + 1;
-                          const path = index <= 9 ? `/gallery/${index}.JPG` : `/gallery/${index}.jpeg`;
+                          const path = index <= 9 ? `gallery/${index}.JPG` : `gallery/${index}.jpeg`;
                           const caption = galleryCaptions[i] || `Starlet Memory #${index}`;
                           return (
                             <div
@@ -1903,22 +1903,22 @@ function App() {
                       </div>
                       <div className="prize-grid" ref={prizesRef}>
                         <div className="prize-card">
-                          <div className="prize-icon"><img src="/icons/trophy.svg" style={{ width: '80px' }} alt="trophy" /></div>
+                          <div className="prize-icon"><img src="icons/trophy.svg" style={{ width: '80px' }} alt="trophy" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>1st Prize</h3>
                           <p>₹15,000</p>
                         </div>
                         <div className="prize-card">
-                          <div className="prize-icon"><img src="/icons/trophy.svg" style={{ width: '70px', opacity: 0.7 }} alt="trophy" /></div>
+                          <div className="prize-icon"><img src="icons/trophy.svg" style={{ width: '70px', opacity: 0.7 }} alt="trophy" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>2nd Prize</h3>
                           <p>₹10,000</p>
                         </div>
                         <div className="prize-card">
-                          <div className="prize-icon"><img src="/icons/trophy.svg" style={{ width: '60px', opacity: 0.5 }} alt="trophy" /></div>
+                          <div className="prize-icon"><img src="icons/trophy.svg" style={{ width: '60px', opacity: 0.5 }} alt="trophy" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>3rd Prize</h3>
                           <p>₹7,500</p>
                         </div>
                         <div className="prize-card">
-                          <div className="prize-icon"><img src="/icons/laptop.svg" style={{ width: '60px', opacity: 0.8 }} alt="innovation" /></div>
+                          <div className="prize-icon"><img src="icons/laptop.svg" style={{ width: '60px', opacity: 0.8 }} alt="innovation" /></div>
                           <h3 className="text-3d" style={{ fontSize: '1.5rem' }}>Best Innovation</h3>
                           <p>₹7,500</p>
                         </div>
@@ -1959,12 +1959,12 @@ function App() {
                           <p>Join our community of 5,000+ creators on social media.</p>
                           <div className="social-grid">
                             <a href="https://www.instagram.com/mind.empowered/" className="social-item instagram">
-                              <img src="/icons/instagram.svg" alt="Instagram" />
+                              <img src="icons/instagram.svg" alt="Instagram" />
                               <span>Instagram</span>
                             </a>
                             
                             <a href="https://www.linkedin.com/company/mind-empowered/" className="social-item linkedin">
-                              <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                              <img src="icons/linkedin.svg" alt="LinkedIn" />
                               <span>LinkedIn</span>
                             </a>
                             
@@ -1991,7 +1991,7 @@ function App() {
                           mentors.map(mentor => (
                             <div key={mentor.id} className="mentor-card" onClick={() => setSelectedMentor(mentor)}>
                               <div className="mentor-photo-wrapper">
-                                <img src={mentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" />
+                                <img src={mentor.avatar_url || "icons/user-profile.svg"} alt="mentor" />
                               </div>
                               <h3>{mentor.full_name}</h3>
                               <p className="mentor-role">{mentor.role_title}</p>
@@ -2024,7 +2024,7 @@ function App() {
           <footer>
             <div className="footer-minimal">
               <div className="footer-brand-mini">
-                <img src="/brand/Logo.png" alt="Starlet" />
+                <img src="brand/Logo.png" alt="Starlet" />
                 <span className="text-3d">STARLET 5.0</span>
               </div>
 
@@ -2037,7 +2037,7 @@ function App() {
               </div>
 
               <div className="footer-copy-mini">
-                &copy; 2026 Starlet 5.0 | A <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '20px', verticalAlign: 'middle', margin: '0 5px', borderRadius: '3px' }} /> Mind Empowered Initiative
+                &copy; 2026 Starlet 5.0 | A <img src="brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '20px', verticalAlign: 'middle', margin: '0 5px', borderRadius: '3px' }} /> Mind Empowered Initiative
               </div>
             </div>
           </footer>
@@ -2051,7 +2051,7 @@ function App() {
                 <div className="signup-grid">
                   <div className="signup-photo-col">
                     <div className="signup-avatar-preview">
-                      <img src={signupAvatarPreview || '/icons/user-profile.svg'} alt="preview" />
+                      <img src={signupAvatarPreview || 'icons/user-profile.svg'} alt="preview" />
                       <label className="photo-upload-btn">
                         ADD PHOTO
                         <input type="file" hidden accept="image/*" onChange={handleSignupAvatarChange} />
@@ -2199,28 +2199,28 @@ function App() {
 
               <div className="admin-stats-strip">
                 <div className="admin-stat-card">
-                  <div className="stat-icon"><img src="/icons/users.svg" alt="users" /></div>
+                  <div className="stat-icon"><img src="icons/users.svg" alt="users" /></div>
                   <div className="stat-info">
                     <strong>{allUsers.length}</strong>
                     <span>Total Users</span>
                   </div>
                 </div>
                 <div className="admin-stat-card">
-                  <div className="stat-icon"><img src="/icons/trophy.svg" alt="verified" /></div>
+                  <div className="stat-icon"><img src="icons/trophy.svg" alt="verified" /></div>
                   <div className="stat-info">
                     <strong>{allMentors.filter(m => m.is_approved).length}</strong>
                     <span>Verified Mentors</span>
                   </div>
                 </div>
                 <div className="admin-stat-card warning">
-                  <div className="stat-icon"><img src="/icons/calendar.svg" alt="pending" /></div>
+                  <div className="stat-icon"><img src="icons/calendar.svg" alt="pending" /></div>
                   <div className="stat-info">
                     <strong>{allMentors.filter(m => !m.is_approved).length}</strong>
                     <span>Pending Approval</span>
                   </div>
                 </div>
                 <div className="admin-stat-card blue">
-                  <div className="stat-icon"><img src="/icons/warning.svg" alt="requests" /></div>
+                  <div className="stat-icon"><img src="icons/warning.svg" alt="requests" /></div>
                   <div className="stat-info">
                     <strong>{mentorRequests.length}</strong>
                     <span>Active Requests</span>
@@ -2833,7 +2833,7 @@ function App() {
               <div className="profile-sidebar">
                 <div className="profile-avatar" style={{ position: 'relative' }}>
                   <img
-                    src={user.avatarUrl || '/icons/user-profile.svg'}
+                    src={user.avatarUrl || 'icons/user-profile.svg'}
                     alt="avatar"
                     style={{ objectFit: user.avatarUrl ? 'cover' : 'contain', borderRadius: '50%', width: '100%', height: '100%' }}
                   />
@@ -2931,7 +2931,7 @@ function App() {
                     <label>Social Links</label>
                     <div className="social-connect-grid">
                       <div className="social-connect-item">
-                        <img src="/icons/github.svg" alt="GitHub" />
+                        <img src="icons/github.svg" alt="GitHub" />
                         <input
                           type="text"
                           placeholder="GitHub URL"
@@ -2940,7 +2940,7 @@ function App() {
                         />
                       </div>
                       <div className="social-connect-item">
-                        <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                        <img src="icons/linkedin.svg" alt="LinkedIn" />
                         <input
                           type="text"
                           placeholder="LinkedIn URL"
@@ -2985,7 +2985,7 @@ function App() {
               <div className="profile-sidebar">
                 <div className="profile-avatar" style={{ position: 'relative' }}>
                   <img
-                    src={user.avatarUrl || '/icons/user-profile.svg'}
+                    src={user.avatarUrl || 'icons/user-profile.svg'}
                     alt="avatar"
                     style={{ objectFit: user.avatarUrl ? 'cover' : 'contain', borderRadius: '50%', width: '100%', height: '100%' }}
                   />
@@ -3134,7 +3134,7 @@ function App() {
                   <label>Social Connectivity</label>
                   <div className="social-connect-grid">
                     <div className="social-connect-item">
-                      <img src="/icons/github.svg" alt="GitHub" />
+                      <img src="icons/github.svg" alt="GitHub" />
                       <input
                         type="text"
                         placeholder="GitHub URL"
@@ -3143,7 +3143,7 @@ function App() {
                       />
                     </div>
                     <div className="social-connect-item">
-                      <img src="/icons/linkedin.svg" alt="LinkedIn" />
+                      <img src="icons/linkedin.svg" alt="LinkedIn" />
                       <input
                         type="text"
                         placeholder="LinkedIn URL"
@@ -3318,10 +3318,10 @@ function App() {
               {/* Header Branding */}
               <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', zIndex: 2 }}>
                 <div style={{ width: '85px', height: '85px', borderRadius: '15px', border: '3px solid #001f3f', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '5px 5px 0px #ff4d94', overflow: 'hidden' }}>
-                  <img src="/brand/Logo.png" alt="Starlet" style={{ width: '85%', height: 'auto' }} />
+                  <img src="brand/Logo.png" alt="Starlet" style={{ width: '85%', height: 'auto' }} />
                 </div>
                 <div style={{ width: '85px', height: '85px', borderRadius: '15px', border: '3px solid #001f3f', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '5px 5px 0px #ff4d94', overflow: 'hidden' }}>
-                  <img src="/brand/Mind Empowered.jpeg" alt="ME" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src="brand/Mind Empowered.jpeg" alt="ME" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               </div>
 
@@ -3382,7 +3382,7 @@ function App() {
                       <div className="map-placeholder">
                         <p>{v.description}</p>
                         <div className="venue-address">
-                          <img src="/icons/location.svg" alt="map" className="map-icon" style={{ width: '30px', height: '30px', opacity: 0.8, display: 'block', margin: '0 auto 0.5rem auto' }} />
+                          <img src="icons/location.svg" alt="map" className="map-icon" style={{ width: '30px', height: '30px', opacity: 0.8, display: 'block', margin: '0 auto 0.5rem auto' }} />
                           <strong>Address:</strong><br />
                           {v.address}
                         </div>
@@ -3426,7 +3426,7 @@ function App() {
                         <h2 className="text-3d">Transport</h2>
                         <div className="transport-list">
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>By Train</h3>
                               <p><strong>Nearest Railway Station:</strong> Angamaly for Kalady (AFK) is the closest station, located roughly 7 to 8 km away from the campus.</p>
@@ -3435,7 +3435,7 @@ function App() {
                             </div>
                           </div>
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/bus.svg" alt="bus" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/bus.svg" alt="bus" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>By Bus</h3>
                               <p><strong>Local Buses:</strong> Frequent private and KSRTC buses run between Angamaly and Perumbavoor via Kalady.</p>
@@ -3443,7 +3443,7 @@ function App() {
                             </div>
                           </div>
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>Car / Ride Share</h3>
                               <p><strong>Location:</strong> The campus is situated at Vidya Bharathi Nagar, Mattoor, Kalady, right along the main road connecting Angamaly and Kalady.</p>
@@ -3458,7 +3458,7 @@ function App() {
                         <h2 className="text-3d">Transport</h2>
                         <div className="transport-list">
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/ferry.svg" alt="transit" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/ferry.svg" alt="transit" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>By Public Bus & Ferry (Transit)</h3>
                               <p>Public transportation from Thrissur takes approximately 3 hours and 45 minutes to reach the venue.</p>
@@ -3467,7 +3467,7 @@ function App() {
                             </div>
                           </div>
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/train.svg" alt="train" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>By Train</h3>
                               <p><strong>Nearest Major Stations:</strong> Ernakulam Junction (ERS) (South) or Ernakulam Town (ERN) (North).</p>
@@ -3475,7 +3475,7 @@ function App() {
                             </div>
                           </div>
                           <div className="transport-item">
-                            <div className="transport-icon"><img src="/icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
+                            <div className="transport-icon"><img src="icons/car.svg" alt="car" style={{ width: '40px' }} /></div>
                             <div className="transport-info">
                               <h3>Car / Ride Share</h3>
                               <p><strong>Route:</strong> If you are driving down from Thrissur, follow the National Highway 544 (NH544) toward Ernakulam, then navigate through the Vikrant Bhairon Road or Thoppumpady bridge into Fort Kochi/Mattancherry.</p>
@@ -3498,7 +3498,7 @@ function App() {
       ) : null}
 
       <div className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`} onClick={scrollToTop}>
-        <img src="/icons/rocket.svg" alt="top" />
+        <img src="icons/rocket.svg" alt="top" />
       </div>
       {showAboutPopup && (
         <div className="modal-overlay" onClick={() => setShowAboutPopup(false)}>
@@ -3506,7 +3506,7 @@ function App() {
             <button className="modal-close" onClick={() => setShowAboutPopup(false)}>×</button>
             <div className="modal-inner">
               <div className="modal-visual">
-                <img src="/brand/Mind Empowered.gif" alt="Mind Empowered" />
+                <img src="brand/Mind Empowered.gif" alt="Mind Empowered" />
               </div>
               <div className="modal-text">
                 <h2 className="text-3d">About Mind Empowered</h2>
@@ -3570,7 +3570,7 @@ function App() {
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
             <div className="lightbox-image-container">
               <img
-                src={selectedGalleryImage + 1 <= 9 ? `/gallery/${selectedGalleryImage + 1}.JPG` : `/gallery/${selectedGalleryImage + 1}.jpeg`}
+                src={selectedGalleryImage + 1 <= 9 ? `gallery/${selectedGalleryImage + 1}.JPG` : `gallery/${selectedGalleryImage + 1}.jpeg`}
                 alt="Enlarged"
               />
               <div className="lightbox-caption">
@@ -3617,7 +3617,7 @@ function App() {
               {/* Left Column: Profile Card */}
               <div className="mentor-modal-side" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '2.5rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: '8px 8px 0px var(--blue-shadow)' }}>
                 <div className="mentor-modal-photo" style={{ width: '170px', height: '170px', borderRadius: '50%', overflow: 'hidden', border: '5px solid var(--pink-primary)', boxShadow: '6px 6px 0px var(--yellow-star)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-cream)' }}>
-                  <img src={selectedMentor.avatar_url || "/icons/user-profile.svg"} alt="mentor" style={{ width: '100%', height: '100%', objectFit: selectedMentor.avatar_url ? 'cover' : 'contain' }} />
+                  <img src={selectedMentor.avatar_url || "icons/user-profile.svg"} alt="mentor" style={{ width: '100%', height: '100%', objectFit: selectedMentor.avatar_url ? 'cover' : 'contain' }} />
                 </div>
                 <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)', lineHeight: '1.2' }}>{selectedMentor.role_title}</h3>
                 <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 1rem', fontSize: '0.95rem', fontWeight: '900', color: 'var(--text-navy)', marginTop: '0.5rem', display: 'inline-block' }}>🏢 {selectedMentor.company}</span>
@@ -3705,7 +3705,7 @@ function App() {
             <div className="alert-header">NEW HELP REQUEST</div>
             <div className="alert-body">
               <div className="alert-user-photo">
-                <img src={activeAlert.attendee?.avatar_url || '/icons/user-profile.svg'} alt="attendee" />
+                <img src={activeAlert.attendee?.avatar_url || 'icons/user-profile.svg'} alt="attendee" />
               </div>
               <div className="alert-content">
                 <h3>{activeAlert.attendee?.full_name}</h3>

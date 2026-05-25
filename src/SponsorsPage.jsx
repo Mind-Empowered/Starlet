@@ -95,7 +95,7 @@ const SponsorsPage = ({ onBack }) => {
             
             <div className="partner-card-wide" style={{ margin: 0 }}>
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-              <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+              <img src="collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
               <div style={{ textAlign: 'center' }}>
                 <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
               </div>
@@ -103,7 +103,7 @@ const SponsorsPage = ({ onBack }) => {
 
             <div className="partner-card-wide" style={{ margin: 0 }}>
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-              <img src="/collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+              <img src="collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
               <div style={{ textAlign: 'center' }}>
                 <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
               </div>
@@ -112,7 +112,7 @@ const SponsorsPage = ({ onBack }) => {
             <div className="partner-card-square collab-nss" style={{ margin: 0 }}>
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             </div>
 
@@ -153,7 +153,7 @@ const SponsorsPage = ({ onBack }) => {
                 }}>
                   {hasRealSponsor ? (
                     <img 
-                      src={`/sponsors/${i + 1}.png`} 
+                      src={`sponsors/${i + 1}.png`} 
                       alt={`Sponsor ${i + 1}`} 
                       style={{ 
                         maxWidth: '100%', 
@@ -185,8 +185,8 @@ const SponsorsPage = ({ onBack }) => {
             scrollbarColor: 'var(--accent-gold) transparent'
           }}>
             {[
-              { id: 1, src: '/testimonials/1.mp4' },
-              { id: 2, src: '/testimonials/2.mp4' }
+              { id: 1, src: 'testimonials/1.mp4' },
+              { id: 2, src: 'testimonials/2.mp4' }
             ].map((video) => (
               <div key={video.id} style={{ 
                 flex: '0 0 300px', 
