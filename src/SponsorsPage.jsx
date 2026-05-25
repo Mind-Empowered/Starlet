@@ -95,17 +95,80 @@ const SponsorsPage = ({ onBack }) => {
             
             <div className="partner-card-wide" style={{ margin: 0 }}>
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-              <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginTop: '1.5rem' }} />
+              <img src="/collaborators/adi sankara.png" alt="Adi Shankara" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
               <div style={{ textAlign: 'center' }}>
                 <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
               </div>
             </div>
 
-            <div className="partner-card-square collab-nss" style={{ margin: 0 }}>
+            <div className="partner-card-wide" style={{ margin: 0 }}>
               <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-              <img src="/collaborators/nss.png" alt="NSS ASIET" />
+              <img src="/collaborators/aikyam.webp" alt="Aikyam Space" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
+              </div>
             </div>
 
+            <div className="partner-card-square collab-nss" style={{ margin: 0 }}>
+              <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
+                <img src="/collaborators/nss.png" alt="NSS ASIET" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--glass-bg)', padding: '3rem 2rem', borderRadius: '20px', border: '1px solid var(--glass-border)', backdropFilter: 'blur(15px)' }}>
+          <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', textAlign: 'center' }}>Past Sponsors</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', textAlign: 'center' }}>
+            Empowering our journey year after year. Meet the brands that supported us.
+          </p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1.5rem',
+            marginTop: '1.5rem'
+          }}>
+            {Array.from({ length: 20 }).map((_, i) => {
+              const hasRealSponsor = i < 3;
+              return (
+                <div key={i} className="past-sponsor-placeholder" style={{
+                  height: '90px',
+                  background: hasRealSponsor ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)',
+                  border: hasRealSponsor ? '1px solid var(--glass-border)' : '2px dashed var(--glass-border)',
+                  borderRadius: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: hasRealSponsor ? '0.75rem' : '0',
+                  color: 'var(--text-muted)',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  overflow: 'hidden'
+                }}>
+                  {hasRealSponsor ? (
+                    <img 
+                      src={`/sponsors/${i + 1}.png`} 
+                      alt={`Sponsor ${i + 1}`} 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '100%', 
+                        objectFit: 'contain',
+                        opacity: 0.85,
+                        transition: 'opacity 0.3s ease'
+                      }} 
+                    />
+                  ) : (
+                    `Sponsor #${i + 1}`
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -115,38 +178,41 @@ const SponsorsPage = ({ onBack }) => {
           
           <div style={{ 
             display: 'flex', 
-            gap: '1.5rem', 
+            gap: '2.5rem', 
             overflowX: 'auto', 
-            paddingBottom: '1rem',
+            padding: '1.5rem 1rem',
             scrollbarWidth: 'thin',
             scrollbarColor: 'var(--accent-gold) transparent'
           }}>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} style={{ 
+            {[
+              { id: 1, src: '/testimonials/1.mp4' },
+              { id: 2, src: '/testimonials/2.mp4' }
+            ].map((video) => (
+              <div key={video.id} style={{ 
                 flex: '0 0 300px', 
-                height: '200px', 
-                background: 'rgba(0,0,0,0.4)', 
-                borderRadius: '15px', 
-                display: 'flex', 
-                flexDirection: 'column',
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                border: '2px dashed var(--accent-gold)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-              }}>
-                <div style={{ 
-                  width: '50px', 
-                  height: '50px', 
-                  borderRadius: '50%', 
-                  background: 'var(--accent-gold)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  marginBottom: '10px'
-                }}>
-                  <span style={{ color: 'var(--bg-color)', fontSize: '1.5rem', marginLeft: '5px' }}>▶</span>
-                </div>
-                <p style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Video Placeholder {i + 1}</p>
+                height: '533px', 
+                background: '#000', 
+                borderRadius: '24px', 
+                border: '4px solid var(--glass-border)',
+                boxShadow: '12px 12px 0px var(--accent-gold)',
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
+              >
+                <video 
+                  src={video.src} 
+                  controls 
+                  preload="metadata"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    display: 'block'
+                  }} 
+                />
               </div>
             ))}
           </div>
