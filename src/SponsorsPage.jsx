@@ -161,7 +161,8 @@ const SponsorsPage = ({ onBack }) => {
           <div className="sponsors-testimonials-slider">
             {[
               { id: 1, src: 'testimonials/1.mp4' },
-              { id: 2, src: 'testimonials/2.mp4' }
+              { id: 2, src: 'testimonials/2.mp4' },
+              { id: 3, src: 'testimonials/3.mp4' }
             ].map((video) => (
               <div key={video.id} className="sponsors-testimonial-card">
                 <video 
