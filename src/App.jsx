@@ -207,6 +207,28 @@ function App() {
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
 
+  // Fetch mentor's profile socials when mentor modal is opened
+  useEffect(() => {
+    let mounted = true;
+    const fetchMentorProfileSocials = async () => {
+      if (!selectedMentor || !selectedMentor.profile_id) return;
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('github_url, linkedin_url, twitter_url, full_name')
+          .eq('id', selectedMentor.profile_id)
+          .single();
+        if (mounted && data) {
+          setSelectedMentor(prev => ({ ...prev, ...data }));
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchMentorProfileSocials();
+    return () => { mounted = false; };
+  }, [selectedMentor?.profile_id]);
+
   const galleryRef = useRef(null);
   const landingGalleryRef = useRef(null);
   const requestRef = useRef();
@@ -490,7 +512,7 @@ function App() {
   };
 
   const fetchAllMentors = async () => {
-    const { data } = await supabase.from('mentors').select('').eq('is_active', true);
+    const { data } = await supabase.from('mentors').select('*').eq('is_active', true);
     if (data) setMentors(data);
   };
 
@@ -3668,6 +3690,25 @@ function App() {
                 </div>
                 <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)', lineHeight: '1.2' }}>{selectedMentor.role_title}</h3>
                 <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 1rem', fontSize: '0.95rem', fontWeight: '900', color: 'var(--text-navy)', marginTop: '0.5rem', display: 'inline-block' }}>🏢 {selectedMentor.company}</span>
+
+                {/* Social links */}
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                  {selectedMentor.github_url && (
+                    <a href={selectedMentor.github_url} target="_blank" rel="noreferrer" title="GitHub" style={{ display: 'inline-flex' }}>
+                      <img src="icons/github.svg" alt="github" style={{ width: '26px', height: '26px' }} />
+                    </a>
+                  )}
+                  {selectedMentor.linkedin_url && (
+                    <a href={selectedMentor.linkedin_url} target="_blank" rel="noreferrer" title="LinkedIn" style={{ display: 'inline-flex' }}>
+                      <img src="icons/linkedin.svg" alt="linkedin" style={{ width: '26px', height: '26px' }} />
+                    </a>
+                  )}
+                  {selectedMentor.twitter_url && (
+                    <a href={selectedMentor.twitter_url} target="_blank" rel="noreferrer" title="Twitter" style={{ display: 'inline-flex' }}>
+                      <img src="icons/twitter.svg" alt="twitter" style={{ width: '26px', height: '26px' }} />
+                    </a>
+                  )}
+                </div>
               </div>
 
               {/* Right Column: Info & Skills Cards */}
