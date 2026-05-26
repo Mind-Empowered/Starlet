@@ -3679,6 +3679,31 @@ function App() {
                 </div>
                 <h3 style={{ fontSize: '1.6rem', marginBottom: '0.8rem', fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)', lineHeight: '1.2' }}>{selectedMentor.role_title}</h3>
                 <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 1rem', fontSize: '0.95rem', fontWeight: '900', color: 'var(--text-navy)', marginTop: '0.5rem', display: 'inline-block' }}>🏢 {selectedMentor.company}</span>
+                
+                {(() => {
+                  const profile = allUsers.find(u => u.id === selectedMentor.profile_id) || {};
+                  const socials = profile.socials || selectedMentor.socials;
+                  if (!socials || (!socials.github && !socials.linkedin && !socials.twitter)) return null;
+                  return (
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                      {socials.github && (
+                        <a href={socials.github.startsWith('http') ? socials.github : `https://${socials.github}`} target="_blank" rel="noopener noreferrer" style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '3px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
+                          <img src="icons/github.svg" alt="GitHub" style={{ width: '22px' }} />
+                        </a>
+                      )}
+                      {socials.linkedin && (
+                        <a href={socials.linkedin.startsWith('http') ? socials.linkedin : `https://${socials.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '3px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
+                          <img src="icons/linkedin.svg" alt="LinkedIn" style={{ width: '22px' }} />
+                        </a>
+                      )}
+                      {socials.twitter && (
+                        <a href={socials.twitter.startsWith('http') ? socials.twitter : `https://${socials.twitter}`} target="_blank" rel="noopener noreferrer" style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '3px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
+                          <img src="icons/twitter.svg" alt="Twitter" style={{ width: '22px' }} />
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Right Column: Info & Skills Cards */}
