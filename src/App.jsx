@@ -129,12 +129,19 @@ function App() {
     stack: [],
     college: '',
     avatarUrl: '',
+    website: '',
+    yearsOfExperience: '',
+    languages: [],
     socials: {
       github: '',
       linkedin: '',
       twitter: ''
     }
   });
+  const originalUser = useRef(null); // snapshot of last-saved profile for dirty-checking
+  const hasProfileChanged = originalUser.current
+    ? JSON.stringify(user) !== JSON.stringify(originalUser.current)
+    : false;
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [showAboutPopup, setShowAboutPopup] = useState(false);
   const [showRegPopup, setShowRegPopup] = useState(false);
@@ -332,7 +339,7 @@ function App() {
         }
       } else {
         setIsLoggedIn(false);
-        setUser({ name: '', email: '', role: '', team: null, venue: '', bio: '', stack: [], socials: { github: '', linkedin: '', twitter: '' } });
+        setUser({ name: '', email: '', role: '', team: null, venue: '', bio: '', stack: [], website: '', yearsOfExperience: '', languages: [], socials: { github: '', linkedin: '', twitter: '' } });
       }
     });
 
@@ -419,6 +426,9 @@ function App() {
           stack: [],
           college: '',
           avatarUrl: '',
+          website: '',
+          yearsOfExperience: '',
+          languages: [],
           teamId: null,
           teamName: '',
           problemStatementId: null,
@@ -440,6 +450,9 @@ function App() {
           stack: Array.isArray(data.stack) ? data.stack : [],
           college: data.college || '',
           avatarUrl: data.avatar_url || '',
+          website: data.website_url || '',
+          yearsOfExperience: data.years_of_experience || '',
+          languages: Array.isArray(data.languages) ? data.languages : [],
           teamId: data.team_id || null,
           teamName: data.team_name || '',
           problemStatementId: data.problem_statement_id || null,
@@ -449,6 +462,30 @@ function App() {
             twitter: data.twitter_url || ''
           }
         });
+        // Snapshot for dirty-checking (must mirror the shape above)
+        originalUser.current = {
+          name: data.full_name || '',
+          email: data.email || '',
+          role: data.user_role || 'attendee',
+          role_title: data.role_title || '',
+          isApproved: data.is_approved || false,
+          venue: data.venue || '',
+          bio: data.bio || '',
+          stack: Array.isArray(data.stack) ? [...data.stack] : [],
+          college: data.college || '',
+          avatarUrl: data.avatar_url || '',
+          website: data.website_url || '',
+          yearsOfExperience: data.years_of_experience || '',
+          languages: Array.isArray(data.languages) ? [...data.languages] : [],
+          teamId: data.team_id || null,
+          teamName: data.team_name || '',
+          problemStatementId: data.problem_statement_id || null,
+          socials: {
+            github: data.github_url || '',
+            linkedin: data.linkedin_url || '',
+            twitter: data.twitter_url || ''
+          }
+        };
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -1405,6 +1442,10 @@ function App() {
         stack: user.stack,
         github_url: user.socials.github,
         linkedin_url: user.socials.linkedin,
+        twitter_url: user.socials.twitter,
+        website_url: user.website,
+        years_of_experience: user.yearsOfExperience,
+        languages: user.languages,
         updated_at: new Date().toISOString()
       };
 
@@ -1419,12 +1460,16 @@ function App() {
           company: user.venue || 'Starlet Command',
           bio: user.bio,
           expertise: user.stack,
-          avatar_url: user.avatarUrl || 'icons/user-profile.svg'
+          avatar_url: user.avatarUrl || 'icons/user-profile.svg',
+          website_url: user.website,
+          years_of_experience: user.yearsOfExperience,
+          languages: user.languages
         }).eq('profile_id', session.user.id);
         fetchAllMentors();
       }
 
       alert('Profile updated successfully!');
+      originalUser.current = { ...user, socials: { ...user.socials } }; // reset dirty state
     } catch (error) {
       alert(error.message);
     }
@@ -2940,7 +2985,7 @@ function App() {
                   <img
                     src={user.avatarUrl || 'icons/user-profile.svg'}
                     alt="avatar"
-                    style={{ objectFit: user.avatarUrl ? 'cover' : 'contain', borderRadius: '50%', width: '100%', height: '100%' }}
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   />
                   <label className="upload-overlay" title="Change photo">
                     <input
@@ -2972,7 +3017,14 @@ function App() {
                       SWITCH TO ADMIN VIEW ⇄
                     </button>
                   )}
-                  <button className="join-btn" onClick={updateProfile}>SAVE CHANGES</button>
+                  <button
+                    className="join-btn"
+                    onClick={updateProfile}
+                    disabled={!hasProfileChanged}
+                    style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s' }}
+                  >
+                    SAVE CHANGES
+                  </button>
                   <button className="logout-btn" onClick={handleLogout}>LOGOUT</button>
                 </div>
                 <div onClick={() => setActiveView('landing')} style={{ marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
@@ -2999,6 +3051,19 @@ function App() {
                       value={user.venue || ''} // Using venue field for company as per common profile patterns
                       onChange={(e) => setUser({ ...user, venue: e.target.value })}
                       placeholder="e.g. Google, Meta, Independent..."
+                    />
+                  </div>
+                  <div className="profile-field">
+                    <label>Years of Experience</label>
+                    <input
+                      type="number"
+                      className="profile-input"
+                      min="0"
+                      max="50"
+                      value={user.yearsOfExperience || ''}
+                      onChange={(e) => setUser({ ...user, yearsOfExperience: e.target.value })}
+                      placeholder="e.g. 5"
+                      style={{ maxWidth: '160px' }}
                     />
                   </div>
                   <div className="profile-field">
@@ -3033,6 +3098,38 @@ function App() {
                     </div>
                   </div>
                   <div className="profile-field">
+                    <label>Languages Spoken</label>
+                    <div className="tech-tag-container">
+                      {(user.languages || []).map(lang => (
+                        <span
+                          key={lang}
+                          className="tech-tag"
+                          title="Click to remove"
+                          style={{ background: 'var(--blue-shadow)', color: '#fff' }}
+                          onClick={() => {
+                            if (confirm(`Remove ${lang}?`)) {
+                              setUser(prev => ({ ...prev, languages: prev.languages.filter(l => l !== lang) }));
+                            }
+                          }}
+                        >
+                          {lang} ×
+                        </span>
+                      ))}
+                      <span
+                        className="tech-tag"
+                        style={{ opacity: 0.5, cursor: 'pointer' }}
+                        onClick={() => {
+                          const newLang = prompt("Enter a language (e.g. English, Tamil, Hindi):");
+                          if (newLang && newLang.trim()) {
+                            setUser(prev => ({ ...prev, languages: [...(prev.languages || []), newLang.trim()] }));
+                          }
+                        }}
+                      >
+                        + Add Language
+                      </span>
+                    </div>
+                  </div>
+                  <div className="profile-field">
                     <label>Social Links</label>
                     <div className="social-connect-grid">
                       <div className="social-connect-item">
@@ -3051,6 +3148,24 @@ function App() {
                           placeholder="LinkedIn URL"
                           value={user.socials.linkedin}
                           onChange={(e) => setUser({ ...user, socials: { ...user.socials, linkedin: e.target.value } })}
+                        />
+                      </div>
+                      <div className="social-connect-item">
+                        <span style={{ fontSize: '1.4rem', width: '24px', textAlign: 'center' }}>𝕏</span>
+                        <input
+                          type="text"
+                          placeholder="Twitter / X URL"
+                          value={user.socials.twitter}
+                          onChange={(e) => setUser({ ...user, socials: { ...user.socials, twitter: e.target.value } })}
+                        />
+                      </div>
+                      <div className="social-connect-item">
+                        <span style={{ fontSize: '1.2rem', width: '24px', textAlign: 'center' }}>🌐</span>
+                        <input
+                          type="text"
+                          placeholder="Portfolio / Website URL"
+                          value={user.website || ''}
+                          onChange={(e) => setUser({ ...user, website: e.target.value })}
                         />
                       </div>
                     </div>
@@ -3120,7 +3235,14 @@ function App() {
                       {isSoundEnabled ? "AUDIO ON" : "AUDIO OFF"}
                     </div>
                   </div>
-                  <button className="join-btn" onClick={updateProfile}>SAVE CHANGES</button>
+                  <button
+                    className="join-btn"
+                    onClick={updateProfile}
+                    disabled={!hasProfileChanged}
+                    style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s' }}
+                  >
+                    SAVE CHANGES
+                  </button>
                   <button className="logout-btn" onClick={handleLogout}>LOGOUT</button>
                 </div>
                 <div onClick={() => setActiveView('landing')} style={{ marginTop: '2rem', cursor: 'pointer', color: 'var(--blue-shadow)' }}>← Back to Home</div>
