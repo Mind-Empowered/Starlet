@@ -3260,7 +3260,7 @@ function App() {
                       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚀</div>
                       <h3>Project Submitted!</h3>
                       <p>Your team's project <strong>"{mySubmission.project_name}"</strong> has been received.</p>
-                      <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                      <div className="submission-links-row" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                         <a href={mySubmission.github_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW CODE</a>
                         <a href={mySubmission.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW DEMO</a>
                         <a href={mySubmission.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">VIEW PRESENTATION</a>
@@ -3692,7 +3692,7 @@ function App() {
                 <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 1rem', fontSize: '0.95rem', fontWeight: '900', color: 'var(--text-navy)', marginTop: '0.5rem', display: 'inline-block' }}>🏢 {selectedMentor.company}</span>
 
                 {/* Social links */}
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                <div className="mentor-social-links" style={{ marginTop: '1rem', display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
                   {selectedMentor.github_url && (
                     <a href={selectedMentor.github_url} target="_blank" rel="noreferrer" title="GitHub" style={{ display: 'inline-flex' }}>
                       <img src="icons/github.svg" alt="github" style={{ width: '26px', height: '26px' }} />
