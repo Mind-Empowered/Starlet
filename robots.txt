@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://starlet.mind-empowered.org/sitemap.xml
