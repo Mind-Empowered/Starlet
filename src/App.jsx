@@ -111,6 +111,20 @@ function App() {
   const [adminActiveTab, setAdminActiveTab] = useState('admin'); // admin or mentor
   const [expandedUserId, setExpandedUserId] = useState(null);
   const [visibleUserCount, setVisibleUserCount] = useState(5);
+  const [userRoleFilter, setUserRoleFilter] = useState('all'); // all, mentor, attendee
+  const [isOtherTrackSelected, setIsOtherTrackSelected] = useState(false);
+  const [customTrackTitle, setCustomTrackTitle] = useState('');
+  const [customTrackDesc, setCustomTrackDesc] = useState('');
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -385,29 +399,29 @@ function App() {
     fetchMySubmission();
   }, [isLoggedIn, user.role, user.teamName, session?.user?.id]);
 
-  useEffect(() => {
+  const fetchMyTeamMembers = async () => {
     if (!isLoggedIn || user.role !== 'attendee' || !session?.user?.id) {
       setTeamMembers([]);
       return;
     }
 
-    const fetchMyTeamMembers = async () => {
-      const teamKey = user.teamId ? { column: 'team_id', value: user.teamId } : user.teamName ? { column: 'team_name', value: user.teamName } : null;
+    const teamKey = user.teamId ? { column: 'team_id', value: user.teamId } : user.teamName ? { column: 'team_name', value: user.teamName } : null;
 
-      if (!teamKey) {
-        setTeamMembers([]);
-        return;
-      }
+    if (!teamKey) {
+      setTeamMembers([]);
+      return;
+    }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, avatar_url, user_role, team_name, team_id')
-        .eq(teamKey.column, teamKey.value)
-        .order('full_name', { ascending: true });
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, avatar_url, user_role, team_name, team_id')
+      .eq(teamKey.column, teamKey.value)
+      .order('full_name', { ascending: true });
 
-      setTeamMembers(data || []);
-    };
+    setTeamMembers(data || []);
+  };
 
+  useEffect(() => {
     fetchMyTeamMembers();
   }, [isLoggedIn, user.role, user.teamId, user.teamName, session?.user?.id]);
 
@@ -977,6 +991,50 @@ function App() {
     }
   };
 
+  const handleDownloadCSV = () => {
+    const filtered = allUsers.filter(u => {
+      if (userRoleFilter === 'all') return true;
+      return u.user_role === userRoleFilter;
+    });
+
+    if (filtered.length === 0) {
+      alert('No users found for this filter.');
+      return;
+    }
+
+    const headers = ['Full Name', 'Email', 'Role', 'Role Title', 'Venue', 'Phone', 'College/Org', 'Team Name', 'Verified Status', 'LinkedIn', 'Tech Stack', 'Bio'];
+    
+    const rows = filtered.map(u => [
+      u.full_name || '',
+      u.email || '',
+      u.user_role || '',
+      u.role_title || '',
+      u.venue || 'Unassigned',
+      u.phone || '',
+      u.college || u.venue || '',
+      u.team_name || '',
+      u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending'),
+      u.linkedin || '',
+      Array.isArray(u.stack) ? u.stack.join(', ') : '',
+      u.bio || ''
+    ]);
+
+    const csvContent = [
+      headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `starlet_users_${userRoleFilter}_export.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleManualVenueChange = async (userId, newVenue) => {
     const { error } = await supabase.from('profiles').update({ venue: newVenue }).eq('id', userId);
     if (error) alert(error.message);
@@ -1122,6 +1180,169 @@ function App() {
     else {
       alert('Selection locked! Contact admin to change.');
       fetchProfile(session.user.id);
+    }
+  };
+
+  const handleCreateTeam = async (teamNameInput) => {
+    if (!teamNameInput || !teamNameInput.trim()) {
+      alert('Please enter a valid team name.');
+      return;
+    }
+    const teamName = teamNameInput.trim();
+    setLoading(true);
+
+    try {
+      const { data: existingTeam } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('name', teamName)
+        .maybeSingle();
+
+      let finalTeamId = null;
+      if (existingTeam) {
+        finalTeamId = existingTeam.id;
+      } else {
+        const { data: newTeam, error: newTeamError } = await supabase
+          .from('teams')
+          .insert([{ name: teamName }])
+          .select()
+          .single();
+        if (newTeamError) throw newTeamError;
+        if (newTeam) finalTeamId = newTeam.id;
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          team_id: finalTeamId,
+          team_name: teamName,
+          team_status: 'team',
+          needs_teaming: false
+        })
+        .eq('id', session.user.id);
+
+      if (profileError) throw profileError;
+
+      alert(`Successfully joined/created team: ${teamName}`);
+      fetchProfile(session.user.id);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddTeammate = async (emailInput) => {
+    if (!emailInput || !emailInput.trim()) {
+      alert('Please enter a valid email.');
+      return;
+    }
+    const email = emailInput.trim().toLowerCase();
+    
+    if (teamMembers.length >= 4) {
+      alert('Your team is already full (maximum 4 members).');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data: isWhitelisted } = await supabase
+        .from('registered_emails')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (!isWhitelisted) {
+        alert('This email is not registered in our records for Starlet 5.0.');
+        setLoading(false);
+        return;
+      }
+
+      const { data: targetUser } = await supabase
+        .from('profiles')
+        .select('id, full_name, team_name')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (!targetUser) {
+        alert(`User has not registered on the web portal yet. Please tell them to register using your team name: "${user.teamName}".`);
+        setLoading(false);
+        return;
+      }
+
+      if (targetUser.team_name) {
+        alert(`${targetUser.full_name} is already in a team ("${targetUser.team_name}").`);
+        setLoading(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          team_id: user.teamId,
+          team_name: user.teamName,
+          team_status: 'team',
+          needs_teaming: false
+        })
+        .eq('id', targetUser.id);
+
+      if (updateError) throw updateError;
+
+      alert(`Successfully added ${targetUser.full_name} to your team!`);
+      fetchMyTeamMembers();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCustomTrack = async () => {
+    if (!customTrackTitle || !customTrackTitle.trim()) {
+      alert('Please enter a title for your custom track.');
+      return;
+    }
+    if (!customTrackDesc || !customTrackDesc.trim()) {
+      alert('Please enter a description for your custom track.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: newTrack, error: insertError } = await supabase
+        .from('problem_statements')
+        .insert([{
+          title: customTrackTitle.trim(),
+          description: customTrackDesc.trim(),
+          track_category: 'Other'
+        }])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (newTrack) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ problem_statement_id: newTrack.id })
+          .eq('id', session.user.id);
+
+        if (profileError) throw profileError;
+
+        alert('Custom track saved and locked!');
+        
+        const { data: updatedPS } = await supabase.from('problem_statements').select('*').order('created_at');
+        if (updatedPS) setProblemStatements(updatedPS);
+        fetchProfile(session.user.id);
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+      setIsOtherTrackSelected(false);
+      setCustomTrackTitle('');
+      setCustomTrackDesc('');
     }
   };
 
@@ -1949,44 +2170,66 @@ function App() {
                     <div className="section-content">
                       <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                       <p style={{ marginBottom: '2rem', maxWidth: '800px' }}>{section.content}</p>
-                      <div className="tracks-grid-interactive">
-                        {problemStatements.length === 0 ? (
-                          <div className="empty-state" style={{ gridColumn: '1 / -1', color: '#fff' }}>
-                            <p>Innovation tracks are currently being finalized. Stay tuned!</p>
-                          </div>
-                        ) : (
-                          problemStatements.slice(0, visibleLandingTracksCount).map((track, i) => (
-                            <div key={track.id} className="track-card-mini" onClick={() => setSelectedTrack({ ...track, index: i + 1 })}>
-                              <div className="track-card-inner">
-                                <span className="track-number">#{i + 1}</span>
-                                <h3>{track.title}</h3>
-                                <div className="view-details-tag">VIEW CHALLENGE →</div>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                      
+                      {(() => {
+                        const officialTracks = problemStatements.filter(ps => ps.track_category !== 'Other');
+                        const otherCard = {
+                          id: 'other',
+                          title: 'Other (Define your own track...)',
+                          description: "Do you have a unique assistive technology or inclusive innovation challenge in mind that isn't listed here? Starlet 5.0 encourages participants to define their own custom tracks! Once registered and logged in, you can specify and lock your own track directly from your attendee profile dashboard.",
+                          track_category: 'Other'
+                        };
+                        const allTracks = [...officialTracks, otherCard];
 
-                      {problemStatements.length > 3 && (
-                        <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                          {visibleLandingTracksCount < problemStatements.length && (
-                            <button 
-                              className="join-btn" 
-                              onClick={() => setVisibleLandingTracksCount(prev => prev + 3)}
-                            >
-                              SHOW MORE
-                            </button>
-                          )}
-                          {visibleLandingTracksCount > 3 && (
-                            <button 
-                              className="btn-secondary" 
-                              onClick={() => setVisibleLandingTracksCount(prev => Math.max(prev - 3, 3))}
-                            >
-                              SHOW LESS
-                            </button>
-                          )}
-                        </div>
-                      )}
+                        if (officialTracks.length === 0) {
+                          return (
+                            <div className="empty-state" style={{ gridColumn: '1 / -1', color: '#fff' }}>
+                              <p>Innovation tracks are currently being finalized. Stay tuned!</p>
+                            </div>
+                          );
+                        }
+
+                        const displayedTracks = isMobile 
+                          ? allTracks.slice(0, visibleLandingTracksCount)
+                          : allTracks;
+
+                        return (
+                          <>
+                            <div className="tracks-grid-interactive">
+                              {displayedTracks.map((track, i) => (
+                                <div key={track.id} className="track-card-mini" onClick={() => setSelectedTrack({ ...track, index: track.id === 'other' ? 'Other' : i + 1 })}>
+                                  <div className="track-card-inner">
+                                    <span className="track-number">{track.id === 'other' ? '★' : `#${i + 1}`}</span>
+                                    <h3>{track.title}</h3>
+                                    <div className="view-details-tag">VIEW CHALLENGE →</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {isMobile && allTracks.length > 3 && (
+                              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                {visibleLandingTracksCount < allTracks.length && (
+                                  <button 
+                                    className="join-btn" 
+                                    onClick={() => setVisibleLandingTracksCount(prev => prev + 3)}
+                                  >
+                                    SHOW MORE
+                                  </button>
+                                )}
+                                {visibleLandingTracksCount > 3 && (
+                                  <button 
+                                    className="btn-secondary" 
+                                    onClick={() => setVisibleLandingTracksCount(prev => Math.max(prev - 3, 3))}
+                                  >
+                                    SHOW LESS
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : section.type === 'sponsors' ? (
                     <div className="section-content">
@@ -2901,170 +3144,214 @@ function App() {
                 </div>
 
                 <div className="admin-panel user-directory">
-                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Global User Directory</h2>
-                  <div className="user-table-wrapper">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>User</th>
-                          <th>Role</th>
-                          <th>Status</th>
-                          <th>Venue</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allUsers.slice(0, visibleUserCount).map(u => (
-                          <React.Fragment key={u.id}>
-                            <tr className={expandedUserId === u.id ? 'expanded-row' : ''}>
-                              <td>
-                                <div className="table-user">
-                                  <strong>{u.full_name}</strong>
-                                  <span>{u.email}</span>
-                                </div>
-                              </td>
-                              <td><span className="role-badge">{u.user_role}</span></td>
-                              <td>
-                                <span className={`status-dot ${u.is_approved ? 'active' : 'idle'}`}></span>
-                                {u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending')}
-                              </td>
-                              <td>
-                                <div className="table-venue-select">
-                                  <select
-                                    className="admin-select-small"
-                                    value={u.venue || ''}
-                                    onChange={(e) => handleManualVenueChange(u.id, e.target.value)}
-                                  >
-                                    <option value="">Unassigned</option>
-                                    {venues.map(v => (
-                                      <option key={v.id} value={v.name}>{v.name}</option>
-                                    ))}
-                                    <option value="Waitlisted/Overflow">Waitlisted</option>
-                                  </select>
-                                </div>
-                              </td>
-                              <td>
-                                <div className="table-actions">
-                                  <button
-                                    className={`btn-table-action ${expandedUserId === u.id ? 'active' : ''}`}
-                                    title="View details"
-                                    onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
-                                  >
-                                    {expandedUserId === u.id ? 'HIDE ▲' : 'DETAILS ▼'}
-                                  </button>
-                                  <button
-                                    className="btn-table-action delete"
-                                    title="Delete user"
-                                    onClick={() => handleDeleteUser(u.id, u.full_name)}
-                                  >
-                                    REMOVE
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                            {expandedUserId === u.id && (
-                              <tr key={`${u.id}-details`} className="user-details-row">
-                                <td colSpan={5}>
-                                  <div className="user-details-dropdown">
-                                    <div className="user-details-grid" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '2rem', alignItems: 'start' }}>
-                                      <div className="user-detail-photo">
-                                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--pink-primary)', background: '#fff' }}>
-                                          {u.avatar_url ? (
-                                            <img src={u.avatar_url} alt={u.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                          ) : (
-                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--yellow-star)', color: 'var(--text-navy)', fontSize: '2rem', fontWeight: 'bold' }}>
-                                              {u.full_name?.charAt(0)?.toUpperCase()}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Full Name</span>
-                                        <span className="detail-value">{u.full_name || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Email</span>
-                                        <span className="detail-value">{u.email || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Role</span>
-                                        <span className="detail-value" style={{ textTransform: 'capitalize' }}>{u.user_role || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Role Title</span>
-                                        <span className="detail-value">{u.role_title || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Phone</span>
-                                        <span className="detail-value">{u.phone || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">College / Org</span>
-                                        <span className="detail-value">{u.college || u.venue || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Team</span>
-                                        <span className="detail-value">{u.team_name || '—'}</span>
-                                      </div>
-                                      <div className="user-detail-item">
-                                        <span className="detail-label">Approval Status</span>
-                                        <span className="detail-value" style={{ color: u.is_approved ? '#2e7d32' : '#c62828', fontWeight: 700 }}>
-                                          {u.is_approved ? '✓ Verified' : '⏳ Pending'}
-                                        </span>
-                                      </div>
-                                      {u.user_role === 'mentor' && (
-                                        <>
-                                          <div className="user-detail-item">
-                                            <span className="detail-label">LinkedIn</span>
-                                            <span className="detail-value">
-                                              {u.linkedin ? <a href={u.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{u.linkedin}</a> : '—'}
-                                            </span>
-                                          </div>
-                                          <div className="user-detail-item">
-                                            <span className="detail-label">Tech Stack</span>
-                                            <span className="detail-value">{Array.isArray(u.stack) && u.stack.length ? u.stack.join(', ') : '—'}</span>
-                                          </div>
-                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
-                                            <span className="detail-label">Bio</span>
-                                            <span className="detail-value">{u.bio || '—'}</span>
-                                          </div>
-                                        </>
-                                      )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="directory-header-row">
+                    <h2 className="text-3d" style={{ fontSize: '1.5rem', margin: 0 }}>Global User Directory</h2>
+                    <div className="directory-controls">
+                      <div className="directory-filter-tabs">
+                        <button
+                          className={`directory-filter-btn ${userRoleFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => { setUserRoleFilter('all'); setVisibleUserCount(5); }}
+                        >
+                          ALL
+                        </button>
+                        <button
+                          className={`directory-filter-btn ${userRoleFilter === 'mentor' ? 'active' : ''}`}
+                          onClick={() => { setUserRoleFilter('mentor'); setVisibleUserCount(5); }}
+                        >
+                          MENTORS
+                        </button>
+                        <button
+                          className={`directory-filter-btn ${userRoleFilter === 'attendee' ? 'active' : ''}`}
+                          onClick={() => { setUserRoleFilter('attendee'); setVisibleUserCount(5); }}
+                        >
+                          ATTENDEES
+                        </button>
+                      </div>
+                      <button className="directory-download-btn" onClick={handleDownloadCSV}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        DOWNLOAD CSV
+                      </button>
+                    </div>
                   </div>
                   
-                  {allUsers.length > 5 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                      {visibleUserCount < allUsers.length && (
-                        <button 
-                          className="join-btn" 
-                          onClick={() => setVisibleUserCount(prev => Math.min(prev + 5, allUsers.length))}
-                          style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}
-                        >
-                          SHOW MORE ▼
-                        </button>
-                      )}
-                      {visibleUserCount > 5 && (
-                        <button 
-                          className="join-btn" 
-                          onClick={() => setVisibleUserCount(5)}
-                          style={{ padding: '0.8rem 2rem', fontSize: '1rem', background: '#fff', color: 'var(--text-navy)' }}
-                        >
-                          SHOW LESS ▲
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const filteredUsers = allUsers.filter(u => {
+                      if (userRoleFilter === 'all') return true;
+                      return u.user_role === userRoleFilter;
+                    });
+                    
+                    return (
+                      <>
+                        <div className="user-table-wrapper">
+                          <table className="admin-table">
+                            <thead>
+                              <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Venue</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredUsers.slice(0, visibleUserCount).map(u => (
+                                <React.Fragment key={u.id}>
+                                  <tr className={expandedUserId === u.id ? 'expanded-row' : ''}>
+                                    <td>
+                                      <div className="table-user">
+                                        <strong>{u.full_name}</strong>
+                                        <span>{u.email}</span>
+                                      </div>
+                                    </td>
+                                    <td><span className="role-badge">{u.user_role}</span></td>
+                                    <td>
+                                      <span className={`status-dot ${u.is_approved ? 'active' : 'idle'}`}></span>
+                                      {u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending')}
+                                    </td>
+                                    <td>
+                                      <div className="table-venue-select">
+                                        <select
+                                          className="admin-select-small"
+                                          value={u.venue || ''}
+                                          onChange={(e) => handleManualVenueChange(u.id, e.target.value)}
+                                        >
+                                          <option value="">Unassigned</option>
+                                          {venues.map(v => (
+                                            <option key={v.id} value={v.name}>{v.name}</option>
+                                          ))}
+                                          <option value="Waitlisted/Overflow">Waitlisted</option>
+                                        </select>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <div className="table-actions">
+                                        <button
+                                          className={`btn-table-action ${expandedUserId === u.id ? 'active' : ''}`}
+                                          title="View details"
+                                          onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
+                                        >
+                                          {expandedUserId === u.id ? 'HIDE ▲' : 'DETAILS ▼'}
+                                        </button>
+                                        <button
+                                          className="btn-table-action delete"
+                                          title="Delete user"
+                                          onClick={() => handleDeleteUser(u.id, u.full_name)}
+                                        >
+                                          REMOVE
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  {expandedUserId === u.id && (
+                                    <tr key={`${u.id}-details`} className="user-details-row">
+                                      <td colSpan={5}>
+                                        <div className="user-details-dropdown">
+                                          <div className="user-details-grid" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '2rem', alignItems: 'start' }}>
+                                            <div className="user-detail-photo">
+                                              <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--pink-primary)', background: '#fff' }}>
+                                                {u.avatar_url ? (
+                                                  <img src={u.avatar_url} alt={u.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--yellow-star)', color: 'var(--text-navy)', fontSize: '2rem', fontWeight: 'bold' }}>
+                                                    {u.full_name?.charAt(0)?.toUpperCase()}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Full Name</span>
+                                              <span className="detail-value">{u.full_name || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Email</span>
+                                              <span className="detail-value">{u.email || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Role</span>
+                                              <span className="detail-value" style={{ textTransform: 'capitalize' }}>{u.user_role || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Role Title</span>
+                                              <span className="detail-value">{u.role_title || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Phone</span>
+                                              <span className="detail-value">{u.phone || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">College / Org</span>
+                                              <span className="detail-value">{u.college || u.venue || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Team</span>
+                                              <span className="detail-value">{u.team_name || '—'}</span>
+                                            </div>
+                                            <div className="user-detail-item">
+                                              <span className="detail-label">Approval Status</span>
+                                              <span className="detail-value" style={{ color: u.is_approved ? '#2e7d32' : '#c62828', fontWeight: 700 }}>
+                                                {u.is_approved ? '✓ Verified' : '⏳ Pending'}
+                                              </span>
+                                            </div>
+                                            {u.user_role === 'mentor' && (
+                                              <>
+                                                <div className="user-detail-item">
+                                                  <span className="detail-label">LinkedIn</span>
+                                                  <span className="detail-value">
+                                                    {u.linkedin ? <a href={u.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{u.linkedin}</a> : '—'}
+                                                  </span>
+                                                </div>
+                                                <div className="user-detail-item">
+                                                  <span className="detail-label">Tech Stack</span>
+                                                  <span className="detail-value">{Array.isArray(u.stack) && u.stack.length ? u.stack.join(', ') : '—'}</span>
+                                                </div>
+                                                <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                                  <span className="detail-label">Bio</span>
+                                                  <span className="detail-value">{u.bio || '—'}</span>
+                                                </div>
+                                              </>
+                                            )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {filteredUsers.length > 5 && (
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                            {visibleUserCount < filteredUsers.length && (
+                              <button 
+                                className="join-btn" 
+                                onClick={() => setVisibleUserCount(prev => Math.min(prev + 5, filteredUsers.length))}
+                                style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}
+                              >
+                                SHOW MORE ▼
+                              </button>
+                            )}
+                            {visibleUserCount > 5 && (
+                              <button 
+                                className="join-btn" 
+                                onClick={() => setVisibleUserCount(5)}
+                                style={{ padding: '0.8rem 2rem', fontSize: '1rem', background: '#fff', color: 'var(--text-navy)' }}
+                              >
+                                SHOW LESS ▲
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* PROJECT SUBMISSIONS OVERVIEW */}
@@ -3483,27 +3770,54 @@ function App() {
                 </div>
                 <div className="profile-field">
                   <label>Team Status</label>
-                  <div className="field-value">
-                    <strong>{user.teamName ? user.teamName : 'Solo Hacker'}</strong>
-                    {user.teamName ? (
-                      <button className="btn-small decline" style={{ marginLeft: '1rem' }} onClick={handleLeaveTeam}>
-                        LEAVE TEAM
-                      </button>
-                    ) : (
-                      <button className="btn-small accept" style={{ marginLeft: '1rem' }} onClick={handleFindTeam}>
-                        FIND MY SQUAD
-                      </button>
+                  <div className="field-value" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <strong>{user.teamName ? user.teamName : 'Solo Hacker'}</strong>
+                      {user.teamName && (
+                        <button className="btn-small decline" style={{ marginLeft: '1rem' }} onClick={handleLeaveTeam}>
+                          LEAVE TEAM
+                        </button>
+                      )}
+                    </div>
+                    
+                    {!user.teamName && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
+                        <button className="btn-small accept" onClick={handleFindTeam}>
+                          FIND MY SQUAD
+                        </button>
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 'bold' }}>OR</span>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            id="createTeamNameInput"
+                            type="text" 
+                            placeholder="Enter Team Name" 
+                            className="admin-select-small"
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', width: '200px', border: '2px solid var(--text-navy)', borderRadius: '10px' }}
+                          />
+                          <button 
+                            className="btn-small accept"
+                            onClick={() => {
+                              const input = document.getElementById('createTeamNameInput');
+                              if (input) handleCreateTeam(input.value);
+                            }}
+                          >
+                            CREATE/JOIN TEAM
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
                 <div className="profile-field">
                   <label>Team Members</label>
-                  <div className="team-members-list">
+                  <div className="team-members-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {teamMembers.length > 0 ? (
                       teamMembers.map(member => (
-                        <div key={member.id} className="team-member-item">
-                          <span>{member.full_name}</span>
-                          <small>{member.email}</small>
+                        <div key={member.id} className="team-member-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f9fa', padding: '0.5rem 1rem', borderRadius: '12px', border: '2px solid #eee' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 'bold', color: 'var(--text-navy)' }}>{member.full_name}</span>
+                            <small style={{ color: 'var(--text-muted)' }}>{member.email}</small>
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -3511,11 +3825,35 @@ function App() {
                         No team members found yet.
                       </div>
                     )}
+
+                    {user.teamName && teamMembers.length < 4 && (
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderTop: '2px dashed #eee', paddingTop: '1rem' }}>
+                        <input 
+                          id="addTeammateEmailInput"
+                          type="email" 
+                          placeholder="Teammate's Email Address" 
+                          className="admin-select-small"
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', flex: 1, border: '2px solid var(--text-navy)', borderRadius: '10px' }}
+                        />
+                        <button 
+                          className="btn-small accept"
+                          onClick={() => {
+                            const input = document.getElementById('addTeammateEmailInput');
+                            if (input) {
+                              handleAddTeammate(input.value);
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          ADD MEMBER
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="profile-field">
                   <label>Selected Innovation Track</label>
-                  <div className="field-value">
+                  <div className="field-value" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
                     {user.problemStatementId ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                         <strong style={{ color: 'var(--text-navy)' }}>
@@ -3524,16 +3862,66 @@ function App() {
                         <small style={{ color: 'var(--text-muted)', fontSize: '14px' }}>🔒 Selection Locked (Contact admin to change)</small>
                       </div>
                     ) : (
-                      <select
-                        className="admin-select-small"
-                        style={{ padding: '0.8rem', fontSize: '1rem' }}
-                        onChange={(e) => handleSelectPS(e.target.value)}
-                      >
-                        <option value="">Choose a Problem Statement...</option>
-                        {problemStatements.map(ps => (
-                          <option key={ps.id} value={ps.id}>{ps.title}</option>
-                        ))}
-                      </select>
+                      <>
+                        <select
+                          className="admin-select-small"
+                          style={{ padding: '0.8rem', fontSize: '1rem', width: '100%', maxWidth: '400px', border: '2px solid var(--text-navy)', borderRadius: '10px' }}
+                          value={isOtherTrackSelected ? 'other' : ''}
+                          onChange={(e) => {
+                            if (e.target.value === 'other') {
+                              setIsOtherTrackSelected(true);
+                            } else {
+                              setIsOtherTrackSelected(false);
+                              if (e.target.value) handleSelectPS(e.target.value);
+                            }
+                          }}
+                        >
+                          <option value="">Choose a Problem Statement...</option>
+                          {problemStatements.map(ps => (
+                            <option key={ps.id} value={ps.id}>{ps.title}</option>
+                          ))}
+                          <option value="other">Other (Define your own...)</option>
+                        </select>
+
+                        {isOtherTrackSelected && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: '#f8f9fa', padding: '1.5rem', borderRadius: '15px', border: '2px dashed var(--text-navy)', marginTop: '0.5rem', maxWidth: '500px' }}>
+                            <h4 style={{ margin: 0, fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)' }}>Define Custom Track</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Track Title</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. Virtual Reality Aid for Autism"
+                                value={customTrackTitle}
+                                onChange={(e) => setCustomTrackTitle(e.target.value)}
+                                className="admin-select-small"
+                                style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', border: '2px solid var(--text-navy)', borderRadius: '10px' }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                              <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Description / Scope</label>
+                              <textarea
+                                placeholder="Describe what you plan to build..."
+                                value={customTrackDesc}
+                                onChange={(e) => setCustomTrackDesc(e.target.value)}
+                                className="admin-select-small"
+                                style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', height: '100px', resize: 'vertical', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Outfit', sans-serif" }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                              <button className="btn-small accept" onClick={handleCreateCustomTrack}>
+                                LOCK CUSTOM TRACK
+                              </button>
+                              <button className="btn-small decline" onClick={() => {
+                                setIsOtherTrackSelected(false);
+                                setCustomTrackTitle('');
+                                setCustomTrackDesc('');
+                              }}>
+                                CANCEL
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -4020,9 +4408,11 @@ function App() {
             <button className="modal-close" onClick={() => setSelectedTrack(null)}>×</button>
             <div className="track-modal-inner">
               <div className="track-modal-header">
-                <span className="track-id-badge">CHALLENGE #{selectedTrack.index}</span>
+                <span className="track-id-badge">
+                  {selectedTrack.id === 'other' ? 'CUSTOM CHALLENGE' : `CHALLENGE #${selectedTrack.index}`}
+                </span>
                 <h2 className="text-3d">{selectedTrack.title}</h2>
-                {user.role === 'attendee' && !user.problemStatementId && (
+                {user.role === 'attendee' && !user.problemStatementId && selectedTrack.id !== 'other' && (
                   <button className="join-btn" onClick={() => { handleSelectPS(selectedTrack.id); setSelectedTrack(null); }}>
                     CHOOSE THIS TRACK
                   </button>

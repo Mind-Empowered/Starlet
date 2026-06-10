@@ -164,15 +164,24 @@ const SponsorsPage = ({ onBack }) => {
             {[
               { id: 1, src: 'testimonials/1.mp4' },
               { id: 2, src: 'testimonials/2.mp4' },
-              { id: 3, src: 'testimonials/3.mp4' }
-            ].map((video) => (
-              <div key={video.id} className="sponsors-testimonial-card">
-                <video 
-                  src={video.src} 
-                  controls 
-                  preload="none"
-                  className="sponsors-testimonial-video"
-                />
+              { id: 3, src: 'testimonials/3.mp4' },
+              { id: 4, src: 'testimonials/4.png' }
+            ].map((item) => (
+              <div key={item.id} className={`sponsors-testimonial-card ${!item.src.endsWith('.mp4') ? 'image-testimonial' : ''}`}>
+                {item.src.endsWith('.mp4') ? (
+                  <video 
+                    src={item.src} 
+                    controls 
+                    preload="none"
+                    className="sponsors-testimonial-video"
+                  />
+                ) : (
+                  <img 
+                    src={item.src} 
+                    alt="Testimonial" 
+                    className="sponsors-testimonial-image"
+                  />
+                )}
               </div>
             ))}
           </div>
