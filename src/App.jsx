@@ -54,6 +54,7 @@ const sectionsData = [
   { id: 7, type: 'rules', title: "Rules of the Galaxy", content: "Fair play and collaboration are the heart of Starlet.", image: "icons/warning.svg" },
   { id: 8, type: 'mentors', title: "Meet Your Mentors", content: "Industry experts ready to guide your journey.", image: "icons/user-profile.svg" },
   { id: 9, type: 'community', title: "Make New Friends", content: "Starlet isn't just an innovation marathon — it's the starting point for lifelong sisterhood and professional networking. Connect with passionate creators, find potential co-founders, share exciting coding breakthroughs, and become part of an empowered tech community that champions your growth!", image: "svg/2.svg" },
+  { id: 17, type: 'events', title: "Highlights & Special Events", content: "Don't miss these amazing sessions, cultural performances, and networking circles scheduled during the hackathon!", image: "brand/Logo.png" },
   { id: 10, type: 'sponsors', title: "Our Supporters", content: "The organizations making this impact possible.", image: "brand/Logo.png" },
   { id: 11, type: 'gallery', title: "The Gallery", content: "Captured moments of innovation and fun.", image: "brand/Logo.png" },
   { id: 12, type: 'faq', title: "Common Doubts", content: "Answers to frequently asked questions.", image: "icons/warning.svg" },
@@ -88,6 +89,56 @@ const mentorsData = Array.from({ length: 6 }, (_, i) => ({
   image: "icons/user-profile.svg"
 }));
 
+const eventsData = [
+  {
+    id: 1,
+    name: "Indian Sign Language Interpreter",
+    person: "Anamika",
+    company: "",
+    image: "events/Anamika ISL Interpreter.jpeg"
+  },
+  {
+    id: 2,
+    name: "Indian Sign Language Interpreter",
+    person: "Archa",
+    company: "",
+    image: "events/Archa Krishnan ISL Interpreter .jpeg"
+  },
+  {
+    id: 3,
+    name: "Kaleripayettu",
+    person: "Gurukkal Rajeev Chaithanya",
+    company: "Bodhi Sutra",
+    image: "events/Gurukkal Rajeev Chaithanya Kaleripayuttu.jpeg"
+  },
+  {
+    id: 4,
+    name: "Sharing Circle",
+    person: "Namitha Rose Thadevoos",
+    company: "Founder of Sacred Pause",
+    image: "events/Namitha Rose .jpeg"
+  },
+  {
+    id: 5,
+    name: "Music Performance",
+    person: "Thalamura Band",
+    company: "Thalamura",
+    isBand: true,
+    members: [
+      { name: "Madhav Raj", role: "Vocals & Guitar", image: "events/Music Band/Madhav Raj Vocals and Guitar.jpeg" },
+      { name: "Aldrin Johny", role: "Vocals & Keyboard", image: "events/Music Band/Aldrin Johny Vocals and Keyboard.jpeg" },
+      { name: "Jen Jax", role: "Cajon", image: "events/Music Band/Jen Jax plays Cajon.jpeg" }
+    ]
+  },
+  {
+    id: 6,
+    name: "Motivational Speaker",
+    person: "Tiffany Brar",
+    company: "",
+    image: "events/Tiffany Brar .jpeg"
+  }
+];
+
 const galleryCaptions = [
   "Collaborative coding & teamwork", "Mentorship & project guidance", "Expert panel review", "Acoustic jam session break",
   "Talent showcase performances", "Campus nature break", "Starlet 4.0 photobooth memories", "Grand participant overhead group photo",
@@ -110,8 +161,11 @@ function App() {
   const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
   const [adminActiveTab, setAdminActiveTab] = useState('admin'); // admin or mentor
   const [expandedUserId, setExpandedUserId] = useState(null);
+  const [expandedPendingMentorId, setExpandedPendingMentorId] = useState(null);
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState(null);
   const [userDirectoryPage, setUserDirectoryPage] = useState(1);
   const [userRoleFilter, setUserRoleFilter] = useState('all'); // all, mentor, attendee
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const [isOtherTrackSelected, setIsOtherTrackSelected] = useState(false);
   const [customTrackTitle, setCustomTrackTitle] = useState('');
   const [customTrackDesc, setCustomTrackDesc] = useState('');
@@ -243,6 +297,7 @@ function App() {
   const [mySubmission, setMySubmission] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [activeScheduleDay, setActiveScheduleDay] = useState(() => new Date() >= new Date('2026-07-11T23:00:00') ? 2 : 1);
 
   // Fetch mentor's profile socials when mentor modal is opened
   useEffect(() => {
@@ -311,27 +366,27 @@ function App() {
 
     return (
       <div className="pagination-container" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-        <button 
-          disabled={currentPage === 1} 
+        <button
+          disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
           className="btn-small pagination-btn"
-          style={{ 
-            opacity: currentPage === 1 ? 0.5 : 1, 
-            cursor: currentPage === 1 ? 'not-allowed' : 'pointer', 
-            background: '#fff', 
-            color: 'var(--text-navy)', 
+          style={{
+            opacity: currentPage === 1 ? 0.5 : 1,
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+            background: '#fff',
+            color: 'var(--text-navy)',
             border: '1px solid var(--text-navy)',
-            fontFamily: "'Fredoka One', cursive" 
+            fontFamily: "'Fredoka One', cursive"
           }}
         >
           Prev
         </button>
         {pages.map(p => (
-          <button 
-            key={p} 
+          <button
+            key={p}
             onClick={() => onPageChange(p)}
             className={`btn-small pagination-btn ${currentPage === p ? 'active' : ''}`}
-            style={{ 
+            style={{
               background: currentPage === p ? 'var(--pink-primary)' : '#fff',
               color: currentPage === p ? '#fff' : 'var(--text-navy)',
               fontWeight: 'bold',
@@ -344,17 +399,17 @@ function App() {
             {p}
           </button>
         ))}
-        <button 
-          disabled={currentPage === totalPages} 
+        <button
+          disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
           className="btn-small pagination-btn"
-          style={{ 
-            opacity: currentPage === totalPages ? 0.5 : 1, 
-            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', 
-            background: '#fff', 
-            color: 'var(--text-navy)', 
+          style={{
+            opacity: currentPage === totalPages ? 0.5 : 1,
+            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+            background: '#fff',
+            color: 'var(--text-navy)',
             border: '1px solid var(--text-navy)',
-            fontFamily: "'Fredoka One', cursive" 
+            fontFamily: "'Fredoka One', cursive"
           }}
         >
           Next
@@ -394,7 +449,7 @@ function App() {
       'icons/user-profile.svg'
     ];
     let loaded = 0;
-    
+
     // Make sure we wait at least 2 seconds so the splash screen doesn't just flash instantly
     const minTimePromise = new Promise(resolve => setTimeout(resolve, 2000));
     let isComplete = false;
@@ -413,13 +468,13 @@ function App() {
     assets.forEach(src => {
       const isVideo = src.endsWith('.mp4');
       const element = isVideo ? document.createElement('video') : new Image();
-      
+
       const onload = () => {
         loaded++;
         setLoadingProgress(prev => Math.max(prev, Math.min(90, (loaded / assets.length) * 100)));
         checkComplete();
       };
-      
+
       if (isVideo) {
         element.onloadeddata = onload;
         element.onerror = onload; // continue even if error
@@ -907,7 +962,7 @@ function App() {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    if (formData.get('description').toString().split(' ').length < 100){
+    if (formData.get('description').toString().split(' ').length < 100) {
       alert('Please follow the minimum word count for description.');
       return;
     }
@@ -1134,7 +1189,7 @@ function App() {
         if (venueOccupancy[pref] && (venueOccupancy[pref].currentCount + size) <= venueOccupancy[pref].capacity) {
           targetVenue = pref;
         } else {
-          targetVenue = Object.keys(venueOccupancy).find(vName => 
+          targetVenue = Object.keys(venueOccupancy).find(vName =>
             (venueOccupancy[vName].currentCount + size) <= venueOccupancy[vName].capacity
           );
         }
@@ -1168,8 +1223,8 @@ function App() {
       return;
     }
 
-    const headers = ['Full Name', 'Email', 'Role', 'Role Title', 'Venue', 'Phone', 'College/Org', 'Team Name', 'Verified Status', 'LinkedIn', 'Tech Stack', 'Bio'];
-    
+    const headers = ['Full Name', 'Email', 'Role', 'Role Title', 'Venue', 'Phone', 'College/Org', 'Team Name', 'Presence / Verified Status', 'LinkedIn', 'Tech Stack', 'Bio'];
+
     const rows = filtered.map(u => [
       u.full_name || '',
       u.email || '',
@@ -1179,7 +1234,7 @@ function App() {
       u.phone || '',
       u.college || u.venue || '',
       u.team_name || '',
-      u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending'),
+      u.user_role === 'attendee' ? (u.is_approved ? 'Present' : 'Absent') : (u.is_approved ? 'Verified' : 'Pending'),
       u.linkedin || '',
       Array.isArray(u.stack) ? u.stack.join(', ') : '',
       u.bio || ''
@@ -1207,6 +1262,14 @@ function App() {
     else {
       fetchAllUsers();
       await promoteWaitlistedUsers();
+    }
+  };
+
+  const handleToggleAttendance = async (userId, isPresent) => {
+    const { error } = await supabase.from('profiles').update({ is_approved: isPresent }).eq('id', userId);
+    if (error) alert(error.message);
+    else {
+      fetchAllUsers();
     }
   };
 
@@ -1404,7 +1467,7 @@ function App() {
       return;
     }
     const email = emailInput.trim().toLowerCase();
-    
+
     if (teamMembers.length >= 4) {
       alert('Your team is already full (maximum 4 members).');
       return;
@@ -1497,7 +1560,7 @@ function App() {
         if (profileError) throw profileError;
 
         alert('Custom track saved and locked!');
-        
+
         const { data: updatedPS } = await supabase.from('problem_statements').select('*').order('created_at');
         if (updatedPS) setProblemStatements(updatedPS);
         fetchProfile(session.user.id);
@@ -2098,10 +2161,12 @@ function App() {
               <a href="#mission" className="nav-link" onClick={() => setIsMenuOpen(false)}>Mission</a>
               <a href="#tracks" className="nav-link" onClick={() => setIsMenuOpen(false)}>Tracks</a>
               <a href="#timeline" className="nav-link" onClick={() => setIsMenuOpen(false)}>Timeline</a>
+              <a href="#events" className="nav-link" onClick={() => setIsMenuOpen(false)}>Events</a>
 
               <a href="#rules" className="nav-link" onClick={() => setIsMenuOpen(false)}>Rules</a>
               <a href="#sponsors" className="nav-link" onClick={() => setIsMenuOpen(false)}>Sponsors</a>
               <a href="#uic-overview" className="nav-link" onClick={() => setIsMenuOpen(false)}>UIC Overview</a>
+              <a href="#contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>Contact Us</a>
 
               <div className="mobile-auth-wrapper">
                 {isLoggedIn ? (
@@ -2165,9 +2230,9 @@ function App() {
               <a href="pdf/Starlet%205.0%20adishankara.pdf" download="Starlet 5.0 adishankara.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Starlet 5.0 Adi Shankara PDF</a>
             </nav>
             <div className="header-actions">
-              <div 
-                className="nav-btn-round" 
-                onClick={() => setActiveView('landing')} 
+              <div
+                className="nav-btn-round"
+                onClick={() => setActiveView('landing')}
                 title="Back to Home"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -2296,17 +2361,155 @@ function App() {
                         <strong>Note:</strong><br />
                         Don't forget your laptops! <img src="icons/laptop.svg" className="inline-icon" alt="laptop" />
                       </div>
-                      <h3 className="whiteboard-title handwritten">Starlet 5.0 Timeline</h3>
-                      <div className="handwritten">
-                        <div className="timeline-event">
-                          <span className="timeline-date">July 11th, Sat</span>
-                          <span className="timeline-desc">Day 1: 8:00am - 5:00pm - Kickoff, Ideation & Coding <img src="icons/rocket.svg" className="inline-icon" alt="rocket" /></span>
-                        </div>
-                        <div className="timeline-event">
-                          <span className="timeline-date">July 12th, Sun</span>
-                          <span className="timeline-desc">Day 2: 8:00am - 5:00pm - Finalizing, Pitches & Awards <img src="icons/trophy.svg" className="inline-icon" alt="trophy" /></span>
-                        </div>
-                      </div>
+                      {(() => {
+                        return (
+                          <>
+                            <h3 className="whiteboard-title handwritten" style={{ marginBottom: '1rem', fontSize: '2rem' }}>
+                              Starlet 5.0 Schedule
+                            </h3>
+                            
+                            {/* Manual Day Selection Tabs */}
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', zIndex: 10 }}>
+                              <button
+                                onClick={() => setActiveScheduleDay(1)}
+                                style={{
+                                  padding: '8px 20px',
+                                  fontFamily: 'Outfit, sans-serif',
+                                  fontSize: '0.95rem',
+                                  fontWeight: '900',
+                                  borderRadius: '12px',
+                                  border: '3px solid var(--text-navy)',
+                                  background: activeScheduleDay === 1 ? 'var(--pink-primary)' : '#fff',
+                                  color: activeScheduleDay === 1 ? '#fff' : 'var(--text-navy)',
+                                  boxShadow: activeScheduleDay === 1 ? '2px 2px 0px var(--text-navy)' : '4px 4px 0px var(--text-navy)',
+                                  transform: activeScheduleDay === 1 ? 'translate(2px, 2px)' : 'none',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.1s',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '1px'
+                                }}
+                              >
+                                Day 1 (Sat, July 11)
+                              </button>
+                              <button
+                                onClick={() => setActiveScheduleDay(2)}
+                                style={{
+                                  padding: '8px 20px',
+                                  fontFamily: 'Outfit, sans-serif',
+                                  fontSize: '0.95rem',
+                                  fontWeight: '900',
+                                  borderRadius: '12px',
+                                  border: '3px solid var(--text-navy)',
+                                  background: activeScheduleDay === 2 ? 'var(--pink-primary)' : '#fff',
+                                  color: activeScheduleDay === 2 ? '#fff' : 'var(--text-navy)',
+                                  boxShadow: activeScheduleDay === 2 ? '2px 2px 0px var(--text-navy)' : '4px 4px 0px var(--text-navy)',
+                                  transform: activeScheduleDay === 2 ? 'translate(2px, 2px)' : 'none',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.1s',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '1px'
+                                }}
+                              >
+                                Day 2 (Sun, July 12)
+                              </button>
+                            </div>
+
+                            <div className="handwritten" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '0 1rem' }}>
+                              {activeScheduleDay === 1 ? (
+                                <>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>8:00am - 8:30am</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Registration and Breakfast</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>8:30am - 9:00 am</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Settling in and introduction of rules and regulations</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>9:00am - 9:30am</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Introduction of theme and challenges</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--pink-primary)', textAlign: 'left' }}>9:30am onwards</strong>
+                                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 'bold' }}>Hackathon Begins 🚀</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>11:00 AM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Snack break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>1:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Lunch break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>2:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Hacking Continues</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>3:30 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Snack break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>4:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Hacking Continues</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>4:30 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Cultural Programme</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>6:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Wrap up for the day</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>8:00 AM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Breakfast</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>8:30 AM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Hacking Continues</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>11:00 AM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Snack break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--pink-primary)', textAlign: 'left' }}>1:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 'bold' }}>Deadline for uploading demo link on the website ⏰</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>1:05 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Lunch Break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>1:30 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 'bold' }}>Final Presentation to the judges</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>3:30 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Snack break</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>4:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Judgement time</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--pink-primary)', textAlign: 'left' }}>4:30 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 'bold' }}>Prize Distribution 🎁</span>
+                                  </div>
+                                  <div className="timeline-event" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(0,0,0,0.15)', paddingBottom: '0.4rem', gap: '1.5rem' }}>
+                                    <strong style={{ minWidth: '150px', color: 'var(--text-navy)', textAlign: 'left' }}>5:00 PM</strong>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>Wrap up for the day</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : section.type === 'rules' ? (
                     <div className="section-content rules-hazard-box">
@@ -2362,7 +2565,7 @@ function App() {
                     <div className="section-content">
                       <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
                       <p style={{ marginBottom: '2rem', maxWidth: '800px' }}>{section.content}</p>
-                      
+
                       {(() => {
                         const officialTracks = problemStatements.filter(ps => ps.track_category !== 'Other');
                         const otherCard = {
@@ -2381,7 +2584,7 @@ function App() {
                           );
                         }
 
-                        const displayedTracks = isMobile 
+                        const displayedTracks = isMobile
                           ? allTracks.slice(0, visibleLandingTracksCount)
                           : allTracks;
 
@@ -2402,16 +2605,16 @@ function App() {
                             {isMobile && allTracks.length > 3 && (
                               <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                                 {visibleLandingTracksCount < allTracks.length && (
-                                  <button 
-                                    className="join-btn" 
+                                  <button
+                                    className="join-btn"
                                     onClick={() => setVisibleLandingTracksCount(prev => prev + 3)}
                                   >
                                     SHOW MORE
                                   </button>
                                 )}
                                 {visibleLandingTracksCount > 3 && (
-                                  <button 
-                                    className="btn-secondary" 
+                                  <button
+                                    className="btn-secondary"
                                     onClick={() => setVisibleLandingTracksCount(prev => Math.max(prev - 3, 3))}
                                   >
                                     SHOW LESS
@@ -2432,7 +2635,7 @@ function App() {
                           <button className="nav-btn-round" onClick={() => partnersRef.current?.scrollBy({ left: 300, behavior: 'smooth' })}>→</button>
                         </div>
                       </div>
-                      
+
                       {/* Organizers & Collaborators Grid */}
                       <div className="partners-grid-custom" ref={partnersRef}>
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
@@ -2539,11 +2742,11 @@ function App() {
                                 overflow: 'hidden',
                                 display: 'block'
                               }}>
-                                <img 
-                                  src={path} 
-                                  alt={caption} 
-                                  loading="lazy" 
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                                <img
+                                  src={path}
+                                  alt={caption}
+                                  loading="lazy"
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                 />
                               </div>
                               <div className="polaroid-caption">{caption}</div>
@@ -2616,18 +2819,24 @@ function App() {
 
                         <div className="contact-socials">
                           <h3 className="handwritten social-title">Follow our journey!</h3>
-                          <p>Join our community of 5,000+ creators on social media.</p>
+                          <p>Join our community of creators on social media.</p>
                           <div className="social-grid">
-                            <a href="https://www.instagram.com/mind.empowered/" className="social-item instagram">
+                            <a href="https://www.instagram.com/mind.empowered?igsh=bGNmYXI1czlrcDhi" target="_blank" rel="noopener noreferrer" className="social-item instagram">
                               <img src="icons/instagram.svg" alt="Instagram" />
                               <span>Instagram</span>
                             </a>
-                            
-                            <a href="https://www.linkedin.com/company/mind-empowered/" className="social-item linkedin">
+
+                            <a href="https://www.linkedin.com/company/mind-empowered/" target="_blank" rel="noopener noreferrer" className="social-item linkedin">
                               <img src="icons/linkedin.svg" alt="LinkedIn" />
                               <span>LinkedIn</span>
                             </a>
-                            
+
+                            <a href="https://wa.me/919321670800" target="_blank" rel="noopener noreferrer" className="social-item whatsapp">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                              </svg>
+                              <span>WhatsApp</span>
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -2645,32 +2854,6 @@ function App() {
                     <div className="section-content">
                       <div className="mentors-section-header">
                         <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
-                        {mentors.length > 0 && (
-                          <div className="mentor-header-nav">
-                            <button 
-                              className="mentor-nav-button prev" 
-                              onClick={() => {
-                                if (mentorGridRef.current) {
-                                  mentorGridRef.current.scrollBy({ left: -368, behavior: 'smooth' });
-                                }
-                              }}
-                              aria-label="Previous mentors"
-                            >
-                              ←
-                            </button>
-                            <button 
-                              className="mentor-nav-button next" 
-                              onClick={() => {
-                                if (mentorGridRef.current) {
-                                  mentorGridRef.current.scrollBy({ left: 368, behavior: 'smooth' });
-                                }
-                              }}
-                              aria-label="Next mentors"
-                            >
-                              →
-                            </button>
-                          </div>
-                        )}
                       </div>
                       <div className="mentor-carousel-wrapper">
                         <div className="mentor-grid" ref={mentorGridRef}>
@@ -2692,6 +2875,181 @@ function App() {
                       </div>
                     </div>
 
+                  ) : section.type === 'events' ? (
+                    <div className="section-content">
+                      <h2 className="text-3d" style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>{section.title}</h2>
+                      <p style={{ color: '#fff', marginBottom: '2.5rem', fontSize: '1.1rem' }}>{section.content}</p>
+                      
+                      <div className="events-grid" style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        gap: '2.5rem',
+                        margin: isMobile ? '0 -5%' : '0 -8%',
+                        padding: isMobile ? '1rem 5% 2.5rem 5%' : '1rem 8% 2.5rem 8%',
+                        scrollSnapType: 'x mandatory',
+                        WebkitOverflowScrolling: 'touch',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none'
+                      }}>
+                        {eventsData.map(ev => (
+                          <div
+                            key={ev.id}
+                            className="event-card"
+                            style={{
+                              background: '#fffdf6',
+                              border: '4px solid var(--text-navy)',
+                              borderRadius: '24px',
+                              padding: '1rem 1.25rem 1.6rem 1.25rem',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              boxShadow: '8px 8px 0px var(--text-navy)',
+                              transition: 'transform 0.2s',
+                              flex: ev.isBand ? '0 0 840px' : '0 0 280px',
+                              scrollSnapAlign: 'start',
+                              position: 'relative'
+                            }}
+                          >
+                            {/* Decorative Red Tape */}
+                            <div style={{
+                              position: 'absolute',
+                              top: '-12px',
+                              left: '50%',
+                              transform: 'translateX(-50%) rotate(-3deg)',
+                              background: 'var(--pink-primary)',
+                              border: '2.5px solid var(--text-navy)',
+                              padding: '2px 14px',
+                              fontSize: '0.65rem',
+                              fontWeight: '900',
+                              color: '#fff',
+                              zIndex: 5,
+                              fontFamily: "'Fredoka One', cursive",
+                              boxShadow: '2px 2px 0px rgba(0,0,0,0.15)',
+                              letterSpacing: '1px'
+                            }}>
+                              STARLET 5.0
+                            </div>
+
+                            {ev.isBand ? (
+                              <>
+                                <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', marginBottom: '1.2rem', width: '100%', marginTop: '0.4rem' }}>
+                                  {ev.members.map((m, idx) => (
+                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '240px' }}>
+                                      <div style={{
+                                        width: '240px',
+                                        height: '240px',
+                                        border: '3px solid var(--text-navy)',
+                                        overflow: 'hidden',
+                                        background: 'var(--yellow-star)',
+                                        marginBottom: '0.4rem'
+                                      }}>
+                                        <img src={m.image} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                                      </div>
+                                      <span style={{ fontSize: '0.75rem', fontWeight: '900', color: 'var(--text-navy)', textAlign: 'center', whiteSpace: 'normal', lineHeight: 1.1 }}>{m.name}</span>
+                                      <span style={{ fontSize: '0.62rem', color: '#5c3c24', opacity: 0.8, textAlign: 'center', marginTop: '0.1rem', lineHeight: 1.1 }}>{m.role}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: '0.4rem' }}>
+                                  <span style={{
+                                    color: 'var(--pink-primary)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '900',
+                                    display: 'inline-block',
+                                    marginBottom: '0.2rem',
+                                    fontFamily: "'Fredoka One', cursive",
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px'
+                                  }}>
+                                    {ev.name}
+                                  </span>
+                                  <h3 style={{
+                                    fontFamily: "'Fredoka One', cursive",
+                                    fontSize: '1.3rem',
+                                    color: 'var(--text-navy)',
+                                    margin: '0 0 0.1rem 0',
+                                    lineHeight: 1.2
+                                  }}>
+                                    {ev.person}
+                                  </h3>
+                                  {ev.company && (
+                                    <p style={{
+                                      fontFamily: 'Outfit, sans-serif',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '700',
+                                      color: '#5c3c24',
+                                      opacity: 0.8,
+                                      margin: 0
+                                    }}>
+                                      {ev.company}
+                                    </p>
+                                  )}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div style={{ width: '240px', height: '240px', border: '3px solid var(--text-navy)', overflow: 'hidden', background: 'var(--yellow-star)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.4rem' }}>
+                                  {ev.image ? (
+                                    <img
+                                      src={ev.image}
+                                      alt={ev.person}
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <div style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'var(--text-navy)',
+                                      fontWeight: '900',
+                                      fontSize: '3.5rem',
+                                      fontFamily: 'Outfit, sans-serif'
+                                    }}>
+                                      {ev.person.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: '0.8rem' }}>
+                                  <span style={{
+                                    color: 'var(--pink-primary)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '900',
+                                    display: 'inline-block',
+                                    marginBottom: '0.2rem',
+                                    fontFamily: "'Fredoka One', cursive",
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px'
+                                  }}>
+                                    {ev.name}
+                                  </span>
+                                  <h3 style={{
+                                    fontFamily: "'Fredoka One', cursive",
+                                    fontSize: '1.3rem',
+                                    color: 'var(--text-navy)',
+                                    margin: '0 0 0.1rem 0',
+                                    lineHeight: 1.2
+                                  }}>
+                                    {ev.person}
+                                  </h3>
+                                  {ev.company && (
+                                    <p style={{
+                                      fontFamily: 'Outfit, sans-serif',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '700',
+                                      color: '#5c3c24',
+                                      opacity: 0.8,
+                                      margin: 0
+                                    }}>
+                                      {ev.company}
+                                    </p>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ) : (
                     <div className="section-content">
                       <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
@@ -2728,7 +3086,7 @@ function App() {
               </div>
 
               <div className="footer-copy-mini">
-                &copy; 2026 Starlet 5.0 | A <img src="brand/Mind Empowered.gif" alt="Mind Empowered" style={{ height: '20px', verticalAlign: 'middle', margin: '0 5px', borderRadius: '3px' }} /> Mind Empowered Initiative
+                &copy; 2026 Starlet 5.0 | A <img src="brand/Mind Empowered.jpeg" alt="Mind Empowered Logo" style={{ height: '20px', verticalAlign: 'middle', margin: '0 5px', borderRadius: '3px' }} /> Initiative
               </div>
             </div>
           </footer>
@@ -2829,7 +3187,17 @@ function App() {
                 </>
               )}
 
-              <button type="submit" className="join-btn" style={{ marginTop: '2rem', width: '100%' }}>
+              <button
+                type="submit"
+                className="join-btn"
+                disabled={activeView === 'signup' && signupRole === 'mentor' && !signupAvatarPreview}
+                style={{
+                  marginTop: '2rem',
+                  width: '100%',
+                  opacity: (activeView === 'signup' && signupRole === 'mentor' && !signupAvatarPreview) ? 0.5 : 1,
+                  cursor: (activeView === 'signup' && signupRole === 'mentor' && !signupAvatarPreview) ? 'not-allowed' : 'pointer'
+                }}
+              >
                 {activeView === 'login' ? 'LOGIN TO CONSOLE' : 'INITIALIZE REGISTRATION'}
               </button>
             </form>
@@ -2942,13 +3310,13 @@ function App() {
                 </div>
               </div>
 
-              <div className="admin-actions-bar" style={{ marginBottom: '3rem'}}>
+              <div className="admin-actions-bar" style={{ marginBottom: '3rem' }}>
                 <button className="join-btn" style={{ margin: '12px' }} onClick={() => { handleRunAutoTeaming(); logAction('Ran Auto-Teaming Algorithm'); }}>
                   RUN AUTO-TEAMING ALGORITHM
                 </button>
                 <button
                   className="join-btn"
-                  style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)' , margin: '12px'}}
+                  style={{ background: settings.certificates_released === 'true' ? '#4caf50' : 'var(--pink-primary)', margin: '12px' }}
                   onClick={handleAllocateCertificates}
                 >
                   {settings.certificates_released === 'true' ? 'CERTIFICATES ALLOCATED ✓' : 'ALLOCATE CERTIFICATES'}
@@ -3109,7 +3477,7 @@ function App() {
                                 {venues.map(v => (
                                   <option key={v.id} value={v.name}>{v.name}</option>
                                 ))}
-                                  <option value="Waitlisted/Overflow">Waitlisted/Overflow</option>
+                                <option value="Waitlisted/Overflow">Waitlisted/Overflow</option>
                               </select>
                             </div>
                             <div className="team-members-list">
@@ -3272,6 +3640,11 @@ function App() {
                         <div className="request-user">
                           <strong>{req.profiles?.full_name || 'Anonymous'}</strong>
                           <span> ({req.profiles?.email})</span>
+                          {req.created_at && (
+                            <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                              {new Date(req.created_at).toLocaleString()}
+                            </small>
+                          )}
                         </div>
                         <p className="request-msg" style={{ margin: '0.5rem 0' }}>"{req.message}"</p>
                         <div className="request-actions" style={{ display: 'flex', gap: '0.5rem' }}>
@@ -3299,13 +3672,175 @@ function App() {
                       return (
                         <>
                           {pendingMentors.slice((pendingMentorsPage - 1) * 5, pendingMentorsPage * 5).map(mentor => (
-                            <div key={mentor.id} className="approval-card">
-                              <div className="user-meta">
-                                <strong>{mentor.full_name}</strong>
-                                <span>{mentor.email}</span>
-                                <div className="role-tag">{mentor.role_title || 'Expert'}</div>
+                            <div
+                              key={mentor.id}
+                              className="approval-card-wrapper"
+                              style={{
+                                marginBottom: '1rem',
+                                border: '3px solid var(--text-navy)',
+                                borderRadius: '15px',
+                                overflow: 'hidden',
+                                background: '#fff',
+                                boxShadow: '4px 4px 0px var(--text-navy)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <div
+                                className="approval-card"
+                                onClick={() => setExpandedPendingMentorId(expandedPendingMentorId === mentor.id ? null : mentor.id)}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '1rem',
+                                  width: '100%',
+                                  background: 'none',
+                                  border: 'none',
+                                  boxShadow: 'none',
+                                  borderRadius: 0,
+                                  margin: 0
+                                }}
+                              >
+                                <div className="user-meta" style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', textAlign: 'left' }}>
+                                  <strong style={{ color: 'var(--text-navy)', fontSize: '1.05rem' }}>{mentor.full_name}</strong>
+                                  <span style={{ fontSize: '0.85rem', opacity: 0.8, color: 'var(--text-navy)' }}>{mentor.email}</span>
+                                  <div className="role-tag" style={{
+                                    background: 'var(--yellow-star)',
+                                    color: 'var(--text-navy)',
+                                    border: '1.5px solid var(--text-navy)',
+                                    borderRadius: '10px',
+                                    padding: '0.2rem 0.6rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '900',
+                                    display: 'inline-block',
+                                    width: 'fit-content',
+                                    marginTop: '0.3rem',
+                                    fontFamily: "'Fredoka One', cursive",
+                                    boxShadow: '2px 2px 0px var(--text-navy)'
+                                  }}>
+                                    {mentor.role_title || 'Expert'}
+                                  </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                  <span style={{ fontSize: '1.2rem', transition: 'transform 0.2s', transform: expandedPendingMentorId === mentor.id ? 'rotate(90deg)' : 'none', color: 'var(--text-navy)' }}>▶</span>
+                                  <button
+                                    className="join-btn btn-approve"
+                                    onClick={(e) => { e.stopPropagation(); handleApproveMentor(mentor.id); }}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      fontSize: '0.82rem',
+                                      cursor: 'pointer',
+                                      boxShadow: '3px 3px 0px var(--text-navy)',
+                                      borderRadius: '10px'
+                                    }}
+                                  >
+                                    APPROVE MENTOR
+                                  </button>
+                                </div>
                               </div>
-                              <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
+
+                              {expandedPendingMentorId === mentor.id && (
+                                <div
+                                  className="approval-dropdown"
+                                  style={{
+                                    padding: '1.2rem',
+                                    borderTop: '3.5px dashed var(--text-navy)',
+                                    background: '#fffdf5',
+                                    display: 'flex',
+                                    gap: '1.5rem',
+                                    alignItems: 'start',
+                                    borderBottomRightRadius: '12px',
+                                    borderBottomLeftRadius: '12px',
+                                    flexWrap: 'wrap'
+                                  }}
+                                >
+                                  <div style={{
+                                    width: '90px',
+                                    height: '90px',
+                                    borderRadius: '50%',
+                                    overflow: 'hidden',
+                                    border: '3px solid var(--pink-primary)',
+                                    boxShadow: '3px 3px 0px var(--yellow-star)',
+                                    background: '#fff',
+                                    flexShrink: 0
+                                  }}>
+                                    {mentor.avatar_url ? (
+                                      <img
+                                        src={mentor.avatar_url}
+                                        alt={mentor.full_name}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                        onClick={() => setFullscreenImageUrl(mentor.avatar_url)}
+                                        title="Click to view full screen"
+                                      />
+                                    ) : (
+                                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--yellow-star)', color: 'var(--text-navy)', fontSize: '2.5rem', fontWeight: 'bold' }}>
+                                        {mentor.full_name?.charAt(0)?.toUpperCase()}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                    gap: '1rem 1.5rem',
+                                    flex: 1,
+                                    textAlign: 'left'
+                                  }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Phone Contact</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>{mentor.phone || '—'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Company / Organization</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>{mentor.venue || mentor.college || '—'}</span>
+                                    </div>
+                                    {mentor.years_of_experience && (
+                                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Years of Experience</span>
+                                        <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>{mentor.years_of_experience} years</span>
+                                      </div>
+                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>GitHub Link</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>
+                                        {mentor.github_url ? <a href={mentor.github_url.startsWith('http') ? mentor.github_url : `https://${mentor.github_url}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{mentor.github_url}</a> : '—'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>LinkedIn Link</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>
+                                        {mentor.linkedin_url ? <a href={mentor.linkedin_url.startsWith('http') ? mentor.linkedin_url : `https://${mentor.linkedin_url}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{mentor.linkedin_url}</a> : '—'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Instagram Link</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>
+                                        {mentor.twitter_url ? <a href={mentor.twitter_url.startsWith('http') ? mentor.twitter_url : `https://${mentor.twitter_url}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{mentor.twitter_url}</a> : '—'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Website Link</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>
+                                        {mentor.website_url ? <a href={mentor.website_url.startsWith('http') ? mentor.website_url : `https://${mentor.website_url}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{mentor.website_url}</a> : '—'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gridColumn: '1 / -1' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Skills Stack</span>
+                                      <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>{Array.isArray(mentor.stack) && mentor.stack.length ? mentor.stack.join(', ') : '—'}</span>
+                                    </div>
+                                    {Array.isArray(mentor.languages) && mentor.languages.length > 0 && (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gridColumn: '1 / -1' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Languages Spoken</span>
+                                        <span style={{ fontSize: '0.92rem', color: 'var(--text-navy)', fontWeight: '700' }}>{mentor.languages.join(', ')}</span>
+                                      </div>
+                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gridColumn: '1 / -1' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#555', fontWeight: '900', textTransform: 'uppercase', fontFamily: "'Fredoka One', cursive" }}>Bio / Description</span>
+                                      <p style={{ fontSize: '0.92rem', color: '#333', margin: 0, fontStyle: mentor.bio ? 'normal' : 'italic', lineHeight: 1.4 }}>{mentor.bio || 'No biography written.'}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                           {renderPagination(pendingMentorsPage, pendingMentors.length, 5, setPendingMentorsPage)}
@@ -3319,6 +3854,50 @@ function App() {
                   <div className="directory-header-row">
                     <h2 className="text-3d" style={{ fontSize: '1.5rem', margin: 0 }}>Global User Directory</h2>
                     <div className="directory-controls">
+                      <div className="directory-search" style={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <input
+                          type="text"
+                          placeholder="Search by name or email..."
+                          value={userSearchQuery}
+                          onChange={(e) => { setUserSearchQuery(e.target.value); setUserDirectoryPage(1); }}
+                          style={{
+                            padding: '8px 12px 8px 36px',
+                            borderRadius: '10px',
+                            border: '2px solid #001f3f',
+                            background: '#f5f6f8',
+                            color: '#001f3f',
+                            fontFamily: 'Outfit, sans-serif',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            width: '220px',
+                            transition: 'border-color 0.2s'
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = 'var(--pink-primary)'}
+                          onBlur={(e) => e.target.style.borderColor = '#001f3f'}
+                        />
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#001f3f"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{
+                            position: 'absolute',
+                            left: '12px',
+                            pointerEvents: 'none'
+                          }}
+                        >
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </div>
                       <div className="directory-filter-tabs">
                         <button
                           className={`directory-filter-btn ${userRoleFilter === 'all' ? 'active' : ''}`}
@@ -3349,13 +3928,19 @@ function App() {
                       </button>
                     </div>
                   </div>
-                  
+
                   {(() => {
                     const filteredUsers = allUsers.filter(u => {
-                      if (userRoleFilter === 'all') return true;
-                      return u.user_role === userRoleFilter;
+                      if (userRoleFilter !== 'all' && u.user_role !== userRoleFilter) return false;
+                      if (userSearchQuery.trim()) {
+                        const q = userSearchQuery.toLowerCase().trim();
+                        const nameMatch = u.full_name?.toLowerCase().includes(q);
+                        const emailMatch = u.email?.toLowerCase().includes(q);
+                        return nameMatch || emailMatch;
+                      }
+                      return true;
                     });
-                    
+
                     return (
                       <>
                         <div className="user-table-wrapper">
@@ -3365,14 +3950,15 @@ function App() {
                                 <th>User</th>
                                 <th>Role</th>
                                 <th>Venue</th>
+                                <th>Presence</th>
                                 <th>Actions</th>
                               </tr>
                             </thead>
                             <tbody>
                               {filteredUsers.slice((userDirectoryPage - 1) * 5, userDirectoryPage * 5).map(u => (
                                 <React.Fragment key={u.id}>
-                                  <tr 
-                                    className={expandedUserId === u.id ? 'expanded-row' : ''} 
+                                  <tr
+                                    className={expandedUserId === u.id ? 'expanded-row' : ''}
                                     onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
                                     style={{ cursor: 'pointer' }}
                                   >
@@ -3400,6 +3986,26 @@ function App() {
                                       </div>
                                     </td>
                                     <td>
+                                      {u.user_role === 'attendee' ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={u.is_approved || false}
+                                            onChange={(e) => handleToggleAttendance(u.id, e.target.checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{
+                                              width: '20px',
+                                              height: '20px',
+                                              cursor: 'pointer',
+                                              accentColor: 'var(--pink-primary)'
+                                            }}
+                                          />
+                                        </div>
+                                      ) : (
+                                        <div style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)' }}>—</div>
+                                      )}
+                                    </td>
+                                    <td>
                                       <div className="table-actions">
                                         <button
                                           className="btn-table-action delete"
@@ -3413,13 +4019,19 @@ function App() {
                                   </tr>
                                   {expandedUserId === u.id && (
                                     <tr key={`${u.id}-details`} className="user-details-row">
-                                      <td colSpan={4}>
+                                      <td colSpan={5}>
                                         <div className="user-details-dropdown">
                                           <div className="user-details-grid" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '2rem', alignItems: 'start' }}>
                                             <div className="user-detail-photo">
                                               <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--pink-primary)', background: '#fff' }}>
                                                 {u.avatar_url ? (
-                                                  <img src={u.avatar_url} alt={u.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                  <img
+                                                    src={u.avatar_url}
+                                                    alt={u.full_name}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                                    onClick={() => setFullscreenImageUrl(u.avatar_url)}
+                                                    title="Click to view full screen"
+                                                  />
                                                 ) : (
                                                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--yellow-star)', color: 'var(--text-navy)', fontSize: '2rem', fontWeight: 'bold' }}>
                                                     {u.full_name?.charAt(0)?.toUpperCase()}
@@ -3428,58 +4040,61 @@ function App() {
                                               </div>
                                             </div>
                                             <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Full Name</span>
-                                              <span className="detail-value">{u.full_name || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Email</span>
-                                              <span className="detail-value">{u.email || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Role</span>
-                                              <span className="detail-value" style={{ textTransform: 'capitalize' }}>{u.user_role || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Role Title</span>
-                                              <span className="detail-value">{u.role_title || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Phone</span>
-                                              <span className="detail-value">{u.phone || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">College / Org</span>
-                                              <span className="detail-value">{u.college || u.venue || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Team</span>
-                                              <span className="detail-value">{u.team_name || '—'}</span>
-                                            </div>
-                                            <div className="user-detail-item">
-                                              <span className="detail-label">Approval Status</span>
-                                              <span className="detail-value" style={{ color: u.is_approved ? '#2e7d32' : '#c62828', fontWeight: 700 }}>
-                                                {u.is_approved ? '✓ Verified' : '⏳ Pending'}
-                                              </span>
-                                            </div>
-                                            {u.user_role === 'mentor' && (
-                                              <>
-                                                <div className="user-detail-item">
-                                                  <span className="detail-label">LinkedIn</span>
-                                                  <span className="detail-value">
-                                                    {u.linkedin ? <a href={u.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{u.linkedin}</a> : '—'}
-                                                  </span>
-                                                </div>
-                                                <div className="user-detail-item">
-                                                  <span className="detail-label">Tech Stack</span>
-                                                  <span className="detail-value">{Array.isArray(u.stack) && u.stack.length ? u.stack.join(', ') : '—'}</span>
-                                                </div>
-                                                <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
-                                                  <span className="detail-label">Bio</span>
-                                                  <span className="detail-value">{u.bio || '—'}</span>
-                                                </div>
-                                              </>
-                                            )}
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Full Name</span>
+                                                <span className="detail-value">{u.full_name || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Email</span>
+                                                <span className="detail-value">{u.email || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Role</span>
+                                                <span className="detail-value" style={{ textTransform: 'capitalize' }}>{u.user_role || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Role Title</span>
+                                                <span className="detail-value">{u.role_title || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Phone</span>
+                                                <span className="detail-value">{u.phone || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">College / Org</span>
+                                                <span className="detail-value">{u.college || u.venue || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">Team</span>
+                                                <span className="detail-value">{u.team_name || '—'}</span>
+                                              </div>
+                                              <div className="user-detail-item">
+                                                <span className="detail-label">{u.user_role === 'attendee' ? 'Attendance' : 'Approval Status'}</span>
+                                                <span className="detail-value" style={{ color: u.is_approved ? '#2e7d32' : '#c62828', fontWeight: 700 }}>
+                                                  {u.user_role === 'attendee'
+                                                    ? (u.is_approved ? '✓ Present' : '⏳ Absent')
+                                                    : (u.is_approved ? '✓ Verified' : '⏳ Pending')
+                                                  }
+                                                </span>
+                                              </div>
+                                              {u.user_role === 'mentor' && (
+                                                <>
+                                                  <div className="user-detail-item">
+                                                    <span className="detail-label">LinkedIn</span>
+                                                    <span className="detail-value">
+                                                      {u.linkedin ? <a href={u.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue-shadow)' }}>{u.linkedin}</a> : '—'}
+                                                    </span>
+                                                  </div>
+                                                  <div className="user-detail-item">
+                                                    <span className="detail-label">Tech Stack</span>
+                                                    <span className="detail-value">{Array.isArray(u.stack) && u.stack.length ? u.stack.join(', ') : '—'}</span>
+                                                  </div>
+                                                  <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                                    <span className="detail-label">Bio</span>
+                                                    <span className="detail-value">{u.bio || '—'}</span>
+                                                  </div>
+                                                </>
+                                              )}
                                             </div>
                                           </div>
                                         </div>
@@ -3491,7 +4106,7 @@ function App() {
                             </tbody>
                           </table>
                         </div>
-                        
+
                         {renderPagination(userDirectoryPage, filteredUsers.length, 5, setUserDirectoryPage)}
                       </>
                     );
@@ -3576,8 +4191,8 @@ function App() {
                             const isExpanded = expandedTeam === team;
                             return (
                               <React.Fragment key={team}>
-                                <tr 
-                                  onClick={() => sub && setExpandedTeam(isExpanded ? null : team)} 
+                                <tr
+                                  onClick={() => sub && setExpandedTeam(isExpanded ? null : team)}
                                   style={{ cursor: sub ? 'pointer' : 'default' }}
                                 >
                                   <td>
@@ -3638,7 +4253,7 @@ function App() {
                       </tbody>
                     </table>
                   </div>
-                  
+
                   {(() => {
                     const rawTeamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
                     const teamsList = rawTeamsList.filter(team => {
@@ -3711,7 +4326,7 @@ function App() {
                   {/* Left Column: Professional Info */}
                   <div>
                     <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Professional Info</h2>
-                    
+
                     <div className="profile-field">
                       <label>Expertise / Role</label>
                       <input
@@ -3722,7 +4337,7 @@ function App() {
                         placeholder="e.g. Senior Software Architect, Product Designer..."
                       />
                     </div>
-                    
+
                     <div className="profile-field">
                       <label>Company / Organization</label>
                       <input
@@ -3733,7 +4348,7 @@ function App() {
                         placeholder="e.g. Google, Meta, Independent..."
                       />
                     </div>
-                    
+
                     <div className="profile-field">
                       <label>Years of Experience</label>
                       <input
@@ -3747,14 +4362,14 @@ function App() {
                         style={{ maxWidth: '160px' }}
                       />
                     </div>
-                    
+
                     <div className="profile-field">
                       <label>My Mentoring Stack</label>
                       <div className="tech-tag-container">
                         {user.stack.map(s => (
-                          <span 
-                            key={s} 
-                            className="tech-tag" 
+                          <span
+                            key={s}
+                            className="tech-tag"
                             title="Click to remove"
                             onClick={() => {
                               if (confirm(`Remove ${s} from your skills?`)) {
@@ -3765,8 +4380,8 @@ function App() {
                             {s} ×
                           </span>
                         ))}
-                        <span 
-                          className="tech-tag" 
+                        <span
+                          className="tech-tag"
                           style={{ opacity: 0.5, cursor: 'pointer' }}
                           onClick={() => {
                             const newSkill = prompt("Enter new skill (e.g. TypeScript, Python, UI Design):");
@@ -3779,7 +4394,7 @@ function App() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="profile-field" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
                       <label>Languages Spoken</label>
                       <div className="tech-tag-container">
@@ -3838,10 +4453,10 @@ function App() {
                           />
                         </div>
                         <div className="social-connect-item">
-                          <span style={{ fontSize: '1.4rem', width: '24px', textAlign: 'center' }}>𝕏</span>
+                          <img src="icons/instagram.svg" alt="Instagram" style={{ width: '20px', height: '20px' }} />
                           <input
                             type="text"
-                            placeholder="Twitter / X URL"
+                            placeholder="Instagram URL"
                             value={user.socials.twitter}
                             onChange={(e) => setUser({ ...user, socials: { ...user.socials, twitter: e.target.value } })}
                           />
@@ -3960,9 +4575,9 @@ function App() {
                   <label>My Tech Stack</label>
                   <div className="tech-tag-container">
                     {user.stack.map(s => (
-                      <span 
-                        key={s} 
-                        className="tech-tag" 
+                      <span
+                        key={s}
+                        className="tech-tag"
                         title="Click to remove"
                         onClick={() => {
                           if (confirm(`Remove ${s} from your stack?`)) {
@@ -3973,8 +4588,8 @@ function App() {
                         {s} ×
                       </span>
                     ))}
-                    <span 
-                      className="tech-tag" 
+                    <span
+                      className="tech-tag"
                       style={{ opacity: 0.5, cursor: 'pointer' }}
                       onClick={() => {
                         const newSkill = prompt("Enter new tool or technology (e.g. React, Figma, Python):");
@@ -3998,7 +4613,7 @@ function App() {
                         </button>
                       )}
                     </div>
-                    
+
                     {!user.teamName && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
                         <button className="btn-small accept" onClick={handleFindTeam}>
@@ -4006,14 +4621,14 @@ function App() {
                         </button>
                         <span style={{ color: 'var(--text-muted)', fontWeight: 'bold' }}>OR</span>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <input 
+                          <input
                             id="createTeamNameInput"
-                            type="text" 
-                            placeholder="Enter Team Name" 
+                            type="text"
+                            placeholder="Enter Team Name"
                             className="admin-select-small"
                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', width: '200px', border: '2px solid var(--text-navy)', borderRadius: '10px' }}
                           />
-                          <button 
+                          <button
                             className="btn-small accept"
                             onClick={() => {
                               const input = document.getElementById('createTeamNameInput');
@@ -4047,14 +4662,14 @@ function App() {
 
                     {user.teamName && teamMembers.length < 4 && (
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderTop: '2px dashed #eee', paddingTop: '1rem' }}>
-                        <input 
+                        <input
                           id="addTeammateEmailInput"
-                          type="email" 
-                          placeholder="Teammate's Email Address" 
+                          type="email"
+                          placeholder="Teammate's Email Address"
                           className="admin-select-small"
                           style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', flex: 1, border: '2px solid var(--text-navy)', borderRadius: '10px' }}
                         />
-                        <button 
+                        <button
                           className="btn-small accept"
                           onClick={() => {
                             const input = document.getElementById('addTeammateEmailInput');
@@ -4107,7 +4722,7 @@ function App() {
                             <h4 style={{ margin: 0, fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)' }}>Define Custom Track</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                               <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Track Title</label>
-                              <input 
+                              <input
                                 type="text"
                                 placeholder="e.g. Virtual Reality Aid for Autism"
                                 value={customTrackTitle}
@@ -4169,7 +4784,7 @@ function App() {
                 </div>
                 <div className="profile-field" style={{ borderBottom: 'none' }}>
                   <label>Support & Assistance</label>
-                    <div className="support-cta-grid">
+                  <div className="support-cta-grid">
                     <div className="support-btn mentor" onClick={() => {
                       setActiveView('landing');
                       const el = document.getElementById('mentors');
@@ -4181,7 +4796,7 @@ function App() {
                     <div className="support-btn issue" onClick={handleReportIssue}>
                       REPORT AN ISSUE
                     </div>
-                    {settings.certificates_released === 'true' && (
+                    {settings.certificates_released === 'true' && user.isApproved && (
                       <div
                         className="support-btn mentor"
                         style={{
@@ -4313,119 +4928,31 @@ function App() {
             <div className="certificate-container-live" id="certificate-render" style={{
               width: '1123px',
               height: '794px',
-              backgroundColor: '#FFFDF5',
-              backgroundImage: `radial-gradient(circle at 90% 10%, rgba(255, 215, 0, 0.15), transparent 50%),
-                                radial-gradient(circle at 10% 90%, rgba(255, 215, 0, 0.08), transparent 50%)`,
+              backgroundImage: "url('certificate/participation.png')",
+              backgroundSize: '100% 100%',
+              backgroundRepeat: 'no-repeat',
               position: 'relative',
               boxSizing: 'border-box',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              padding: '65px 90px',
-              border: '2px solid #b8860b'
+              overflow: 'hidden'
             }}>
-              {/* Inner gold border */}
               <div style={{
                 position: 'absolute',
-                top: '15px',
-                bottom: '15px',
-                left: '15px',
-                right: '15px',
-                border: '3px solid #d4af37',
-                borderRadius: '4px',
-                pointerEvents: 'none'
-              }}></div>
-
-              {/* Corner decorations */}
-              <div style={{ position: 'absolute', width: '40px', height: '40px', border: '2px solid #d4af37', borderRight: 'none', borderBottom: 'none', top: '20px', left: '20px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '40px', height: '40px', border: '2px solid #d4af37', borderLeft: 'none', borderBottom: 'none', top: '20px', right: '20px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '40px', height: '40px', border: '2px solid #d4af37', borderRight: 'none', borderTop: 'none', bottom: '20px', left: '20px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '40px', height: '40px', border: '2px solid #d4af37', borderLeft: 'none', borderTop: 'none', bottom: '20px', right: '20px', pointerEvents: 'none', zIndex: 5 }}></div>
-
-              {/* Corner ornaments */}
-              <div style={{ position: 'absolute', width: '12px', height: '12px', border: '2px solid #d4af37', borderRadius: '50%', top: '28px', left: '28px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '12px', height: '12px', border: '2px solid #d4af37', borderRadius: '50%', top: '28px', right: '28px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '12px', height: '12px', border: '2px solid #d4af37', borderRadius: '50%', bottom: '28px', left: '28px', pointerEvents: 'none', zIndex: 5 }}></div>
-              <div style={{ position: 'absolute', width: '12px', height: '12px', border: '2px solid #d4af37', borderRadius: '50%', bottom: '28px', right: '28px', pointerEvents: 'none', zIndex: 5 }}></div>
-
-              {/* Certificate content */}
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '2.2rem', fontWeight: 900, color: '#4a1210', letterSpacing: '4px', textTransform: 'uppercase', marginTop: '15px', marginBottom: '5px', textAlign: 'center', zIndex: 10 }}>
-                Starlet 5.0 Hackathon 2026
-              </div>
-
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.35rem', fontWeight: 800, color: '#4a1210', letterSpacing: '6px', textTransform: 'uppercase', marginBottom: '45px', textAlign: 'center', zIndex: 10 }}>
-                Certificate of Participation
-              </div>
-
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.5rem', color: '#5c3c24', fontWeight: 400, marginBottom: '20px', textAlign: 'center', zIndex: 10 }}>
-                This is hereby granted to
-              </div>
-
-              <div style={{ width: '70%', borderBottom: '2px solid rgba(92, 60, 36, 0.25)', marginBottom: '25px', position: 'relative', textAlign: 'center', height: '60px', zIndex: 10 }}>
-                <div style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontStyle: 'italic',
-                  fontSize: '3.5rem',
-                  fontWeight: 700,
-                  color: '#4a1210',
-                  lineHeight: 1,
-                  margin: 0,
-                  position: 'absolute',
-                  bottom: '5px',
-                  width: '100%',
-                  left: 0
-                }}>
-                  {user.name || ''}
-                </div>
-              </div>
-
-              <div style={{ maxWidth: '820px', textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontSize: '1.25rem', lineHeight: '1.6', color: '#5c3c24', fontWeight: 500, marginBottom: '20px', zIndex: 10 }}>
-                For participating in <strong style={{ fontWeight: 800, color: '#4a1210' }}>Starlet 5.0</strong> and demonstrating enthusiasm, creativity, and commitment throughout the event.
-              </div>
-
-              <div style={{ fontFamily: "'Caveat', cursive", fontSize: '3.8rem', color: '#4a1210', marginBottom: '25px', textAlign: 'center', zIndex: 10 }}>
-                Congratulations!!!!
-              </div>
-
-              {/* Signatures Footer Row */}
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', zIndex: 10 }}>
-                <div style={{ width: '260px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
-                    <div style={{ fontFamily: "'Caveat', cursive", fontSize: '2.2rem', color: 'rgba(74, 18, 16, 0.85)', fontWeight: 700, transform: 'rotate(-5deg)' }}>
-                      Maya Menon
-                    </div>
-                  </div>
-                  <div style={{ width: '100%', height: '2px', backgroundColor: '#5c3c24', marginBottom: '8px', opacity: 0.4 }}></div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', fontWeight: 800, color: '#4a1210', letterSpacing: '1px', marginBottom: '2px' }}>MAYA MENON</div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.75rem', fontWeight: 600, color: '#5c3c24', opacity: 0.8, letterSpacing: '0.5px' }}>FOUNDER: MIND EMPOWERED</div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', margin: '0 10px' }}>
-                  <div style={{ height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                    <img src="certificate/logo.png" alt="Mind Empowered Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
-                  </div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.72rem', fontWeight: 800, color: '#4a1210', lineHeight: 1.3, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                    MIND EMPOWERED<br />
-                    <span style={{ fontSize: '0.55rem', fontWeight: 600, color: '#5c3c24', letterSpacing: '0.8px' }}>ILLUMINATING MINDS, TRANSFORMING LIVES</span><br />
-                    <span style={{ fontSize: '0.52rem', fontWeight: 500, color: '#5c3c24', opacity: 0.85, lineHeight: 1.25, letterSpacing: '0.2px', display: 'block', marginTop: '3px' }}>
-                      NGO DARPAN ID: 84/IV/2021<br />
-                      NATIONAL TRUST REGISTRATION<br />
-                      NUMBER: KL/2022/0309147
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ width: '260px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
-                    <div style={{ fontFamily: "'Caveat', cursive", fontSize: '2.2rem', color: 'rgba(74, 18, 16, 0.85)', fontWeight: 700, transform: 'rotate(-5deg)' }}>
-                      Sreela Menon
-                    </div>
-                  </div>
-                  <div style={{ width: '100%', height: '2px', backgroundColor: '#5c3c24', marginBottom: '8px', opacity: 0.4 }}></div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', fontWeight: 800, color: '#4a1210', letterSpacing: '1px', marginBottom: '2px' }}>SREELA MENON</div>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.75rem', fontWeight: 600, color: '#5c3c24', opacity: 0.8, letterSpacing: '0.5px' }}>CO-FOUNDER: MIND EMPOWERED</div>
-                </div>
+                top: '360px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontFamily: "'Cinzel', serif",
+                textTransform: 'uppercase',
+                fontSize: '2.8rem',
+                fontWeight: 700,
+                color: '#4a1210',
+                textAlign: 'center',
+                width: '80%',
+                padding: 0,
+                margin: 0,
+                zIndex: 10,
+                letterSpacing: '1px'
+              }}>
+                {user.name || ''}
               </div>
             </div>
           </div>
@@ -4479,7 +5006,7 @@ function App() {
                       </div>
                       <div className="venue-image-grid">
                         {(() => {
-                          const imgs = v.image_urls.replace(/\[|\]/g,'').replace(/"/g, '').split(',');
+                          const imgs = v.image_urls.replace(/\[|\]/g, '').replace(/"/g, '').split(',');
                           const gateImgIndex = imgs.findIndex(img => img.includes('0.7359368490637637'));
                           if (gateImgIndex > 0) {
                             const [gateImg] = imgs.splice(gateImgIndex, 1);
@@ -4572,8 +5099,8 @@ function App() {
               <h1 className="text-3d" style={{ fontSize: '3.5rem' }}>Security Audit Logs</h1>
               <p className="handwritten" style={{ fontSize: '1.2rem' }}>Activity tracking and security analysis center</p>
             </div>
-            <button 
-              className="join-btn" 
+            <button
+              className="join-btn"
               onClick={() => { setActiveView('profile'); setAdminActiveTab('admin'); }}
               style={{ background: 'var(--text-navy)', color: '#fff' }}
             >
@@ -4697,19 +5224,19 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
                   <strong>Key Initiatives:</strong> Community hub workshops, hands-on skill sharing (stitching, upcycling, carpentry), change-maker residencies (Tink-Her-Hack), and inclusive listening circles.
                 </p>
-                
+
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.5rem' }}>
-                  <a 
-                    href="https://aikyam.space/" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://aikyam.space/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="join-btn"
                     style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center', padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
                   >
                     VISIT WEBSITE
                   </a>
                 </div>
-                
+
                 <div className="modal-footer-brand" style={{ color: '#2eac6d', marginTop: '2rem' }}>
                   A Proudly Not-for-Profit Initiative
                 </div>
@@ -4738,19 +5265,19 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
                   <strong>Main Venue Partner:</strong> The college campus serves as the primary hub for Starlet 5.0, hosting the main hackathon tracks, prototyping challenges, and technical mentoring sessions.
                 </p>
-                
+
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.5rem' }}>
-                  <a 
-                    href="https://www.adishankara.ac.in/" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://www.adishankara.ac.in/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="join-btn"
                     style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center', padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
                   >
                     VISIT WEBSITE
                   </a>
                 </div>
-                
+
                 <div className="modal-footer-brand" style={{ color: '#1565c0', marginTop: '2rem' }}>
                   Main Venue Partner
                 </div>
@@ -4782,7 +5309,7 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
                   Our mission is to turn ideas into impact by building practical skills, strong networks, and future-ready talent.
                 </p>
-                
+
                 <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
                   Outreach Partner
                 </div>
@@ -4811,7 +5338,7 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
                   As our **Prize Sponsor**, Synthite is fostering creativity, supporting innovative solutions, and encouraging the next generation of women in tech at Starlet 5.0.
                 </p>
-                
+
                 <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
                   Prize Sponsor
                 </div>
@@ -4840,7 +5367,7 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
                   We are proud to partner with Starlet 5.0 as a sponsor, lending our support to the empowerment of women through engineering and collaborative innovation.
                 </p>
-                
+
                 <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
                   Event Sponsor
                 </div>
@@ -4869,7 +5396,7 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
                   As our **Outreach Partner**, NSS ASIET is key in spreading the word, mobilizing resources, and driving participation across campuses to support gender equity and social progress.
                 </p>
-                
+
                 <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
                   Outreach Partner
                 </div>
@@ -4898,7 +5425,7 @@ function App() {
                 <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
                   As an **Outreach Partner** for Starlet 5.0, they play a vital role in championing inclusion and mentoring women to drive innovation and claim their space in technology fields.
                 </p>
-                
+
                 <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
                   Outreach Partner
                 </div>
@@ -4983,7 +5510,7 @@ function App() {
       {selectedMentor && (
         <div className="modal-overlay" onClick={() => setSelectedMentor(null)}>
           <div className="modal-content mentor-modal" onClick={e => e.stopPropagation()}>
-            
+
             {/* Flush Navy Banner Header */}
             <div className="mentor-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
@@ -4998,14 +5525,14 @@ function App() {
 
             {/* Content Area */}
             <div className="mentor-modal-content" style={{ alignItems: 'start' }}>
-              
+
               {/* Left Column: Profile Card */}
               <div className="mentor-modal-side" style={{ background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '30px', padding: '1.5rem 1.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: '8px 8px 0px var(--blue-shadow)', width: '100%' }}>
                 <div className="mentor-modal-photo" style={{ width: '130px', height: '130px', borderRadius: '50%', overflow: 'hidden', border: '4px solid var(--pink-primary)', boxShadow: '4px 4px 0px var(--yellow-star)', marginBottom: '1.2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-cream)' }}>
                   <img src={selectedMentor.avatar_url || "icons/user-profile.svg"} alt="mentor" style={{ width: '100%', height: '100%', objectFit: selectedMentor.avatar_url ? 'cover' : 'contain' }} />
                 </div>
                 <h3 style={{ fontSize: '1.4rem', marginBottom: '0.6rem', fontFamily: "'Fredoka One', cursive", color: 'var(--text-navy)', lineHeight: '1.2' }}>{selectedMentor.role_title}</h3>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', alignItems: 'center' }}>
                   <span style={{ background: 'var(--bg-cream)', border: '2px solid var(--text-navy)', borderRadius: '15px', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: '900', color: 'var(--text-navy)', display: 'inline-block', width: '100%', maxWidth: '220px' }}>🏢 {selectedMentor.company}</span>
                   {selectedMentor.years_of_experience && (
@@ -5015,28 +5542,33 @@ function App() {
 
                 {(() => {
                   const profile = allUsers.find(u => u.id === selectedMentor.profile_id) || {};
-                  const socials = profile.socials || selectedMentor.socials || {};
-                  const website = selectedMentor.website_url || profile.website_url;
-                  if (!socials && !website) return null;
+                  const githubLink = profile.github_url || selectedMentor.github_url;
+                  const linkedinLink = profile.linkedin_url || selectedMentor.linkedin_url;
+                  const instagramLink = profile.twitter_url || selectedMentor.twitter_url;
+                  const websiteLink = profile.website_url || selectedMentor.website_url;
+
+                  const hasAnySocial = githubLink || linkedinLink || instagramLink || websiteLink;
+                  if (!hasAnySocial) return null;
+
                   return (
                     <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1.2rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      {socials.github && (
-                        <a href={socials.github.startsWith('http') ? socials.github : `https://${socials.github}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
+                      {githubLink && (
+                        <a href={githubLink.startsWith('http') ? githubLink : `https://${githubLink}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }} title="GitHub">
                           <img src="icons/github.svg" alt="GitHub" style={{ width: '18px' }} />
                         </a>
                       )}
-                      {socials.linkedin && (
-                        <a href={socials.linkedin.startsWith('http') ? socials.linkedin : `https://${socials.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
+                      {linkedinLink && (
+                        <a href={linkedinLink.startsWith('http') ? linkedinLink : `https://${linkedinLink}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }} title="LinkedIn">
                           <img src="icons/linkedin.svg" alt="LinkedIn" style={{ width: '18px' }} />
                         </a>
                       )}
-                      {socials.twitter && (
-                        <a href={socials.twitter.startsWith('http') ? socials.twitter : `https://${socials.twitter}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }}>
-                          <img src="icons/twitter.svg" alt="Twitter" style={{ width: '18px' }} />
+                      {instagramLink && (
+                        <a href={instagramLink.startsWith('http') ? instagramLink : `https://${instagramLink}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)' }} title="Instagram">
+                          <img src="icons/instagram.svg" alt="Instagram" style={{ width: '18px' }} />
                         </a>
                       )}
-                      {website && (
-                        <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)', fontSize: '1rem' }} title="Visit Website">
+                      {websiteLink && (
+                        <a href={websiteLink.startsWith('http') ? websiteLink : `https://${websiteLink}`} target="_blank" rel="noopener noreferrer" style={{ width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-cream)', border: '2.5px solid var(--text-navy)', borderRadius: '50%', transition: 'all 0.2s', boxShadow: '3px 3px 0px var(--text-navy)', fontSize: '1rem' }} title="Visit Website">
                           🌐
                         </a>
                       )}
@@ -5047,7 +5579,7 @@ function App() {
 
               {/* Right Column: Info & Skills Cards */}
               <div className="mentor-modal-main" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', flex: 1 }}>
-                
+
                 {/* About Box */}
                 <div className="mentor-info-card" style={{ background: '#fff', border: '3.5px solid var(--text-navy)', borderRadius: '25px', padding: '1.2rem 1.8rem', boxShadow: '6px 6px 0px var(--pink-primary)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.8rem' }}>
@@ -5159,6 +5691,31 @@ function App() {
               <button className="btn-secondary" style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '2px solid #eee', cursor: 'pointer' }} onClick={() => setActiveAlert(null)}>
                 DISMISS
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fullscreenImageUrl && (
+        <div
+          className="modal-overlay lightbox-overlay"
+          onClick={() => setFullscreenImageUrl(null)}
+          style={{ zIndex: 20000, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(0, 31, 63, 0.95)' }}
+        >
+          <button
+            className="lightbox-close"
+            onClick={() => setFullscreenImageUrl(null)}
+            style={{ position: 'absolute', top: '30px', right: '30px' }}
+          >
+            ×
+          </button>
+          <div className="lightbox-content" onClick={e => e.stopPropagation()} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div className="lightbox-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <img
+                src={fullscreenImageUrl}
+                alt="Enlarged profile avatar"
+                style={{ maxHeight: '80vh', maxWidth: '90vw', borderRadius: '15px', border: '8px solid #fff', boxShadow: '0 30px 60px rgba(0,0,0,0.5)', objectFit: 'contain' }}
+              />
             </div>
           </div>
         </div>

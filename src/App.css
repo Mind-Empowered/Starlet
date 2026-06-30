@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Caveat:wght@400;700&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Caveat:wght@400;700&family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Great+Vibes&family=Cinzel:wght@600;700;800&display=swap');
 
 :root {
     --bg-cream: #FFFDF0;
@@ -5996,6 +5996,38 @@ img {
 }
 
 .directory-download-btn:active {
+    transform: translate(0px, 0px);
+    box-shadow: 3px 3px 0px var(--text-navy);
+}
+
+.events-grid::-webkit-scrollbar {
+    display: none !important;
+}
+
+.social-item.whatsapp {
+    border: 3px solid var(--text-navy);
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #fff;
+    color: var(--text-navy);
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 4px 4px 0px var(--text-navy);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.social-item.whatsapp:hover {
+    background: #25D366;
+    color: #fff;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--text-navy);
+}
+
+.social-item.whatsapp:active {
     transform: translate(0px, 0px);
     box-shadow: 3px 3px 0px var(--text-navy);
 }

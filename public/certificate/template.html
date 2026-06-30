@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlet 5.0 | Participant Achievement</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&family=Fredoka+One&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&family=Cinzel:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,13 +15,10 @@
         :root {
             --navy: #001f3f;
             --pink: #ff4d94;
-            --gold: #d4af37;
-            --dark-gold: #b8860b;
-            --text-brown: #4a1210;
-            --text-light-brown: #5c3c24;
         }
 
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -73,6 +73,7 @@
             align-items: center;
             gap: 12px;
             background: rgba(0, 31, 63, 0.85);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             border: 3px solid var(--navy);
             padding: 10px 20px;
@@ -110,9 +111,11 @@
             .no-print {
                 display: none !important;
             }
+
             body {
                 background: white;
             }
+
             .certificate-page {
                 box-shadow: none;
                 margin: 0;
@@ -122,256 +125,34 @@
 
         /* Certificate Container */
         .certificate-page {
-            width: 1123px; /* A4 Landscape */
+            width: 1123px;
+            /* A4 Landscape */
             height: 794px;
-            background-color: #FFFDF5;
-            background-image: 
-                radial-gradient(circle at 90% 10%, rgba(255, 215, 0, 0.15), transparent 50%),
-                radial-gradient(circle at 10% 90%, rgba(255, 215, 0, 0.08), transparent 50%);
+            background-image: url('participation.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 65px 90px;
-            border: 2px solid var(--dark-gold);
         }
 
-        /* Decorative Borders & Corners */
-        .certificate-page::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            bottom: 15px;
-            left: 15px;
-            right: 15px;
-            border: 3px solid var(--gold);
-            border-radius: 4px;
-            pointer-events: none;
-        }
-
-        .corner-decoration {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 2px solid var(--gold);
-            pointer-events: none;
-            z-index: 5;
-        }
-        .corner-top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-        .corner-top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
-        .corner-bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
-        .corner-bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
-        .corner-ornament {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            border: 2px solid var(--gold);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .ornament-tl { top: 28px; left: 28px; }
-        .ornament-tr { top: 28px; right: 28px; }
-        .ornament-bl { bottom: 28px; left: 28px; }
-        .ornament-br { bottom: 28px; right: 28px; }
-
-        /* Typography & Layout */
-        .cert-header {
-            font-family: 'Outfit', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: var(--text-brown);
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        .cert-subheader {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: var(--text-brown);
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin-bottom: 45px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        .granted-to {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            color: var(--text-light-brown);
-            font-weight: 400;
-            margin-bottom: 20px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        /* Recipient Name Blank Space */
-        .name-line-container {
-            width: 70%;
-            border-bottom: 2px solid rgba(92, 60, 36, 0.25);
-            margin-bottom: 25px;
-            position: relative;
-            text-align: center;
-            height: 60px;
-            z-index: 10;
-        }
-
+        /* Recipient Name positioned overlay */
         .recipient-name {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: var(--text-brown);
-            line-height: 1;
-            margin: 0;
             position: absolute;
-            bottom: 5px;
-            width: 100%;
-            left: 0;
-        }
-
-        .achievement-text {
-            max-width: 820px;
-            text-align: center;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.25rem;
-            line-height: 1.6;
-            color: var(--text-light-brown);
-            font-weight: 500;
-            margin-bottom: 20px;
-            z-index: 10;
-        }
-        .achievement-text strong {
-            font-weight: 800;
-            color: var(--text-brown);
-        }
-
-        .congrats-text {
-            font-family: 'Caveat', cursive;
-            font-size: 3.8rem;
-            color: var(--text-brown);
-            margin-bottom: 25px;
-            text-align: center;
-            z-index: 10;
-        }
-
-        /* Signatures and Footer Details */
-        .footer-signatures {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: auto;
-            z-index: 10;
-        }
-
-        .sig-column {
-            width: 260px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .sig-space {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
-
-        .sig-placeholder {
-            font-family: 'Caveat', cursive;
-            font-size: 2.2rem;
-            color: rgba(74, 18, 16, 0.85);
-            font-weight: 700;
-            transform: rotate(-5deg);
-        }
-
-        .sig-line {
-            width: 100%;
-            height: 2px;
-            background-color: var(--text-light-brown);
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-
-        .sig-name {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: var(--text-brown);
-            letter-spacing: 1px;
-            margin-bottom: 2px;
-        }
-
-        .sig-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-light-brown);
-            opacity: 0.8;
-            letter-spacing: 0.5px;
-        }
-
-        .center-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            margin: 0 10px;
-        }
-
-        .logo-space {
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-        }
-
-        .center-logo {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .center-info {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: var(--text-brown);
-            line-height: 1.3;
-            letter-spacing: 0.5px;
+            top: 368px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Cinzel', serif;
             text-transform: uppercase;
-        }
-
-        .info-subtitle {
-            font-size: 0.55rem;
-            font-weight: 600;
-            color: var(--text-light-brown);
-            letter-spacing: 0.8px;
-        }
-
-        .info-details {
-            font-size: 0.52rem;
-            font-weight: 500;
-            color: var(--text-light-brown);
-            opacity: 0.85;
-            line-height: 1.25;
-            letter-spacing: 0.2px;
-            display: block;
-            margin-top: 3px;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #4a1210;
+            text-align: center;
+            width: 80%;
+            padding: 0;
+            margin: 0;
+            z-index: 10;
+            letter-spacing: 1px;
         }
 
         #capture-zone {
@@ -381,88 +162,36 @@
         }
     </style>
 </head>
+
 <body>
     <button class="download-btn no-print" onclick="downloadCertificateAsPDF()">
         <span>Download PDF</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
     </button>
 
     <div class="name-input-container no-print">
         <label for="name-input">Enter Name:</label>
-        <input type="text" id="name-input" placeholder="Type your name here..." oninput="updateNameFromInput(this.value)">
+        <input type="text" id="name-input" placeholder="Type your name here..."
+            oninput="updateNameFromInput(this.value)">
     </div>
 
     <div id="capture-zone">
         <div class="certificate-page" id="certificate">
-            <!-- Border decorations -->
-            <div class="corner-decoration corner-top-left"></div>
-            <div class="corner-decoration corner-top-right"></div>
-            <div class="corner-decoration corner-bottom-left"></div>
-            <div class="corner-decoration corner-bottom-right"></div>
-            <div class="corner-ornament ornament-tl"></div>
-            <div class="corner-ornament ornament-tr"></div>
-            <div class="corner-ornament ornament-bl"></div>
-            <div class="corner-ornament ornament-br"></div>
-
-            <div class="cert-header">Starlet 5.0 Hackathon 2026</div>
-            <div class="cert-subheader">Certificate of Participation</div>
-
-            <div class="granted-to">This is hereby granted to</div>
-
-            <div class="name-line-container">
-                <div class="recipient-name"></div>
-            </div>
-
-            <div class="achievement-text">
-                For participating in <strong>Starlet 5.0</strong> and demonstrating enthusiasm,
-                creativity, and commitment throughout the event.
-            </div>
-
-            <div class="congrats-text">Congratulations!!!!</div>
-
-            <div class="footer-signatures">
-                <div class="sig-column">
-                    <div class="sig-space">
-                        <div class="sig-placeholder">Maya Menon</div>
-                    </div>
-                    <div class="sig-line"></div>
-                    <div class="sig-name">MAYA MENON</div>
-                    <div class="sig-title">FOUNDER: MIND EMPOWERED</div>
-                </div>
-
-                <div class="center-column">
-                    <div class="logo-space">
-                        <img src="logo.png" alt="Mind Empowered Logo" class="center-logo">
-                    </div>
-                    <div class="center-info">
-                        MIND EMPOWERED<br>
-                        <span class="info-subtitle">ILLUMINATING MINDS, TRANSFORMING LIVES</span><br>
-                        <span class="info-details">
-                            NGO DARPAN ID: 84/IV/2021<br>
-                            NATIONAL TRUST REGISTRATION<br>
-                            NUMBER: KL/2022/0309147
-                        </span>
-                    </div>
-                </div>
-
-                <div class="sig-column">
-                    <div class="sig-space">
-                        <div class="sig-placeholder">Sreela Menon</div>
-                    </div>
-                    <div class="sig-line"></div>
-                    <div class="sig-name">SREELA MENON</div>
-                    <div class="sig-title">CO-FOUNDER: MIND EMPOWERED</div>
-                </div>
-            </div>
+            <div class="recipient-name"></div>
         </div>
     </div>
 
     <script>
         // Auto-fill name from URL parameter or fall back to Supabase session profile on load
-        window.onload = async function() {
+        window.onload = async function () {
             const urlParams = new URLSearchParams(window.location.search);
             let name = urlParams.get('name');
-            
+
             const nameDisplay = document.querySelector('.recipient-name');
             if (nameDisplay) {
                 if (name) {
@@ -473,15 +202,24 @@
                         const supabaseUrl = 'https://pxgurlmrtoxlmlpiyqrj.supabase.co';
                         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4Z3VybG1ydG94bG1scGl5cXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTQzMjcsImV4cCI6MjA5MjU5MDMyN30.hoo0QEO1zswZdqzRAlCkiYk_r-BuxEN2kP6VKo2wbuo';
                         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                        
+
                         const { data: { session } } = await supabase.auth.getSession();
                         if (session && session.user) {
                             const { data: profile } = await supabase
                                 .from('profiles')
-                                .select('full_name')
+                                .select('full_name, user_role, is_approved')
                                 .eq('id', session.user.id)
                                 .single();
-                            if (profile && profile.full_name) {
+                            if (profile) {
+                                if (profile.user_role === 'attendee' && !profile.is_approved) {
+                                    document.body.innerHTML = `
+                                        <div style="color: white; text-align: center; font-family: 'Outfit', sans-serif; font-size: 1.5rem; padding: 4rem;">
+                                            <h2>Access Denied</h2>
+                                            <p>Your certificate has not been published. Please contact the administrator to verify your attendance.</p>
+                                        </div>
+                                    `;
+                                    return;
+                                }
                                 nameDisplay.textContent = profile.full_name;
                             } else {
                                 nameDisplay.textContent = session.user.email || 'Participant';
@@ -494,7 +232,7 @@
                         nameDisplay.textContent = 'Participant';
                     }
                 }
-                
+
                 // Pre-fill input field value
                 const inputField = document.getElementById('name-input');
                 if (inputField) {
@@ -514,7 +252,7 @@
             const { jsPDF } = window.jspdf;
             const certElement = document.getElementById('certificate');
             const btn = document.querySelector('.download-btn');
-            
+
             btn.innerHTML = '<span>Generating...</span>';
             btn.style.opacity = '0.7';
             btn.style.pointerEvents = 'none';
@@ -524,17 +262,17 @@
                 const canvas = await html2canvas(certElement, {
                     scale: scale,
                     useCORS: true,
-                    backgroundColor: '#FFFDF5', // Cream white to match certificate
+                    backgroundColor: '#FFFDF5',
                     logging: false,
                     letterRendering: true,
                     allowTaint: true
                 });
-                
+
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                
+
                 const imgWidth = canvas.width / scale;
                 const imgHeight = canvas.height / scale;
-                
+
                 const pdf = new jsPDF({
                     orientation: imgWidth > imgHeight ? 'l' : 'p',
                     unit: 'px',
@@ -543,7 +281,7 @@
 
                 pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
                 pdf.save('Starlet5_Certificate.pdf');
-            
+
             } catch (error) {
                 console.error('PDF Generation Error:', error);
                 alert('Failed to generate PDF. Try using Chrome for best results!');
@@ -555,4 +293,5 @@
         }
     </script>
 </body>
+
 </html>
