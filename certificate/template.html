@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Starlet 5.0 | Participant Achievement</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Fredoka+One&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -171,18 +171,61 @@
 
         .recipient-name {
             position: absolute;
-            top: 355px;
+            top: 345px;
             left: 50%;
             transform: translateX(-50%);
-            font-family: 'Outfit', sans-serif;
-            font-size: 3.2rem;
-            font-weight: 900;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 3.5rem;
+            font-weight: 700;
             color: #4a1210;
             text-align: center;
             width: 80%;
             padding: 0;
             margin: 0;
             z-index: 10;
+        }
+
+        /* Name Input Styles */
+        .name-input-container {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 31, 63, 0.85);
+            backdrop-filter: blur(10px);
+            border: 3px solid var(--navy);
+            padding: 10px 20px;
+            border-radius: 16px;
+            box-shadow: 8px 8px 0px var(--navy);
+            z-index: 1000;
+        }
+
+        .name-input-container label {
+            color: white;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .name-input-container input {
+            border: 2px solid var(--navy);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--navy);
+            background: white;
+            outline: none;
+            width: 250px;
+            font-size: 1rem;
+        }
+
+        .name-input-container input:focus {
+            border-color: var(--pink);
         }
 
         .achievement-text {
@@ -248,6 +291,11 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
     </button>
 
+    <div class="name-input-container no-print">
+        <label for="name-input">Enter Name:</label>
+        <input type="text" id="name-input" placeholder="Type your name here..." oninput="updateNameFromInput(this.value)">
+    </div>
+
     <div id="capture-zone">
         <div class="certificate-page" id="certificate">
             <div class="recipient-name"></div>
@@ -290,8 +338,21 @@
                         nameDisplay.textContent = 'Participant';
                     }
                 }
+                
+                // Pre-fill input field value
+                const inputField = document.getElementById('name-input');
+                if (inputField) {
+                    inputField.value = nameDisplay.textContent !== 'Participant' ? nameDisplay.textContent : '';
+                }
             }
         };
+
+        function updateNameFromInput(val) {
+            const nameDisplay = document.querySelector('.recipient-name');
+            if (nameDisplay) {
+                nameDisplay.textContent = val || 'Participant';
+            }
+        }
 
         async function downloadCertificateAsPDF() {
             const { jsPDF } = window.jspdf;
