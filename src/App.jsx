@@ -110,7 +110,7 @@ function App() {
   const [activeView, setActiveView] = useState('landing'); // landing, login, signup, profile
   const [adminActiveTab, setAdminActiveTab] = useState('admin'); // admin or mentor
   const [expandedUserId, setExpandedUserId] = useState(null);
-  const [visibleUserCount, setVisibleUserCount] = useState(5);
+  const [userDirectoryPage, setUserDirectoryPage] = useState(1);
   const [userRoleFilter, setUserRoleFilter] = useState('all'); // all, mentor, attendee
   const [isOtherTrackSelected, setIsOtherTrackSelected] = useState(false);
   const [customTrackTitle, setCustomTrackTitle] = useState('');
@@ -162,7 +162,12 @@ function App() {
   const [showAboutPopup, setShowAboutPopup] = useState(false);
   const [showAikyamPopup, setShowAikyamPopup] = useState(false);
   const [showAdiPopup, setShowAdiPopup] = useState(false);
+  const [showLTPopup, setShowLTPopup] = useState(false);
   const [showRegPopup, setShowRegPopup] = useState(false);
+  const [showSynthitePopup, setShowSynthitePopup] = useState(false);
+  const [showReccaaPopup, setShowReccaaPopup] = useState(false);
+  const [showNSSPopup, setShowNSSPopup] = useState(false);
+  const [showWECPopup, setShowWECPopup] = useState(false);
 
   const playClickSound = () => {
     if (!isSoundEnabled) return;
@@ -215,17 +220,22 @@ function App() {
   const [settings, setSettings] = useState({
     registration_open: 'true',
     certificates_released: 'false',
-    event_announcement: ''
+    event_announcement: '',
+    google_drive_link: ''
   });
   const [auditLogs, setAuditLogs] = useState([]);
+  const [expandedTeam, setExpandedTeam] = useState(null);
+  const [submissionsFilter, setSubmissionsFilter] = useState('all'); // all, team
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState('all'); // all, submitted, pending
+  const [activeSquadsPage, setActiveSquadsPage] = useState(1);
   const [venues, setVenues] = useState([]);
   const [mentors, setMentors] = useState([]);
   const [problemStatements, setProblemStatements] = useState([]);
   const [visibleLandingTracksCount, setVisibleLandingTracksCount] = useState(3);
-  const [visibleProblemStatementsCount, setVisibleProblemStatementsCount] = useState(5);
-  const [visibleActiveMentorsCount, setVisibleActiveMentorsCount] = useState(5);
-  const [visiblePendingMentorsCount, setVisiblePendingMentorsCount] = useState(5);
-  const [visibleProjectSubmissionsCount, setVisibleProjectSubmissionsCount] = useState(5);
+  const [problemStatementsPage, setProblemStatementsPage] = useState(1);
+  const [activeMentorsPage, setActiveMentorsPage] = useState(1);
+  const [pendingMentorsPage, setPendingMentorsPage] = useState(1);
+  const [projectSubmissionsPage, setProjectSubmissionsPage] = useState(1);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [mentorRequestModal, setMentorRequestModal] = useState(null);
@@ -263,6 +273,96 @@ function App() {
   const prizesRef = useRef(null);
   const mentorGridRef = useRef(null);
 
+  const [logsTimeFilter, setLogsTimeFilter] = useState('all');
+
+  const handleAdminNavClick = (sectionId) => {
+    if (activeView !== 'profile') {
+      setActiveView('profile');
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
+
+  const renderPagination = (currentPage, totalItems, itemsPerPage, onPageChange) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return null;
+
+    let startPage = 1;
+    let endPage = totalPages;
+
+    if (totalPages > 5) {
+      if (currentPage <= 5) {
+        startPage = 1;
+        endPage = 5;
+      } else {
+        startPage = currentPage - 4;
+        endPage = currentPage;
+      }
+    }
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="pagination-container" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+        <button 
+          disabled={currentPage === 1} 
+          onClick={() => onPageChange(currentPage - 1)}
+          className="btn-small pagination-btn"
+          style={{ 
+            opacity: currentPage === 1 ? 0.5 : 1, 
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer', 
+            background: '#fff', 
+            color: 'var(--text-navy)', 
+            border: '1px solid var(--text-navy)',
+            fontFamily: "'Fredoka One', cursive" 
+          }}
+        >
+          Prev
+        </button>
+        {pages.map(p => (
+          <button 
+            key={p} 
+            onClick={() => onPageChange(p)}
+            className={`btn-small pagination-btn ${currentPage === p ? 'active' : ''}`}
+            style={{ 
+              background: currentPage === p ? 'var(--pink-primary)' : '#fff',
+              color: currentPage === p ? '#fff' : 'var(--text-navy)',
+              fontWeight: 'bold',
+              border: currentPage === p ? '1px solid var(--pink-primary)' : '1px solid var(--text-navy)',
+              cursor: 'pointer',
+              fontFamily: "'Fredoka One', cursive",
+              minWidth: '32px'
+            }}
+          >
+            {p}
+          </button>
+        ))}
+        <button 
+          disabled={currentPage === totalPages} 
+          onClick={() => onPageChange(currentPage + 1)}
+          className="btn-small pagination-btn"
+          style={{ 
+            opacity: currentPage === totalPages ? 0.5 : 1, 
+            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', 
+            background: '#fff', 
+            color: 'var(--text-navy)', 
+            border: '1px solid var(--text-navy)',
+            fontFamily: "'Fredoka One', cursive" 
+          }}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
 
   useEffect(() => {
     const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
@@ -289,7 +389,7 @@ function App() {
     // Splash Screen Dynamic Loader
     const assets = [
       'brand/Logo.png',
-      'brand/Mind Empowered.gif',
+      'collaborators/Mind Empowered.gif',
       'brand/Starlet.mp4',
       'icons/user-profile.svg'
     ];
@@ -424,6 +524,40 @@ function App() {
     if (!isLoggedIn || user.role !== 'attendee' || !session?.user?.id) return;
     fetchMySubmission();
   }, [isLoggedIn, user.role, user.teamName, session?.user?.id]);
+
+  // URL Hash-based Routing for Sponsors Page (UIC Overview)
+  useEffect(() => {
+    const checkHashRoute = () => {
+      const hash = window.location.hash;
+      if (hash === '#uic-overview' || hash === '#sponsors-overview') {
+        setActiveView('sponsors-overview');
+      } else if (hash === '#landing' || hash === '' || hash === '#') {
+        setActiveView('landing');
+      }
+    };
+
+    // Check on initial mount
+    checkHashRoute();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', checkHashRoute);
+    return () => window.removeEventListener('hashchange', checkHashRoute);
+  }, []);
+
+  // Sync activeView changes back to the URL hash
+  useEffect(() => {
+    const currentHash = window.location.hash;
+    if (activeView === 'sponsors-overview') {
+      if (currentHash !== '#uic-overview' && currentHash !== '#sponsors-overview') {
+        window.location.hash = 'uic-overview';
+      }
+    } else if (activeView === 'landing') {
+      if (currentHash === '#uic-overview' || currentHash === '#sponsors-overview') {
+        // Clear hash without scrolling
+        window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      }
+    }
+  }, [activeView]);
 
   const fetchMyTeamMembers = async () => {
     if (!isLoggedIn || user.role !== 'attendee' || !session?.user?.id) {
@@ -688,8 +822,7 @@ function App() {
   const updateSetting = async (key, value) => {
     const { error } = await supabase
       .from('event_settings')
-      .update({ value: String(value) })
-      .eq('id', key);
+      .upsert({ id: key, value: String(value) });
 
     if (!error) {
       logAction(`Updated Setting: ${key}`, { value });
@@ -773,31 +906,38 @@ function App() {
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const files = e.target.photos.files;
 
     if (formData.get('description').toString().split(' ').length < 100){
       alert('Please follow the minimum word count for description.');
       return;
     }
 
-    const uploadedUrls = [];
-    for (let i = 0; i < files.length; i++) {
-      const url = await handleFileUpload(files[i], 'projects');
-      if (url) uploadedUrls.push(url);
+    const teamKey = user.teamName || `Individual-${session.user.id}`;
+    const { data: existingSub } = await supabase
+      .from('project_submissions')
+      .select('id')
+      .eq('team_name', teamKey)
+      .maybeSingle();
+
+    if (existingSub) {
+      alert('A submission has already been made for your team!');
+      fetchMySubmission();
+      return;
     }
 
-    const pptFile = e.target.pptx?.files?.[0];
-    const pptUrl = pptFile ? await handleFileUpload(pptFile, 'projects') : null;
+    const driveLink = formData.get('driveLink') || '';
+    const techStack = formData.get('techStack') || '';
 
     const submissionData = {
       team_name: user.teamName || `Individual-${session.user.id}`,
       project_name: formData.get('projectName'),
       description: formData.get('description'),
       github_url: formData.get('github'),
-      demo_url: formData.get('demo'),
+      demo_url: driveLink,
+      ppt_link: driveLink,
+      tech_stack: techStack,
       submitted_by: session.user.id,
-      image_urls: uploadedUrls,
-      ppt_link: pptUrl
+      image_urls: []
     };
 
     const { error } = await supabase.from('project_submissions').insert([submissionData]);
@@ -1422,17 +1562,24 @@ function App() {
     const teamName = formData.get('teamName') || '';
 
     try {
+      if (signupRole === 'mentor' && !signupAvatar) {
+        alert('Please upload a profile photo. A profile photo is required for mentors.');
+        return;
+      }
+
+      let selectedVenueChosen = null;
       if (signupRole === 'attendee') {
         const { data: isWhitelisted } = await supabase
           .from('registered_emails')
-          .select('email')
+          .select('email, venue_chosen')
           .eq('email', email)
-          .single();
+          .maybeSingle();
 
         if (!isWhitelisted) {
           alert('This email is not registered in our records. Please use the email you registered with on the Google Form.');
           return;
         }
+        selectedVenueChosen = isWhitelisted.venue_chosen;
       }
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -1487,7 +1634,8 @@ function App() {
               team_status: signupRole === 'attendee' ? teamStatus : null,
               needs_teaming: signupRole === 'attendee' ? needsTeaming : false,
               team_name: signupRole === 'attendee' ? teamName : null,
-              is_approved: signupRole === 'attendee'
+              is_approved: signupRole === 'attendee',
+              venue: signupRole === 'attendee' ? selectedVenueChosen : null
             }
           ], { onConflict: 'id' });
         if (profileError) throw profileError;
@@ -1932,12 +2080,12 @@ function App() {
       <div className="sparkle s2">✧</div>
       <div className="sparkle s3">✦</div>
 
-      <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' ? 'header-minimal' : ''}>
+      <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' && activeView !== 'audit-logs' ? 'header-minimal' : ''}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
             <img src="brand/Logo.png" alt="Starlet Logo" />
           </div>
-          {(activeView === 'profile' || activeView === 'sponsors-overview') && (
+          {(activeView === 'profile' || activeView === 'sponsors-overview' || activeView === 'audit-logs') && (
             <span className="logo-text-starlet" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
               Starlet
             </span>
@@ -1953,7 +2101,7 @@ function App() {
 
               <a href="#rules" className="nav-link" onClick={() => setIsMenuOpen(false)}>Rules</a>
               <a href="#sponsors" className="nav-link" onClick={() => setIsMenuOpen(false)}>Sponsors</a>
-              <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('sponsors-overview'); setIsMenuOpen(false); }}>UIC Overview</a>
+              <a href="#uic-overview" className="nav-link" onClick={() => setIsMenuOpen(false)}>UIC Overview</a>
 
               <div className="mobile-auth-wrapper">
                 {isLoggedIn ? (
@@ -2034,10 +2182,18 @@ function App() {
           </>
         )}
 
-        {activeView === 'profile' && (
+        {(activeView === 'profile' || activeView === 'audit-logs') && (
           <>
-            <nav className={`nav-links profile-nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
-              {/* Profile nav is empty except on mobile where we might want something, or just leave it empty if we use header-actions */}
+            <nav className={`nav-links ${user.role === 'admin' && adminActiveTab === 'admin' ? 'admin-top-nav' : 'profile-nav-links'} ${isMenuOpen ? 'mobile-active' : ''}`}>
+              {user.role === 'admin' && adminActiveTab === 'admin' && (
+                <>
+                  <a href="#project-submissions-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('project-submissions-section'); }}>Submissions</a>
+                  <a href="#active-squads-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('active-squads-section'); }}>Active Squads</a>
+                  <a href="#global-config-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('global-config-section'); }}>Config</a>
+                  <a href="#venue-management-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('venue-management-section'); }}>Venue</a>
+                  <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('audit-logs'); setIsMenuOpen(false); }}>Logs</a>
+                </>
+              )}
             </nav>
 
             <div className="header-actions">
@@ -2045,7 +2201,12 @@ function App() {
                 {user.role === 'admin' && (
                   <div
                     className="nav-btn-round profile-switch-btn"
-                    onClick={() => setAdminActiveTab(adminActiveTab === 'admin' ? 'mentor' : 'admin')}
+                    onClick={() => {
+                      setAdminActiveTab(adminActiveTab === 'admin' ? 'mentor' : 'admin');
+                      if (activeView === 'audit-logs') {
+                        setActiveView('profile');
+                      }
+                    }}
                     title={adminActiveTab === 'admin' ? 'Switch to Mentor View' : 'Switch to Admin View'}
                     style={{ borderColor: 'var(--yellow-primary)', color: 'var(--yellow-primary)' }}
                   >
@@ -2082,6 +2243,11 @@ function App() {
                   </svg>
                 </div>
               </div>
+              {user.role === 'admin' && adminActiveTab === 'admin' && (
+                <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                  <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
+                </div>
+              )}
             </div>
           </>
         )}
@@ -2099,7 +2265,7 @@ function App() {
                 A place where your ideas make you a star
               </div>
               <div className="handwritten" style={{ fontSize: '1.4rem', color: 'var(--text-navy)', margin: '1rem auto 3.5rem', background: 'rgba(255, 253, 240, 0.9)', padding: '0.8rem 2rem', borderRadius: '15px', border: '2px dashed var(--text-navy)', display: 'inline-block', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)' }}>
-                In Collaboration with <strong>Adi Shankara</strong>, <strong>NSS ASIET</strong> & <strong>Aikyam Space</strong>
+                In Collaboration with <strong>Adi Shankara</strong> & <strong>NSS ASIET</strong>
               </div>
 
               <div className="hero-ctas">
@@ -2272,46 +2438,74 @@ function App() {
                         <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="brand/Mind Empowered.gif" alt="Mind Empowered" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src="collaborators/Mind Empowered.gif" alt="Mind Empowered" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         </div>
 
-                        <div className="partner-card-wide clickable" onClick={() => setShowAdiPopup(true)}>
+                        <div className="partner-card-wide partner-card-extra-wide clickable" onClick={() => setShowAdiPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="collaborators/adi sankara.png" alt="Adi Shankara" loading="lazy" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                          <img src="collaborators/adi sankara.png" alt="Adi Shankara" loading="lazy" style={{ height: '110px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.2rem', marginBottom: '0.2rem' }} />
                           <div style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>MAIN VENUE PARTNER</p>
                           </div>
                         </div>
 
-                        <div className="partner-card-wide clickable" onClick={() => setShowAikyamPopup(true)}>
-                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <img src="collaborators/aikyam.webp" alt="Aikyam Space" loading="lazy" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                        <div className="partner-card-square collab-nss clickable" onClick={() => setShowNSSPopup(true)}>
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>OUTREACH PARTNER</span>
+                          <div style={{ position: 'absolute', top: '25px', left: '25px', right: '25px', bottom: '25px', overflow: 'hidden', zIndex: 1 }}>
+                            <img src="collaborators/nss.png" alt="NSS ASIET" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          </div>
+                        </div>
+
+                        <div className="partner-card-wide clickable" onClick={() => setShowLTPopup(true)} style={{ padding: '1.5rem 1.5rem 1rem' }}>
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>OUTREACH PARTNER</span>
+                          <img src="collaborators/LT.png" alt="Lenient Tree" loading="lazy" style={{ height: '185px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '-1.6rem', marginBottom: '0.2rem' }} />
                           <div style={{ textAlign: 'center' }}>
-                            <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>VENUE PARTNER</p>
+                            <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>OUTREACH PARTNER</p>
                           </div>
                         </div>
 
-                        <div className="partner-card-square collab-nss">
-                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
-                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="collaborators/nss.png" alt="NSS ASIET" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div className="partner-card-wide clickable" onClick={() => setShowWECPopup(true)} style={{ padding: '1.5rem 1.5rem 1rem' }}>
+                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>OUTREACH PARTNER</span>
+                          <img src="collaborators/Women Empowerement Cell.png" alt="Women Empowerment Cell" loading="lazy" style={{ height: '130px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '0.6rem' }} />
+                          <div style={{ textAlign: 'center' }}>
+                            <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>OUTREACH PARTNER</p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Sponsor Placeholders Section
+                      {/* Sponsors Section */}
                       <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-                        <h3 className="handwritten" style={{ fontSize: '2rem', color: 'var(--text-navy)', marginBottom: '1.5rem' }}>Sponsors</h3>
-                        <div className="sponsor-grid">
-                          {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="sponsor-placeholder" style={{ height: '120px' }}>
-                              YOUR LOGO HERE
+                        <h3 className="handwritten" style={{ fontSize: '2.5rem', color: 'var(--text-navy)', marginBottom: '1.5rem' }}>Sponsors</h3>
+                        <div className="partners-grid-custom" style={{ marginTop: '2rem' }}>
+                          {/* Synthite */}
+                          <div className="partner-card-wide clickable" onClick={() => setShowSynthitePopup(true)} style={{ padding: '1.5rem 1.5rem 1rem' }}>
+                            <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>PRIZE SPONSOR</span>
+                            <img src="collaborators/Synthite.png" alt="Synthite Industries" loading="lazy" style={{ height: '100px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.2rem' }} />
+                            <div style={{ textAlign: 'center' }}>
+                              <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>PRIZE SPONSOR</p>
                             </div>
-                          ))}
+                          </div>
+
+                          {/* Reccaa Club */}
+                          <div className="partner-card-wide clickable" onClick={() => setShowReccaaPopup(true)} style={{ padding: '1.5rem 1.5rem 1rem' }}>
+                            <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>SPONSOR</span>
+                            <img src="collaborators/Reccaa club.png" alt="Reccaa Club" loading="lazy" style={{ height: '145px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '0.1rem' }} />
+                            <div style={{ textAlign: 'center' }}>
+                              <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>SPONSOR</p>
+                            </div>
+                          </div>
+
+                          {/* Aikyam Space */}
+                          <div className="partner-card-wide clickable" onClick={() => setShowAikyamPopup(true)} style={{ padding: '1.5rem 1.5rem 1rem' }}>
+                            <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>SPONSOR</span>
+                            <img src="collaborators/aikyam.webp" alt="Aikyam Space" loading="lazy" style={{ height: '90px', width: 'auto', maxWidth: '100%', objectFit: 'contain', marginTop: '1.5rem' }} />
+                            <div style={{ textAlign: 'center' }}>
+                              <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 'bold', margin: 0 }}>SPONSOR</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      */}
                     </div>
                   ) : section.type === 'gallery' ? (
                     <div className="section-content">
@@ -2550,7 +2744,7 @@ function App() {
                     <div className="signup-avatar-preview">
                       <img src={signupAvatarPreview || 'icons/user-profile.svg'} alt="preview" />
                       <label className="photo-upload-btn">
-                        ADD PHOTO
+                        {signupRole === 'mentor' ? 'ADD PHOTO *' : 'ADD PHOTO'}
                         <input type="file" hidden accept="image/*" onChange={handleSignupAvatarChange} />
                       </label>
                     </div>
@@ -2687,44 +2881,59 @@ function App() {
                 </div>
               </div>
 
+
+
               <div className="admin-stats-strip">
-                <div className="admin-stat-card">
+                <div
+                  className="admin-stat-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => document.getElementById('global-user-directory-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
                   <div className="stat-icon"><img src="icons/users.svg" alt="users" /></div>
                   <div className="stat-info">
                     <strong>{allUsers.length}</strong>
                     <span>Total Users</span>
                   </div>
                 </div>
-                <div className="admin-stat-card">
+                <div
+                  className="admin-stat-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => document.getElementById('mentor-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
                   <div className="stat-icon"><img src="icons/trophy.svg" alt="verified" /></div>
                   <div className="stat-info">
                     <strong>{allUsers.filter(u => u.user_role === 'mentor' && u.is_approved).length}</strong>
                     <span>Verified Mentors</span>
                   </div>
                 </div>
+                {(() => {
+                  const pendingCount = allUsers.filter(u => u.user_role === 'mentor' && (!u.is_approved || !mentors.some(m => m.profile_id === u.id))).length;
+                  return (
+                    <div
+                      className="admin-stat-card warning"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        document.getElementById('pending-approval-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                    >
+                      <div className="stat-icon">
+                        <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="var(--text-navy)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                      </div>
+                      <div className="stat-info">
+                        <strong>{pendingCount}</strong>
+                        <span>Pending Approval</span>
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div
-                  className="admin-stat-card warning"
-                  style={{
-                    cursor: allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).length > 0 ? 'pointer' : 'default'
-                  }}
-                  onClick={() => {
-                    if (allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).length > 0) {
-                      document.getElementById('pending-approval-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }}
+                  className="admin-stat-card blue"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => document.getElementById('system-reports-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 >
-                  <div className="stat-icon">
-                    <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="var(--text-navy)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                  <div className="stat-info">
-                    <strong>{allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved).length}</strong>
-                    <span>Pending Approval</span>
-                  </div>
-                </div>
-                <div className="admin-stat-card blue">
                   <div className="stat-icon"><img src="icons/warning.svg" alt="requests" /></div>
                   <div className="stat-info">
                     <strong>{mentorRequests.length}</strong>
@@ -2747,7 +2956,7 @@ function App() {
               </div>
 
               {/* EVENT CONFIGURATION */}
-              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+              <div className="admin-panel" id="global-config-section" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Global Configuration</h2>
                 <div className="admin-two-col-grid">
                   <div className="admin-card">
@@ -2788,6 +2997,25 @@ function App() {
                         onClick={() => updateSetting('event_announcement', settings.event_announcement)}
                       >
                         UPDATE LIVE BANNER
+                      </button>
+                    </div>
+                  </div>
+                  <div className="admin-card">
+                    <h3>Submission Drive Link</h3>
+                    <div style={{ marginTop: '1rem' }}>
+                      <input
+                        type="url"
+                        style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                        value={settings.google_drive_link || ''}
+                        onChange={(e) => setSettings({ ...settings, google_drive_link: e.target.value })}
+                        placeholder="https://drive.google.com/..."
+                      />
+                      <button
+                        className="join-btn"
+                        style={{ width: '100%', marginTop: '1rem' }}
+                        onClick={() => updateSetting('google_drive_link', settings.google_drive_link)}
+                      >
+                        UPDATE DRIVE LINK
                       </button>
                     </div>
                   </div>
@@ -2845,10 +3073,10 @@ function App() {
                 </div>
               </div>
 
-              <div className="admin-teams-section" style={{ marginBottom: '4rem' }}>
+              <div className="admin-teams-section" id="active-squads-section" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Active Squads</h2>
-                <div className="teams-grid">
-                  {Object.entries(
+                {(() => {
+                  const squadsList = Object.entries(
                     allUsers.reduce((acc, user) => {
                       if (user.team_name) {
                         if (!acc[user.team_name]) acc[user.team_name] = [];
@@ -2856,43 +3084,53 @@ function App() {
                       }
                       return acc;
                     }, {})
-                  ).map(([teamName, members]) => (
-                    <div key={teamName} className="admin-team-card">
-                      <div className="team-header">
-                        <h3>{teamName}</h3>
-                        <span className="member-count">{members.length} Members</span>
-                      </div>
-                      <div className="team-track">
-                        <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
-                      </div>
-                      <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
-                        <select
-                          className="admin-select-small"
-                          value={members[0].venue || ''}
-                          onChange={(e) => handleTeamVenueChange(teamName, e.target.value)}
-                        >
-                          <option value="">No Venue Assigned</option>
-                          {venues.map(v => (
-                            <option key={v.id} value={v.name}>{v.name}</option>
-                          ))}
-                          <option value="Waitlisted/Overflow">Waitlisted/Overflow</option>
-                        </select>
-                      </div>
-                      <div className="team-members-list">
-                        {members.map(m => (
-                          <div key={m.id} className="team-member-item">
-                            <span>{m.full_name}</span>
-                            <small>{m.email}</small>
+                  );
+                  const paginatedSquads = squadsList.slice((activeSquadsPage - 1) * 3, activeSquadsPage * 3);
+
+                  return (
+                    <>
+                      <div className="teams-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '2rem' }}>
+                        {paginatedSquads.map(([teamName, members]) => (
+                          <div key={teamName} className="admin-team-card">
+                            <div className="team-header">
+                              <h3>{teamName}</h3>
+                              <span className="member-count">{members.length} Members</span>
+                            </div>
+                            <div className="team-track">
+                              <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
+                            </div>
+                            <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
+                              <select
+                                className="admin-select-small"
+                                value={members[0].venue || ''}
+                                onChange={(e) => handleTeamVenueChange(teamName, e.target.value)}
+                              >
+                                <option value="">No Venue Assigned</option>
+                                {venues.map(v => (
+                                  <option key={v.id} value={v.name}>{v.name}</option>
+                                ))}
+                                  <option value="Waitlisted/Overflow">Waitlisted/Overflow</option>
+                              </select>
+                            </div>
+                            <div className="team-members-list">
+                              {members.map(m => (
+                                <div key={m.id} className="team-member-item">
+                                  <span>{m.full_name}</span>
+                                  <small>{m.email}</small>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                      {renderPagination(activeSquadsPage, squadsList.length, 3, setActiveSquadsPage)}
+                    </>
+                  );
+                })()}
               </div>
 
               {/* EMAIL WHITELIST MANAGEMENT */}
-              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+              <div className="admin-panel" id="whitelist-section" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Registration Whitelist</h2>
                 <div className="admin-two-col-grid">
                   <div className="admin-card">
@@ -2920,39 +3158,7 @@ function App() {
                 </div>
               </div>
 
-              {/* AUDIT LOGS */}
-              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                  <h2 className="text-3d" style={{ fontSize: '2rem', margin: 0 }}>Security Audit Logs</h2>
-                  <button className="btn-small" onClick={fetchAuditLogs}>REFRESH LOGS</button>
-                </div>
-                <div className="user-table-wrapper" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Timestamp</th>
-                        <th>Admin</th>
-                        <th>Action</th>
-                        <th>Details</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditLogs.length === 0 ? (
-                        <tr><td colSpan="4" style={{ textAlign: 'center' }}>No logs recorded yet.</td></tr>
-                      ) : (
-                        auditLogs.map(log => (
-                          <tr key={log.id}>
-                            <td><small>{new Date(log.created_at).toLocaleString()}</small></td>
-                            <td><strong>{log.profiles?.full_name}</strong></td>
-                            <td><span className="role-badge" style={{ background: '#eee', color: '#333' }}>{log.action}</span></td>
-                            <td><code style={{ fontSize: '0.7rem' }}>{JSON.stringify(log.details)}</code></td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+
 
               {/* PROBLEM STATEMENT MANAGEMENT */}
               <div className="admin-panel" style={{ marginBottom: '4rem' }}>
@@ -2965,7 +3171,7 @@ function App() {
                         <p>Library is empty.</p>
                       ) : (
                         <>
-                          {problemStatements.slice(0, visibleProblemStatementsCount).map(ps => (
+                          {problemStatements.slice((problemStatementsPage - 1) * 5, problemStatementsPage * 5).map(ps => (
                             <div key={ps.id} className="approval-card" style={{ marginBottom: '1rem' }}>
                               <div className="user-meta">
                                 <strong>{ps.title}</strong>
@@ -2975,27 +3181,7 @@ function App() {
                               <button className="btn-small delete" onClick={() => handleDeleteProblemStatement(ps.id)}>REMOVE</button>
                             </div>
                           ))}
-                          
-                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
-                            {problemStatements.length > visibleProblemStatementsCount && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisibleProblemStatementsCount(prev => prev + 5)}
-                              >
-                                SHOW MORE
-                              </button>
-                            )}
-                            {visibleProblemStatementsCount > 5 && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisibleProblemStatementsCount(5)}
-                              >
-                                SHOW LESS
-                              </button>
-                            )}
-                          </div>
+                          {renderPagination(problemStatementsPage, problemStatements.length, 5, setProblemStatementsPage)}
                         </>
                       )}
                     </div>
@@ -3013,7 +3199,7 @@ function App() {
               </div>
 
               {/* MENTOR MANAGEMENT */}
-              <div className="admin-panel" style={{ marginBottom: '4rem' }}>
+              <div className="admin-panel" id="mentor-section" style={{ marginBottom: '4rem' }}>
                 <h2 className="text-3d" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Mentor Management</h2>
                 <div className="admin-two-col-grid">
                   <div className="admin-card">
@@ -3023,7 +3209,7 @@ function App() {
                         <p>No mentors in the library.</p>
                       ) : (
                         <>
-                          {mentors.slice(0, visibleActiveMentorsCount).map(m => (
+                          {mentors.slice((activeMentorsPage - 1) * 5, activeMentorsPage * 5).map(m => (
                             <div key={m.id} className="approval-card" style={{ marginBottom: '1rem' }}>
                               <div className="user-meta">
                                 <strong>{m.full_name}</strong>
@@ -3032,27 +3218,7 @@ function App() {
                               <button className="btn-small delete" onClick={() => handleDeleteMentor(m.id, m.full_name)}>REMOVE</button>
                             </div>
                           ))}
-                          
-                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
-                            {mentors.length > visibleActiveMentorsCount && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisibleActiveMentorsCount(prev => prev + 5)}
-                              >
-                                SHOW MORE
-                              </button>
-                            )}
-                            {visibleActiveMentorsCount > 5 && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisibleActiveMentorsCount(5)}
-                              >
-                                SHOW LESS
-                              </button>
-                            )}
-                          </div>
+                          {renderPagination(activeMentorsPage, mentors.length, 5, setActiveMentorsPage)}
                         </>
                       )}
                     </div>
@@ -3076,7 +3242,7 @@ function App() {
               </div>
 
               <div className="admin-main-grid">
-                <div className="admin-panel mentor-queue">
+                <div className="admin-panel mentor-queue" id="system-reports-section">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>System Reports</h2>
                   <div className="admin-issues-list">
                     {systemIssues.length === 0 ? (
@@ -3122,7 +3288,7 @@ function App() {
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Mentor Approval Queue</h2>
                   <div className="approval-list">
                     {(() => {
-                      const pendingMentors = allUsers.filter(u => u.user_role === 'mentor' && !u.is_approved);
+                      const pendingMentors = allUsers.filter(u => u.user_role === 'mentor' && (!u.is_approved || !mentors.some(m => m.profile_id === u.id)));
                       if (pendingMentors.length === 0) {
                         return (
                           <div className="empty-state">
@@ -3132,7 +3298,7 @@ function App() {
                       }
                       return (
                         <>
-                          {pendingMentors.slice(0, visiblePendingMentorsCount).map(mentor => (
+                          {pendingMentors.slice((pendingMentorsPage - 1) * 5, pendingMentorsPage * 5).map(mentor => (
                             <div key={mentor.id} className="approval-card">
                               <div className="user-meta">
                                 <strong>{mentor.full_name}</strong>
@@ -3142,53 +3308,33 @@ function App() {
                               <button className="join-btn btn-approve" onClick={() => handleApproveMentor(mentor.id)}>APPROVE MENTOR</button>
                             </div>
                           ))}
-                          
-                          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
-                            {pendingMentors.length > visiblePendingMentorsCount && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisiblePendingMentorsCount(prev => prev + 5)}
-                              >
-                                SHOW MORE
-                              </button>
-                            )}
-                            {visiblePendingMentorsCount > 5 && (
-                              <button 
-                                className="btn-small" 
-                                style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                                onClick={() => setVisiblePendingMentorsCount(5)}
-                              >
-                                SHOW LESS
-                              </button>
-                            )}
-                          </div>
+                          {renderPagination(pendingMentorsPage, pendingMentors.length, 5, setPendingMentorsPage)}
                         </>
                       );
                     })()}
                   </div>
                 </div>
 
-                <div className="admin-panel user-directory">
+                <div className="admin-panel user-directory" id="global-user-directory-section">
                   <div className="directory-header-row">
                     <h2 className="text-3d" style={{ fontSize: '1.5rem', margin: 0 }}>Global User Directory</h2>
                     <div className="directory-controls">
                       <div className="directory-filter-tabs">
                         <button
                           className={`directory-filter-btn ${userRoleFilter === 'all' ? 'active' : ''}`}
-                          onClick={() => { setUserRoleFilter('all'); setVisibleUserCount(5); }}
+                          onClick={() => { setUserRoleFilter('all'); setUserDirectoryPage(1); }}
                         >
                           ALL
                         </button>
                         <button
                           className={`directory-filter-btn ${userRoleFilter === 'mentor' ? 'active' : ''}`}
-                          onClick={() => { setUserRoleFilter('mentor'); setVisibleUserCount(5); }}
+                          onClick={() => { setUserRoleFilter('mentor'); setUserDirectoryPage(1); }}
                         >
                           MENTORS
                         </button>
                         <button
                           className={`directory-filter-btn ${userRoleFilter === 'attendee' ? 'active' : ''}`}
-                          onClick={() => { setUserRoleFilter('attendee'); setVisibleUserCount(5); }}
+                          onClick={() => { setUserRoleFilter('attendee'); setUserDirectoryPage(1); }}
                         >
                           ATTENDEES
                         </button>
@@ -3218,15 +3364,18 @@ function App() {
                               <tr>
                                 <th>User</th>
                                 <th>Role</th>
-                                <th>Status</th>
                                 <th>Venue</th>
                                 <th>Actions</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredUsers.slice(0, visibleUserCount).map(u => (
+                              {filteredUsers.slice((userDirectoryPage - 1) * 5, userDirectoryPage * 5).map(u => (
                                 <React.Fragment key={u.id}>
-                                  <tr className={expandedUserId === u.id ? 'expanded-row' : ''}>
+                                  <tr 
+                                    className={expandedUserId === u.id ? 'expanded-row' : ''} 
+                                    onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
+                                    style={{ cursor: 'pointer' }}
+                                  >
                                     <td>
                                       <div className="table-user">
                                         <strong>{u.full_name}</strong>
@@ -3235,15 +3384,12 @@ function App() {
                                     </td>
                                     <td><span className="role-badge">{u.user_role}</span></td>
                                     <td>
-                                      <span className={`status-dot ${u.is_approved ? 'active' : 'idle'}`}></span>
-                                      {u.is_approved ? 'Verified' : (u.user_role === 'attendee' ? 'Active' : 'Pending')}
-                                    </td>
-                                    <td>
                                       <div className="table-venue-select">
                                         <select
                                           className="admin-select-small"
                                           value={u.venue || ''}
                                           onChange={(e) => handleManualVenueChange(u.id, e.target.value)}
+                                          onClick={(e) => e.stopPropagation()}
                                         >
                                           <option value="">Unassigned</option>
                                           {venues.map(v => (
@@ -3256,16 +3402,9 @@ function App() {
                                     <td>
                                       <div className="table-actions">
                                         <button
-                                          className={`btn-table-action ${expandedUserId === u.id ? 'active' : ''}`}
-                                          title="View details"
-                                          onClick={() => setExpandedUserId(expandedUserId === u.id ? null : u.id)}
-                                        >
-                                          {expandedUserId === u.id ? 'HIDE ▲' : 'DETAILS ▼'}
-                                        </button>
-                                        <button
                                           className="btn-table-action delete"
                                           title="Delete user"
-                                          onClick={() => handleDeleteUser(u.id, u.full_name)}
+                                          onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.full_name); }}
                                         >
                                           REMOVE
                                         </button>
@@ -3274,7 +3413,7 @@ function App() {
                                   </tr>
                                   {expandedUserId === u.id && (
                                     <tr key={`${u.id}-details`} className="user-details-row">
-                                      <td colSpan={5}>
+                                      <td colSpan={4}>
                                         <div className="user-details-dropdown">
                                           <div className="user-details-grid" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '2rem', alignItems: 'start' }}>
                                             <div className="user-detail-photo">
@@ -3353,41 +3492,56 @@ function App() {
                           </table>
                         </div>
                         
-                        {filteredUsers.length > 5 && (
-                          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                            {visibleUserCount < filteredUsers.length && (
-                              <button 
-                                className="join-btn" 
-                                onClick={() => setVisibleUserCount(prev => Math.min(prev + 5, filteredUsers.length))}
-                                style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}
-                              >
-                                SHOW MORE ▼
-                              </button>
-                            )}
-                            {visibleUserCount > 5 && (
-                              <button 
-                                className="join-btn" 
-                                onClick={() => setVisibleUserCount(5)}
-                                style={{ padding: '0.8rem 2rem', fontSize: '1rem', background: '#fff', color: 'var(--text-navy)' }}
-                              >
-                                SHOW LESS ▲
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        {renderPagination(userDirectoryPage, filteredUsers.length, 5, setUserDirectoryPage)}
                       </>
                     );
                   })()}
                 </div>
 
                 {/* PROJECT SUBMISSIONS OVERVIEW */}
-                <div className="admin-panel" style={{ marginBottom: '4rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div className="admin-panel" id="project-submissions-section" style={{ marginBottom: '4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h2 className="text-3d" style={{ fontSize: '2rem', margin: 0 }}>Project Submissions</h2>
-                    <div className="admin-stats-strip" style={{ margin: 0, padding: '0.5rem 1rem', background: 'transparent' }}>
-                      <div className="admin-stat-card" style={{ padding: '0.5rem 1rem', minWidth: 'auto' }}>
-                        <strong>{projectSubmissions.length}</strong>
-                        <span style={{ fontSize: '0.7rem' }}>Submitted</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                      <div className="directory-filter-tabs" style={{ margin: 0 }}>
+                        <button
+                          className={`directory-filter-btn ${submissionsFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => { setSubmissionsFilter('all'); setProjectSubmissionsPage(1); }}
+                        >
+                          ALL
+                        </button>
+                        <button
+                          className={`directory-filter-btn ${submissionsFilter === 'team' ? 'active' : ''}`}
+                          onClick={() => { setSubmissionsFilter('team'); setProjectSubmissionsPage(1); }}
+                        >
+                          TEAMS ONLY
+                        </button>
+                      </div>
+                      <div className="directory-filter-tabs" style={{ margin: 0 }}>
+                        <button
+                          className={`directory-filter-btn ${submissionStatusFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => { setSubmissionStatusFilter('all'); setProjectSubmissionsPage(1); }}
+                        >
+                          ALL STATUS
+                        </button>
+                        <button
+                          className={`directory-filter-btn ${submissionStatusFilter === 'submitted' ? 'active' : ''}`}
+                          onClick={() => { setSubmissionStatusFilter('submitted'); setProjectSubmissionsPage(1); }}
+                        >
+                          SUBMITTED
+                        </button>
+                        <button
+                          className={`directory-filter-btn ${submissionStatusFilter === 'pending' ? 'active' : ''}`}
+                          onClick={() => { setSubmissionStatusFilter('pending'); setProjectSubmissionsPage(1); }}
+                        >
+                          PENDING
+                        </button>
+                      </div>
+                      <div className="admin-stats-strip" style={{ margin: 0, padding: '0.5rem 1rem', background: 'transparent' }}>
+                        <div className="admin-stat-card" style={{ padding: '0.5rem 1rem', minWidth: 'auto' }}>
+                          <strong>{projectSubmissions.length}</strong>
+                          <span style={{ fontSize: '0.7rem' }}>Submitted</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -3402,33 +3556,82 @@ function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {/* Show all unique teams and their submission status */}
                         {(() => {
-                          const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
-                          return teamsList.slice(0, visibleProjectSubmissionsCount).map(team => {
+                          const rawTeamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                          const teamsList = rawTeamsList.filter(team => {
+                            if (submissionsFilter === 'team' && team.startsWith('Individual-')) {
+                              return false;
+                            }
                             const sub = projectSubmissions.find(s => s.team_name === team);
+                            if (submissionStatusFilter === 'submitted' && !sub) {
+                              return false;
+                            }
+                            if (submissionStatusFilter === 'pending' && sub) {
+                              return false;
+                            }
+                            return true;
+                          });
+                          return teamsList.slice((projectSubmissionsPage - 1) * 5, projectSubmissionsPage * 5).map(team => {
+                            const sub = projectSubmissions.find(s => s.team_name === team);
+                            const isExpanded = expandedTeam === team;
                             return (
-                              <tr key={team}>
-                                <td>
-                                  <strong>{getDisplayTeamName(team)}</strong>
-                                  {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
-                                </td>
-                                <td>
-                                  {sub ? (
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                      <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept">CODE</a>
-                                      <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">DEMO</a>
-                                      <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">PRESENTATION</a>
-                                    </div>
-                                  ) : '-'}
-                                </td>
-                                <td>
-                                  <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
-                                    {sub ? 'SUBMITTED' : 'PENDING'}
-                                  </span>
-                                </td>
-                                <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
-                              </tr>
+                              <React.Fragment key={team}>
+                                <tr 
+                                  onClick={() => sub && setExpandedTeam(isExpanded ? null : team)} 
+                                  style={{ cursor: sub ? 'pointer' : 'default' }}
+                                >
+                                  <td>
+                                    <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      {sub && (isExpanded ? '▼' : '▶')} {getDisplayTeamName(team)}
+                                    </strong>
+                                    {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
+                                  </td>
+                                  <td>
+                                    {sub ? (
+                                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept" onClick={(e) => e.stopPropagation()}>CODE</a>
+                                        {sub.demo_url && (
+                                          <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept" onClick={(e) => e.stopPropagation()}>DRIVE FOLDER</a>
+                                        )}
+                                      </div>
+                                    ) : '-'}
+                                  </td>
+                                  <td>
+                                    <span className={`role-badge ${sub ? 'accept' : 'decline'}`}>
+                                      {sub ? 'SUBMITTED' : 'PENDING'}
+                                    </span>
+                                  </td>
+                                  <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
+                                </tr>
+                                {isExpanded && sub && (
+                                  <tr className="submission-details-row">
+                                    <td colSpan="4" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
+                                      <div style={{ color: '#fff' }}>
+                                        <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                          🚀 {sub.project_name} Details
+                                        </h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                          <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                            <strong>Team/Group Name:</strong> {getDisplayTeamName(sub.team_name)}
+                                          </p>
+                                          <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                            <strong>Description:</strong> {sub.description}
+                                          </p>
+                                          <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                                            <strong>Tech Stack Used:</strong> <span style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)' }}>{sub.tech_stack || 'Not specified'}</span>
+                                          </p>
+                                          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                            <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>GitHub Code</a>
+                                            {sub.demo_url && (
+                                              <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>Google Drive Folder</a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
                             );
                           });
                         })()}
@@ -3437,31 +3640,21 @@ function App() {
                   </div>
                   
                   {(() => {
-                    const teamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
-                    if (teamsList.length > 5) {
-                      return (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
-                          {teamsList.length > visibleProjectSubmissionsCount && (
-                            <button 
-                              className="btn-small" 
-                              style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                              onClick={() => setVisibleProjectSubmissionsCount(prev => prev + 5)}
-                            >
-                              SHOW MORE
-                            </button>
-                          )}
-                          {visibleProjectSubmissionsCount > 5 && (
-                            <button 
-                              className="btn-small" 
-                              style={{ background: '#eee', color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive" }} 
-                              onClick={() => setVisibleProjectSubmissionsCount(5)}
-                            >
-                              SHOW LESS
-                            </button>
-                          )}
-                        </div>
-                      );
-                    }
+                    const rawTeamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                    const teamsList = rawTeamsList.filter(team => {
+                      if (submissionsFilter === 'team' && team.startsWith('Individual-')) {
+                        return false;
+                      }
+                      const sub = projectSubmissions.find(s => s.team_name === team);
+                      if (submissionStatusFilter === 'submitted' && !sub) {
+                        return false;
+                      }
+                      if (submissionStatusFilter === 'pending' && sub) {
+                        return false;
+                      }
+                      return true;
+                    });
+                    return renderPagination(projectSubmissionsPage, teamsList.length, 5, setProjectSubmissionsPage);
                   })()}
                 </div>
               </div>
@@ -4014,19 +4207,26 @@ function App() {
                       <p>Your team's project <strong>"{mySubmission.project_name}"</strong> has been received.</p>
                       <div className="submission-links-row" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                         <a href={mySubmission.github_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW CODE</a>
-                        <a href={mySubmission.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW DEMO</a>
-                        <a href={mySubmission.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept">VIEW PRESENTATION</a>
-                      </div>
-                      <div className="submission-images-grid" style={{ marginTop: '1.5rem' }}>
-                        {(mySubmission.image_urls || []).map((img, i) => (
-                          <div key={i} className="submission-img-placeholder">
-                            <img src={img} alt={`submission-${i}`} />
-                          </div>
-                        ))}
+                        {mySubmission.demo_url && (
+                          <a href={mySubmission.demo_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW DRIVE FOLDER</a>
+                        )}
                       </div>
                     </div>
                   ) : (
                     <form className="auth-form" onSubmit={handleProjectSubmit} style={{ marginTop: '1rem' }}>
+                      <div className="submission-instructions-box" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px dashed var(--blue-shadow)', borderRadius: '12px', padding: '1.2rem', marginBottom: '1.5rem' }}>
+                        <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.5rem' }}>Submission Guidelines</h4>
+                        <p style={{ fontSize: '0.9rem', color: '#fff', marginBottom: '0.8rem', lineHeight: '1.4' }}>
+                          Please follow the steps below to submit your project:
+                        </p>
+                        <ol style={{ fontSize: '0.85rem', color: '#eee', paddingLeft: '1.2rem', lineHeight: '1.6' }}>
+                          <li>Open the event's shared <a href={settings.google_drive_link || "https://drive.google.com"} target="_blank" rel="noreferrer" style={{ color: 'var(--yellow-star)', textDecoration: 'underline', fontWeight: 'bold' }}>Google Drive Folder</a>.</li>
+                          <li>Create a new folder inside, named exactly after your group/team name (<strong>{user.teamName || "Your Team Name"}</strong>).</li>
+                          <li>Upload your <strong>demo video</strong> and <strong>presentation slide deck (PPTX/PDF)</strong> into that team folder.</li>
+                          <li>Submit your GitHub repo link and your team folder's Google Drive link in the form below.</li>
+                        </ol>
+                      </div>
+
                       <div className="admin-two-col-grid" style={{ gap: '1rem' }}>
                         <div className="input-group">
                           <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Name</label>
@@ -4037,21 +4237,19 @@ function App() {
                           <input name="github" type="url" placeholder="https://github.com/..." required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
                         </div>
                       </div>
-                      <div className="input-group" style={{ marginTop: '1rem' }}>
-                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Demo Link (Video or URL)</label>
-                        <input name="demo" type="url" placeholder="https://youtube.com/... or https://myapp.com" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      <div className="admin-two-col-grid" style={{ gap: '1rem', marginTop: '1rem' }}>
+                        <div className="input-group">
+                          <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Google Drive Folder Link</label>
+                          <input name="driveLink" type="url" placeholder="https://drive.google.com/drive/folders/..." required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        </div>
+                        <div className="input-group">
+                          <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Tech Stack Used</label>
+                          <input name="techStack" type="text" placeholder="React, Node, Supabase, Python" required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        </div>
                       </div>
                       <div className="input-group" style={{ marginTop: '1rem' }}>
                         <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description (min 100 words)</label>
                         <textarea name="description" placeholder="Tell us what you built and how it helps..." required style={{ width: '100%', minHeight: '100px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}></textarea>
-                      </div>
-                      <div className="input-group" style={{ marginTop: '1rem' }}>
-                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Photos (Max 3)</label>
-                        <input name="photos" type="file" accept="image/*" multiple style={{ width: '100%', padding: '0.8rem' }} />
-                      </div>
-                      <div className="input-group" style={{ marginTop: '1rem' }}>
-                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Project Presentation</label>
-                        <input name="pptx" type="file" accept="application/vnd.openxmlformats-officedocument.presentationml.presentation" style={{ width: '100%', padding: '0.8rem' }} />
                       </div>
                       <button type="submit" className="join-btn" style={{ width: '100%', marginTop: '1.5rem' }}>
                         SUBMIT FINAL PROJECT
@@ -4314,6 +4512,87 @@ function App() {
 
           <div onClick={() => setActiveView('landing')} style={{ marginTop: '3rem', cursor: 'pointer', color: 'var(--blue-shadow)', textAlign: 'center', width: '100%' }}>← Back to Home</div>
         </div>
+      ) : activeView === 'audit-logs' ? (
+        <div className="admin-page-wrapper" style={{ padding: '2rem' }}>
+          <div className="admin-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div>
+              <h1 className="text-3d" style={{ fontSize: '3.5rem' }}>Security Audit Logs</h1>
+              <p className="handwritten" style={{ fontSize: '1.2rem' }}>Activity tracking and security analysis center</p>
+            </div>
+            <button 
+              className="join-btn" 
+              onClick={() => { setActiveView('profile'); setAdminActiveTab('admin'); }}
+              style={{ background: 'var(--text-navy)', color: '#fff' }}
+            >
+              ← Back to Admin Console
+            </button>
+          </div>
+
+          <div className="admin-panel" style={{ background: '#fff', padding: '2rem', borderRadius: '25px', border: '4px solid var(--text-navy)', boxShadow: '10px 10px 0px var(--yellow-star)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div className="directory-filter-tabs" style={{ margin: 0 }}>
+                {['all', 'week', 'month', 'six_months'].map(filterVal => {
+                  const label = filterVal === 'all' ? 'All Time' : filterVal === 'week' ? 'Last Week' : filterVal === 'month' ? 'Last Month' : '6 Months Ago';
+                  return (
+                    <button
+                      key={filterVal}
+                      className={`directory-filter-btn ${logsTimeFilter === filterVal ? 'active' : ''}`}
+                      onClick={() => setLogsTimeFilter(filterVal)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="btn-small" onClick={fetchAuditLogs}>REFRESH LOGS</button>
+            </div>
+
+            <div className="user-table-wrapper" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const filteredLogs = auditLogs.filter(log => {
+                      if (logsTimeFilter === 'all') return true;
+                      const logDate = new Date(log.created_at);
+                      const now = new Date();
+                      if (logsTimeFilter === 'week') {
+                        return now.getTime() - logDate.getTime() <= 7 * 24 * 60 * 60 * 1000;
+                      }
+                      if (logsTimeFilter === 'month') {
+                        return now.getTime() - logDate.getTime() <= 30 * 24 * 60 * 60 * 1000;
+                      }
+                      if (logsTimeFilter === 'six_months') {
+                        return now.getTime() - logDate.getTime() <= 180 * 24 * 60 * 60 * 1000;
+                      }
+                      return true;
+                    });
+
+                    if (filteredLogs.length === 0) {
+                      return <tr><td colSpan="4" style={{ textAlign: 'center' }}>No logs recorded for this period.</td></tr>;
+                    }
+
+                    return filteredLogs.map(log => (
+                      <tr key={log.id}>
+                        <td><small>{new Date(log.created_at).toLocaleString()}</small></td>
+                        <td><strong>{log.profiles?.full_name || 'System / Anonymous'}</strong></td>
+                        <td><span className="role-badge" style={{ background: '#eee', color: '#333' }}>{log.action}</span></td>
+                        <td><span style={{ fontSize: '0.85rem' }}>{typeof log.details === 'object' ? JSON.stringify(log.details) : log.details}</span></td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       ) : activeView === 'sponsors-overview' ? (
         <SponsorsPage onBack={() => setActiveView('landing')} />
       ) : null}
@@ -4327,7 +4606,7 @@ function App() {
             <button className="modal-close" onClick={() => setShowAboutPopup(false)}>×</button>
             <div className="modal-inner">
               <div className="modal-visual">
-                <img src="brand/Mind Empowered.gif" alt="Mind Empowered" />
+                <img src="collaborators/Mind Empowered.gif" alt="Mind Empowered" />
               </div>
               <div className="modal-text">
                 <h2 className="text-3d">About Mind Empowered</h2>
@@ -4421,6 +4700,154 @@ function App() {
                 
                 <div className="modal-footer-brand" style={{ color: '#1565c0', marginTop: '2rem' }}>
                   Main Venue Partner
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLTPopup && (
+        <div className="modal-overlay" onClick={() => setShowLTPopup(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowLTPopup(false)}>×</button>
+            <div className="modal-inner">
+              <div className="modal-visual" style={{ background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <img src="collaborators/LT.png" alt="Lenient Tree" style={{ maxWidth: '80%', height: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div className="modal-text" style={{ padding: '2.5rem 2rem' }}>
+                <h2 className="text-3d" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>Lenient Tree</h2>
+                <p className="handwritten" style={{ fontSize: '1.2rem', color: 'var(--pink-primary)', marginTop: '-0.5rem', marginBottom: '1.2rem' }}>
+                  Outreach Partner
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  <strong>Lenient Tree</strong> is a student-driven Web3 & startup community focused on bridging the gap between education and industry.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  We enable students to gain real-world exposure through ideathons, hackathons, workshops, portfolio building, and direct collaboration with founders, investors, and ecosystem partners.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
+                  Our mission is to turn ideas into impact by building practical skills, strong networks, and future-ready talent.
+                </p>
+                
+                <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
+                  Outreach Partner
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSynthitePopup && (
+        <div className="modal-overlay" onClick={() => setShowSynthitePopup(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowSynthitePopup(false)}>×</button>
+            <div className="modal-inner">
+              <div className="modal-visual" style={{ background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <img src="collaborators/Synthite.png" alt="Synthite" style={{ maxWidth: '80%', height: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div className="modal-text" style={{ padding: '2.5rem 2rem' }}>
+                <h2 className="text-3d" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>Synthite</h2>
+                <p className="handwritten" style={{ fontSize: '1.2rem', color: 'var(--pink-primary)', marginTop: '-0.5rem', marginBottom: '1.2rem' }}>
+                  Prize Sponsor
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  <strong>Synthite Industries Private Limited</strong> is the global leader in spice oleoresins and value-added plant extracts. Combining nature and science, Synthite delivers raw ingredients of the highest quality to the food, fragrance, cosmetic, and pharmaceutical industries worldwide.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
+                  As our **Prize Sponsor**, Synthite is fostering creativity, supporting innovative solutions, and encouraging the next generation of women in tech at Starlet 5.0.
+                </p>
+                
+                <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
+                  Prize Sponsor
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReccaaPopup && (
+        <div className="modal-overlay" onClick={() => setShowReccaaPopup(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowReccaaPopup(false)}>×</button>
+            <div className="modal-inner">
+              <div className="modal-visual" style={{ background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <img src="collaborators/Reccaa club.png" alt="Reccaa Club" style={{ maxWidth: '80%', height: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div className="modal-text" style={{ padding: '2.5rem 2rem' }}>
+                <h2 className="text-3d" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>Reccaa Club</h2>
+                <p className="handwritten" style={{ fontSize: '1.2rem', color: 'var(--pink-primary)', marginTop: '-0.5rem', marginBottom: '1.2rem' }}>
+                  Sponsor
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  <strong>Reccaa Club</strong> is a premier social and recreation community club bringing together professionals, families, and organizations to collaborate, connect, and enjoy wellness-driven initiatives.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
+                  We are proud to partner with Starlet 5.0 as a sponsor, lending our support to the empowerment of women through engineering and collaborative innovation.
+                </p>
+                
+                <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
+                  Event Sponsor
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNSSPopup && (
+        <div className="modal-overlay" onClick={() => setShowNSSPopup(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowNSSPopup(false)}>×</button>
+            <div className="modal-inner">
+              <div className="modal-visual" style={{ background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <img src="collaborators/nss.png" alt="NSS ASIET" style={{ maxWidth: '80%', height: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div className="modal-text" style={{ padding: '2.5rem 2rem' }}>
+                <h2 className="text-3d" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>NSS ASIET</h2>
+                <p className="handwritten" style={{ fontSize: '1.2rem', color: 'var(--pink-primary)', marginTop: '-0.5rem', marginBottom: '1.2rem' }}>
+                  Outreach Partner
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  The **National Service Scheme (NSS) unit at Adi Shankara Institute of Engineering & Technology (ASIET)** is dedicated to community service and social development. Through hands-on community service projects, civic engagement, and social awareness campaigns, NSS volunteers work actively to create positive social impacts.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
+                  As our **Outreach Partner**, NSS ASIET is key in spreading the word, mobilizing resources, and driving participation across campuses to support gender equity and social progress.
+                </p>
+                
+                <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
+                  Outreach Partner
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWECPopup && (
+        <div className="modal-overlay" onClick={() => setShowWECPopup(false)}>
+          <div className="modal-content about-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowWECPopup(false)}>×</button>
+            <div className="modal-inner">
+              <div className="modal-visual" style={{ background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                <img src="collaborators/Women Empowerement Cell.png" alt="Women Empowerment Cell" style={{ maxWidth: '80%', height: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div className="modal-text" style={{ padding: '2.5rem 2rem' }}>
+                <h2 className="text-3d" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>Women Empowerment Cell</h2>
+                <p className="handwritten" style={{ fontSize: '1.2rem', color: 'var(--pink-primary)', marginTop: '-0.5rem', marginBottom: '1.2rem' }}>
+                  Outreach Partner
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1rem', color: 'var(--text-navy)' }}>
+                  The **Women Empowerment Cell** is committed to fostering gender equality, nurturing leadership skills, and creating a supportive environment for female engineering students to unlock their full potential.
+                </p>
+                <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', color: 'var(--text-navy)' }}>
+                  As an **Outreach Partner** for Starlet 5.0, they play a vital role in championing inclusion and mentoring women to drive innovation and claim their space in technology fields.
+                </p>
+                
+                <div className="modal-footer-brand" style={{ color: 'var(--pink-primary)', marginTop: '2rem' }}>
+                  Outreach Partner
                 </div>
               </div>
             </div>
