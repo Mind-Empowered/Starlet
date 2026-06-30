@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --navy: #001f3f;
@@ -78,18 +79,10 @@
         .certificate-page {
             width: 1123px; /* A4 Landscape */
             height: 794px;
-            background-color: var(--bg-off-white);
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-            border: 8px solid var(--navy);
-            border-radius: 40px;
+            background-image: url('particpation.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 60px 80px;
             box-sizing: border-box;
             overflow: hidden;
         }
@@ -177,17 +170,19 @@
         }
 
         .recipient-name {
+            position: absolute;
+            top: 355px;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: 'Outfit', sans-serif;
-            font-size: 4rem;
+            font-size: 3.2rem;
             font-weight: 900;
-            color: var(--navy);
-            margin: 5px 0;
-            padding: 10px 40px;
-            border-bottom: 4px solid var(--yellow);
-            display: inline-block;
-            z-index: 2;
-            min-width: 500px;
-            min-height: 60px;
+            color: #4a1210;
+            text-align: center;
+            width: 80%;
+            padding: 0;
+            margin: 0;
+            z-index: 10;
         }
 
         .achievement-text {
@@ -255,50 +250,45 @@
 
     <div id="capture-zone">
         <div class="certificate-page" id="certificate">
-            <div class="watermark">STARLET</div>
-            
-            <div class="header-logos">
-            <div class="logo-box">
-                <img src="../brand/Logo.png" alt="Starlet Logo" class="logo-main">
-            </div>
-            <div class="logo-box">
-                <img src="../brand/Mind Empowered.jpeg" alt="Mind Empowered" class="logo-main" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
-            </div>
+            <div class="recipient-name"></div>
         </div>
-
-        <div class="cert-title-group">
-            <h1>Certificate</h1>
-            <p>OF EXCELLENCE</p>
-        </div>
-
-        <div class="presented-to">This award is officially presented to</div>
-        
-        <div class="recipient-name"></div>
-
-        <div class="achievement-text">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Your contribution to <strong>Starlet 5.0</strong> has left an indelible mark on the galaxy of innovators.
-        </div>
-
-        <div class="footer-signatures">
-            <div class="sig-box">
-                <div class="line"></div>
-                <strong>MIND EMPOWERED</strong>
-            </div>
-            <div class="metadata">
-                ISSUE DATE: JULY 11, 2024
-            </div>
-        </div>
-    </div>
 </div>
     <script>
-        // Auto-fill name from URL parameter on load
-        window.onload = function() {
+        // Auto-fill name from URL parameter or fall back to Supabase session profile on load
+        window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const name = urlParams.get('name');
-            if (name) {
-                const nameDisplay = document.querySelector('.recipient-name');
-                if (nameDisplay) {
+            let name = urlParams.get('name');
+            
+            const nameDisplay = document.querySelector('.recipient-name');
+            if (nameDisplay) {
+                if (name) {
                     nameDisplay.textContent = decodeURIComponent(name);
+                } else {
+                    // Try to fetch logged in user from Supabase
+                    try {
+                        const supabaseUrl = 'https://pxgurlmrtoxlmlpiyqrj.supabase.co';
+                        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4Z3VybG1ydG94bG1scGl5cXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTQzMjcsImV4cCI6MjA5MjU5MDMyN30.hoo0QEO1zswZdqzRAlCkiYk_r-BuxEN2kP6VKo2wbuo';
+                        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                        
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session && session.user) {
+                            const { data: profile } = await supabase
+                                .from('profiles')
+                                .select('full_name')
+                                .eq('id', session.user.id)
+                                .single();
+                            if (profile && profile.full_name) {
+                                nameDisplay.textContent = profile.full_name;
+                            } else {
+                                nameDisplay.textContent = session.user.email || 'Participant';
+                            }
+                        } else {
+                            nameDisplay.textContent = 'Participant';
+                        }
+                    } catch (err) {
+                        console.error('Error loading session:', err);
+                        nameDisplay.textContent = 'Participant';
+                    }
                 }
             }
         };
