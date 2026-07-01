@@ -1850,6 +1850,32 @@ header.header-minimal {
     width: 100%;
 }
 
+@media (max-width: 768px) {
+    .arcade-character-grid {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 1.5rem 2rem;
+        gap: 2rem;
+        width: 100%;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .arcade-character-grid::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    .arcade-char-card {
+        flex: 0 0 280px;
+        scroll-snap-align: center;
+    }
+}
+
 .arcade-char-card {
     background: #ffffff;
     border: 3.5px solid var(--text-navy);
