@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
-import { supabase } from './supabaseClient';
+import { supabase, supabaseUrl, supabaseAnonKey } from './supabaseClient';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import SponsorsPage from './SponsorsPage';
@@ -250,9 +250,12 @@ function App() {
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadFileType, setUploadFileType] = useState('image');
+  const [sourceMode, setSourceMode] = useState('gallery');
   const [isUploading, setIsUploading] = useState(false);
   const [viewProfileUser, setViewProfileUser] = useState(null);
   const [userProfilePosts, setUserProfilePosts] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadAlert, setUploadAlert] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -543,6 +546,43 @@ function App() {
       osc2.start();
       osc2.stop(audioCtx.currentTime + 0.35);
     } catch (e) { }
+  };
+
+  const playSuccessSound = () => {
+    if (!isSoundEnabled || a11ySettings.muteSound) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+      osc1.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+      osc1.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+      gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start();
+      osc1.stop(audioCtx.currentTime + 0.45);
+    } catch (e) {}
+  };
+
+  const playErrorSound = () => {
+    if (!isSoundEnabled || a11ySettings.muteSound) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(220, audioCtx.currentTime);
+      osc1.frequency.setValueAtTime(147, audioCtx.currentTime + 0.15);
+      gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start();
+      osc1.stop(audioCtx.currentTime + 0.4);
+    } catch (e) {}
   };
 
   const showSystemNotification = (title, body, tag = 'starlet-notification') => {
@@ -1294,63 +1334,98 @@ function App() {
     }
   };
 
-  const handleUploadPost = async (e) => {
+  const handleUploadPost = (e) => {
     e.preventDefault();
     if (!isLoggedIn || !session?.user?.id) {
-      alert('Please log in to upload!');
+      playErrorSound();
+      setUploadAlert({ type: 'error', message: 'Please log in to upload posts!' });
       return;
     }
     if (!uploadFile) {
-      alert('Please select an image or video file to upload!');
+      playErrorSound();
+      setUploadAlert({ type: 'error', message: 'Please select a photo or video file to upload!' });
       return;
     }
 
     setIsUploading(true);
-    try {
-      const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `posts/${fileName}`;
+    setUploadProgress(0);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('blog-media')
-        .upload(filePath, uploadFile);
+    const fileExt = uploadFile.name.split('.').pop();
+    const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `posts/${fileName}`;
 
-      if (uploadError) {
-        alert('File upload failed: ' + uploadError.message);
-        setIsUploading(false);
-        return;
+    const xhr = new XMLHttpRequest();
+    const url = `${supabaseUrl}/storage/v1/object/blog-media/${filePath}`;
+
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+    xhr.setRequestHeader('apikey', supabaseAnonKey);
+    xhr.setRequestHeader('Content-Type', uploadFile.type);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percentComplete);
       }
+    };
 
-      const { data: urlData } = supabase.storage
-        .from('blog-media')
-        .getPublicUrl(filePath);
+    xhr.onload = async () => {
+      if (xhr.status === 200 || xhr.status === 201) {
+        const { data: urlData } = supabase.storage
+          .from('blog-media')
+          .getPublicUrl(filePath);
 
-      const mediaUrl = urlData.publicUrl;
+        const mediaUrl = urlData.publicUrl;
 
-      const { error: dbError } = await supabase
-        .from('blog_posts')
-        .insert([{
-          user_id: session.user.id,
-          caption: uploadCaption,
-          media_url: mediaUrl,
-          media_type: uploadFileType
-        }]);
+        const { error: dbError } = await supabase
+          .from('blog_posts')
+          .insert([{
+            user_id: session.user.id,
+            caption: uploadCaption,
+            media_url: mediaUrl,
+            media_type: uploadFileType
+          }]);
 
-      if (dbError) {
-        alert('Failed to save post: ' + dbError.message);
+        if (dbError) {
+          playErrorSound();
+          setUploadAlert({ type: 'error', message: 'Failed to save post info: ' + dbError.message });
+          setIsUploading(false);
+        } else {
+          playSuccessSound();
+          setUploadAlert({ type: 'success', message: 'Vlog posted successfully!' });
+          
+          setUploadCaption('');
+          setUploadFile(null);
+          setIsUploadModalOpen(false);
+          setUploadProgress(0);
+
+          setTimeout(() => setUploadAlert(null), 4000);
+
+          fetchBlogPosts();
+          fetchUserProfilePosts(session.user.id);
+          setIsUploading(false);
+        }
       } else {
-        setUploadCaption('');
-        setUploadFile(null);
-        setIsUploadModalOpen(false);
-        fetchBlogPosts();
-        fetchUserProfilePosts(session.user.id);
+        let errorMsg = 'Upload failed';
+        try {
+          const res = JSON.parse(xhr.responseText);
+          errorMsg = res.message || errorMsg;
+        } catch (_) {}
+        playErrorSound();
+        setUploadAlert({ type: 'error', message: errorMsg });
+        setIsUploading(false);
+        setUploadProgress(0);
       }
-    } catch (err) {
-      console.error(err);
-      alert('An unexpected error occurred during upload.');
-    } finally {
+    };
+
+    xhr.onerror = () => {
+      playErrorSound();
+      setUploadAlert({ type: 'error', message: 'Network connection error during upload.' });
       setIsUploading(false);
-    }
+      setUploadProgress(0);
+    };
+
+    xhr.send(uploadFile);
   };
 
   const handleDeletePost = async (postId) => {
@@ -2904,6 +2979,14 @@ function App() {
   return (
     <div className="App">
       <a href="#main-content-anchor" className="skip-to-content-link">Skip to Main Content</a>
+
+      {uploadAlert && (
+        <div className={`blog-alert-popup ${uploadAlert.type}`}>
+          <span className="alert-icon">{uploadAlert.type === 'success' ? '🎉' : '❌'}</span>
+          <span className="alert-message">{uploadAlert.message}</span>
+          <button className="alert-close-btn" onClick={() => setUploadAlert(null)}>×</button>
+        </div>
+      )}
 
 
       {/* Registration Popup */}
@@ -6354,56 +6437,93 @@ function App() {
             <div className="modal-overlay" onClick={() => setIsUploadModalOpen(false)}>
               <div className="modal-content blog-upload-modal" onClick={e => e.stopPropagation()}>
                 <button className="modal-close" onClick={() => setIsUploadModalOpen(false)}>×</button>
-                <h2 className="text-3d" style={{ marginBottom: '1.5rem' }}>Upload Vlog or Photo</h2>
+                <h2 className="text-3d" style={{ marginBottom: '1.5rem', marginTop: '1rem', textAlign: 'center' }}>Upload Vlog or Photo</h2>
                 <form className="auth-form" onSubmit={handleUploadPost}>
                   <div className="input-group">
-                    <label>Post Caption</label>
+                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Post Caption</label>
                     <textarea 
                       placeholder="Write something cool about this post..." 
                       value={uploadCaption}
                       onChange={(e) => setUploadCaption(e.target.value)}
                       required
-                      style={{ minHeight: '80px', borderRadius: '10px' }}
+                      className="blog-form-textarea"
                     />
                   </div>
 
-                  <div className="input-group" style={{ marginTop: '1rem' }}>
-                    <label>Media Type</label>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.3rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--text-navy)', fontWeight: 'bold' }}>
-                        <input 
-                          type="radio" 
-                          name="mediaType" 
-                          value="image" 
-                          checked={uploadFileType === 'image'} 
-                          onChange={() => setUploadFileType('image')} 
-                        />
-                        Image/Photo
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--text-navy)', fontWeight: 'bold' }}>
-                        <input 
-                          type="radio" 
-                          name="mediaType" 
-                          value="video" 
-                          checked={uploadFileType === 'video'} 
-                          onChange={() => setUploadFileType('video')} 
-                        />
-                        Video
-                      </label>
+                  <div className="input-group" style={{ marginTop: '1.2rem' }}>
+                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Media Type</label>
+                    <div className="blog-media-type-switch">
+                      <button 
+                        type="button" 
+                        className={uploadFileType === 'image' ? 'active' : ''} 
+                        onClick={() => { setUploadFileType('image'); setUploadFile(null); }}
+                      >
+                        📷 PHOTO
+                      </button>
+                      <button 
+                        type="button" 
+                        className={uploadFileType === 'video' ? 'active' : ''} 
+                        onClick={() => { setUploadFileType('video'); setUploadFile(null); }}
+                      >
+                        🎥 VIDEO
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="input-group" style={{ marginTop: '1.2rem' }}>
+                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Media Source</label>
+                    <div className="blog-media-source-switch">
+                      <button 
+                        type="button" 
+                        className={sourceMode === 'gallery' ? 'active' : ''} 
+                        onClick={() => { setSourceMode('gallery'); setUploadFile(null); }}
+                      >
+                        📂 GALLERY
+                      </button>
+                      <button 
+                        type="button" 
+                        className={sourceMode === 'camera' ? 'active' : ''} 
+                        onClick={() => { setSourceMode('camera'); setUploadFile(null); }}
+                      >
+                        📸 LIVE CAMERA
+                      </button>
                     </div>
                   </div>
 
                   <div className="input-group" style={{ marginTop: '1.5rem' }}>
-                    <label>Select File</label>
-                    <input 
-                      type="file" 
-                      accept={uploadFileType === 'video' ? 'video/*' : 'image/*'} 
-                      onChange={(e) => setUploadFile(e.target.files[0])}
-                      required
-                      className="admin-select-small"
-                      style={{ padding: '0.6rem 0.8rem', width: '100%' }}
-                    />
+                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>
+                      {sourceMode === 'camera' ? 'Capture Media' : 'Select File'}
+                    </label>
+                    <div className="custom-file-upload">
+                      <input 
+                        type="file" 
+                        id="blog-media-file"
+                        accept={uploadFileType === 'video' ? 'video/*' : 'image/*'} 
+                        capture={sourceMode === 'camera' ? 'environment' : undefined}
+                        onChange={(e) => setUploadFile(e.target.files[0])}
+                        required
+                        style={{ display: 'none' }}
+                      />
+                      <label htmlFor="blog-media-file" className="blog-file-label">
+                        <span className="file-icon">{sourceMode === 'camera' ? '📷' : '📂'}</span>
+                        <span className="file-text">
+                          {uploadFile ? uploadFile.name : sourceMode === 'camera' ? `Tap to open camera to record/take ${uploadFileType}...` : `Click to select ${uploadFileType}...`}
+                        </span>
+                      </label>
+                    </div>
                   </div>
+
+                  {isUploading && (
+                    <div className="blog-upload-progress-container" style={{ marginTop: '1.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-navy)' }}>
+                        <span>Uploading file...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="blog-progress-bar-bg">
+                        <div className="blog-progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
+                      </div>
+                    </div>
+                  )}
 
                   <button 
                     type="submit" 
@@ -6411,7 +6531,7 @@ function App() {
                     disabled={isUploading}
                     style={{ width: '100%', marginTop: '2rem' }}
                   >
-                    {isUploading ? 'UPLOADING...' : 'POST TO BLOG FEED ✦'}
+                    {isUploading ? `UPLOADING (${uploadProgress}%)` : 'POST TO BLOG FEED ✦'}
                   </button>
                 </form>
               </div>

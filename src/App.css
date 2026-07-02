@@ -7784,5 +7784,191 @@ input:checked + .a11y-slider:before {
     margin-top: 0.5rem;
 }
 
+/* Styled Upload Form Inputs */
+.blog-form-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.8rem 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    color: var(--text-navy);
+    background: #fff;
+    border: 3.5px solid var(--text-navy) !important;
+    border-radius: 14px;
+    box-shadow: 4px 4px 0px var(--text-navy);
+    outline: none;
+    resize: vertical;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.blog-form-textarea:focus {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0px var(--text-navy);
+}
+
+.blog-media-type-switch, .blog-media-source-switch {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+.blog-media-type-switch button, .blog-media-source-switch button {
+    flex: 1;
+    padding: 0.8rem;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    color: var(--text-navy);
+    background: #fff;
+    border: 3.5px solid var(--text-navy);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 3px 3px 0px var(--text-navy);
+}
+
+.blog-media-type-switch button:hover, .blog-media-source-switch button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px var(--text-navy);
+}
+
+.blog-media-type-switch button.active, .blog-media-source-switch button.active {
+    background: var(--yellow-star);
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--text-navy);
+}
+
+/* Custom File Upload */
+.custom-file-upload {
+    margin-top: 0.4rem;
+    width: 100%;
+}
+
+.blog-file-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem;
+    background: #fff;
+    border: 3.5px dashed var(--text-navy);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 4px 4px 0px var(--text-navy);
+}
+
+.blog-file-label:hover {
+    background: #fffdf0;
+    border-style: solid;
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0px var(--text-navy);
+}
+
+.file-icon {
+    font-size: 1.8rem;
+}
+
+.file-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-navy);
+    font-weight: bold;
+    word-break: break-all;
+}
+
+.blog-upload-modal {
+    background: #fffdf0 !important;
+    border: 4px solid var(--text-navy) !important;
+    box-shadow: 10px 10px 0px var(--yellow-star) !important;
+    padding: 2.5rem !important;
+    border-radius: 28px !important;
+}
+
+/* Upload Progress Bar */
+.blog-progress-bar-bg {
+    width: 100%;
+    height: 18px;
+    background: #fff;
+    border: 3px solid var(--text-navy);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 2px 2px 0px var(--text-navy);
+}
+
+.blog-progress-bar-fill {
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        var(--pink-primary),
+        var(--pink-primary) 10px,
+        #f43f5e 10px,
+        #f43f5e 20px
+    );
+    transition: width 0.15s ease-out;
+}
+
+/* Custom Alert Popups */
+.blog-alert-popup {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    border: 3.5px solid var(--text-navy);
+    border-radius: 16px;
+    box-shadow: 6px 6px 0px var(--text-navy);
+    animation: alertSlideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.blog-alert-popup.success {
+    background: #e6fffa;
+}
+
+.blog-alert-popup.error {
+    background: #fff5f5;
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+}
+
+.alert-message {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--text-navy);
+    flex: 1;
+}
+
+.alert-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-navy);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+@keyframes alertSlideDown {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -20px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+
+
 
 
