@@ -256,6 +256,9 @@ function App() {
   const [userProfilePosts, setUserProfilePosts] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadAlert, setUploadAlert] = useState(null);
+  const [activeDoubleTapPostId, setActiveDoubleTapPostId] = useState(null);
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [isLoadingBlog, setIsLoadingBlog] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1251,6 +1254,7 @@ function App() {
   };
 
   const fetchBlogPosts = async () => {
+    setIsLoadingBlog(true);
     try {
       const { data: posts, error } = await supabase
         .from('blog_posts')
@@ -1277,6 +1281,8 @@ function App() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsLoadingBlog(false);
     }
   };
 
@@ -1446,6 +1452,98 @@ function App() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleCaptionChange = async (val) => {
+    setUploadCaption(val);
+    const words = val.split(/\s+/);
+    const lastWord = words[words.length - 1];
+    if (lastWord && lastWord.startsWith('@')) {
+      const query = lastWord.slice(1);
+      if (query.length >= 0) {
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .ilike('full_name', `%${query}%`)
+            .limit(5);
+          setMentionSuggestions(data || []);
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setMentionSuggestions([]);
+      }
+    } else {
+      setMentionSuggestions([]);
+    }
+  };
+
+  const handleSelectMention = (targetUser) => {
+    const words = uploadCaption.split(/\s+/);
+    words[words.length - 1] = `@${targetUser.full_name.replace(/\s+/g, '_')}`;
+    setUploadCaption(words.join(' ') + ' ');
+    setMentionSuggestions([]);
+  };
+
+  const renderCaptionWithMentions = (captionText) => {
+    if (!captionText) return null;
+    const tokens = captionText.split(/(\s+)/);
+    return tokens.map((token, idx) => {
+      if (token.startsWith('@') && token.length > 1) {
+        const cleanName = token.substring(1).replace(/_/g, ' ');
+        return (
+          <span 
+            key={idx} 
+            className="caption-mention-link" 
+            style={{ color: 'var(--pink-primary)', cursor: 'pointer', fontWeight: 'bold' }}
+            onClick={async () => {
+              try {
+                const { data } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .ilike('full_name', cleanName)
+                  .single();
+                if (data?.id) {
+                  const targetUser = {
+                    id: data.id,
+                    name: data.full_name || 'Anonymous User',
+                    role: data.user_role || 'attendee',
+                    bio: data.bio || '',
+                    avatarUrl: data.avatar_url || '',
+                    teamName: data.team_name || '',
+                    trackId: data.track_id || '',
+                    socials: {
+                      github: data.github_url || '',
+                      linkedin: data.linkedin_url || '',
+                    }
+                  };
+                  setViewProfileUser(targetUser);
+                  setActiveView('profile-view');
+                  fetchUserProfilePosts(data.id);
+                }
+              } catch (e) {
+                console.error('Error finding mentioned user profile:', e);
+              }
+            }}
+          >
+            {token}
+          </span>
+        );
+      }
+      return token;
+    });
+  };
+
+  const handlePostDoubleTap = (postId) => {
+    const post = blogPosts.find(p => p.id === postId);
+    if (post && !post.isStarred) {
+      handleStarToggle(postId);
+    }
+    setActiveDoubleTapPostId(postId);
+    setTimeout(() => {
+      setActiveDoubleTapPostId(null);
+    }, 850);
   };
 
   const fetchUserProfilePosts = async (userId) => {
@@ -6358,7 +6456,25 @@ function App() {
           )}
 
           <div className="blog-posts-feed">
-            {blogPosts.length === 0 ? (
+            {isLoadingBlog ? (
+              <div className="blog-posts-list">
+                {[1, 2, 3].map(n => (
+                  <div key={n} className="blog-post-card skeleton-card">
+                    <div className="blog-post-header" style={{ borderBottom: 'none' }}>
+                      <div className="skeleton-avatar shim"></div>
+                      <div className="skeleton-meta">
+                        <div className="skeleton-line short shim"></div>
+                        <div className="skeleton-line extra-short shim"></div>
+                      </div>
+                    </div>
+                    <div className="skeleton-media shim"></div>
+                    <div className="blog-post-footer" style={{ borderTop: 'none', padding: '1.5rem 1.25rem' }}>
+                      <div className="skeleton-line medium shim"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : blogPosts.length === 0 ? (
               <div className="empty-blog-placeholder">
                 <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="var(--yellow-star)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '1rem' }}>
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -6399,7 +6515,11 @@ function App() {
                     </div>
 
                     {/* Post Content Media */}
-                    <div className="blog-post-media">
+                    <div 
+                      className="blog-post-media" 
+                      onDoubleClick={() => handlePostDoubleTap(post.id)}
+                      style={{ position: 'relative' }}
+                    >
                       {post.media_type === 'video' ? (
                         <video src={post.media_url} controls playsInline loop preload="metadata" />
                       ) : (
@@ -6409,6 +6529,14 @@ function App() {
                           onClick={() => setFullscreenImageUrl(post.media_url)} 
                           style={{ cursor: 'pointer' }}
                         />
+                      )}
+                      
+                      {activeDoubleTapPostId === post.id && (
+                        <div className="double-tap-star-overlay">
+                          <svg viewBox="0 0 24 24" width="75" height="75" fill="var(--yellow-star)" stroke="var(--text-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                          </svg>
+                        </div>
                       )}
                     </div>
 
@@ -6453,7 +6581,7 @@ function App() {
                           <strong onClick={() => handleViewUserProfile(post.user_id)} style={{ cursor: 'pointer', marginRight: '8px' }}>
                             {post.profiles?.full_name || 'Anonymous User'}
                           </strong>
-                          <span>{post.caption}</span>
+                          <span>{renderCaptionWithMentions(post.caption)}</span>
                         </div>
                       )}
                     </div>
@@ -6473,12 +6601,26 @@ function App() {
                   <div className="input-group">
                     <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Post Caption</label>
                     <textarea 
-                      placeholder="Write something cool about this post..." 
+                      placeholder="Write something cool about this post... Use @ to tag users!" 
                       value={uploadCaption}
-                      onChange={(e) => setUploadCaption(e.target.value)}
+                      onChange={(e) => handleCaptionChange(e.target.value)}
                       required
                       className="blog-form-textarea"
                     />
+                    {mentionSuggestions.length > 0 && (
+                      <div className="mention-autocomplete-dropdown">
+                        {mentionSuggestions.map(user => (
+                          <div 
+                            key={user.id} 
+                            className="mention-suggestion-item" 
+                            onClick={() => handleSelectMention(user)}
+                          >
+                            <strong>@{user.full_name.replace(/\s+/g, '_')}</strong>
+                            <span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '8px' }}>({user.full_name})</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="input-group" style={{ marginTop: '1.2rem' }}>
