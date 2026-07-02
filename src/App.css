@@ -69,14 +69,11 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 5%;
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
     background: rgba(255, 253, 240, 0.9);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    z-index: 1000;
     border-bottom: 3px solid var(--text-navy);
     gap: 2rem;
 }
@@ -8012,6 +8009,63 @@ input:checked + .a11y-slider:before {
         transform: translate(-50%, 0) scale(1);
     }
 }
+
+/* Fixed Header Wrapper to flow banners and header together */
+.fixed-header-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.fixed-header-wrapper > * {
+    pointer-events: auto;
+}
+
+/* Instagram-style actions layout */
+.blog-post-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+}
+
+.blog-post-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.blog-action-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.blog-action-btn:hover {
+    transform: scale(1.15);
+}
+
+.blog-action-btn:active {
+    transform: scale(0.92);
+}
+
+.blog-likes-row {
+    font-size: 0.92rem;
+    color: var(--text-navy);
+    margin-bottom: 0.2rem;
+    text-align: left;
+}
+
 
 
 

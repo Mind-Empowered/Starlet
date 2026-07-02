@@ -3055,9 +3055,10 @@ function App() {
         </div>
       )}
 
-      {/* Live Announcement Banner */}
-      {settings.event_announcement && !isBannerDismissed && (
-        <div className="live-announcement-banner">
+      <div className="fixed-header-wrapper">
+        {/* Live Announcement Banner */}
+        {settings.event_announcement && !isBannerDismissed && (
+          <div className="live-announcement-banner">
           <div className="banner-content">
             <span className="banner-icon">📢</span>
             <div className="banner-text-wrapper">
@@ -3280,6 +3281,7 @@ function App() {
           </>
         )}
       </header>
+    </div>
 
       {activeView === 'landing' ? (
         <>
@@ -6423,19 +6425,40 @@ function App() {
 
                     {/* Post Actions & Caption */}
                     <div className="blog-post-footer">
-                      <div className="blog-post-actions">
-                        <button 
-                          className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
-                          onClick={() => handleStarToggle(post.id)}
-                        >
-                          <svg className="star-icon-svg" viewBox="0 0 24 24" width="26" height="26" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      <div className="blog-post-actions-row">
+                        <div className="blog-post-actions-left">
+                          <button 
+                            className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
+                            onClick={() => handleStarToggle(post.id)}
+                            title={post.isStarred ? 'Unstar post' : 'Star post'}
+                          >
+                            <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                          </button>
+                          <button className="blog-action-btn blog-comment-btn" title="View comments" onClick={() => setUploadAlert({ type: 'success', message: 'Comments section coming soon in Starlet 5.0!' })}>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                          </button>
+                          <button className="blog-action-btn blog-share-btn" title="Share post" onClick={() => { navigator.clipboard.writeText(post.media_url); setUploadAlert({ type: 'success', message: 'Media link copied to clipboard!' }); playSuccessSound(); }}>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="22" y1="2" x2="11" y2="13"></line>
+                              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                          </button>
+                        </div>
+                        <button className="blog-action-btn blog-bookmark-btn" title="Save post" onClick={() => setUploadAlert({ type: 'success', message: 'Post saved to bookmarks!' })}>
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                           </svg>
                         </button>
-                        <span className="blog-star-count">
-                          <strong>{post.starCount}</strong> {post.starCount === 1 ? 'star' : 'stars'}
-                        </span>
                       </div>
+
+                      <div className="blog-likes-row">
+                        <strong>{post.starCount} {post.starCount === 1 ? 'star' : 'stars'}</strong>
+                      </div>
+
                       {post.caption && (
                         <div className="blog-post-caption">
                           <strong onClick={() => handleViewUserProfile(post.user_id)} style={{ cursor: 'pointer', marginRight: '8px' }}>
