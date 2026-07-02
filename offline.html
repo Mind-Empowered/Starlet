@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline | Starlet 5.0</title>
+  <link rel="icon" type="image/png" href="/brand/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at center, #1b0728 0%, #08020d 100%);
+      --pink: #ff007f;
+      --purple: #8b5cf6;
+      --text: #fffdf6;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Cosmic Background Stars */
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 3s infinite ease-in-out;
+    }
+    .s1 { top: 20%; left: 15%; width: 2px; height: 2px; animation-delay: 0.5s; }
+    .s2 { top: 40%; left: 80%; width: 3px; height: 3px; animation-delay: 1.2s; }
+    .s3 { top: 75%; left: 30%; width: 2px; height: 2px; animation-delay: 2.1s; }
+    .s4 { top: 15%; left: 70%; width: 2.5px; height: 2.5px; animation-delay: 0.8s; }
+    .s5 { top: 85%; left: 75%; width: 2px; height: 2px; animation-delay: 1.7s; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Offline Card Container */
+    .offline-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px 30px;
+      max-width: 450px;
+      width: 100%;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                  0 0 30px rgba(255, 0, 127, 0.05);
+      z-index: 10;
+      position: relative;
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Cosmic Glow behind card */
+    .offline-card::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      background: radial-gradient(circle, rgba(255,0,127,0.12) 0%, rgba(139,92,246,0.06) 50%, transparent 100%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Icon Styling */
+    .cosmic-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 15px rgba(255, 0, 127, 0.5));
+      animation: spin 12s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Heading Styling */
+    .offline-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 30%, #ff80c0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .offline-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--pink);
+      font-size: 1.15rem;
+      margin-bottom: 20px;
+    }
+
+    /* Message Styling */
+    .offline-desc {
+      color: rgba(255, 253, 246, 0.7);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* Button Styling */
+    .retry-btn {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      color: white;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 14px 36px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 0, 127, 0.3);
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(255, 0, 127, 0.5);
+    }
+
+    .retry-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Status Indicator */
+    .status-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 24px;
+      font-size: 0.85rem;
+      color: rgba(255, 253, 246, 0.4);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ff3b30;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ff3b30;
+      animation: pulseDot 1.5s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars">
+    <div class="star s1"></div>
+    <div class="star s2"></div>
+    <div class="star s3"></div>
+    <div class="star s4"></div>
+    <div class="star s5"></div>
+  </div>
+
+  <div class="offline-card">
+    <div class="cosmic-icon">✦</div>
+    <h1 class="offline-title">Lost in Space</h1>
+    <p class="offline-subtitle">Starlet 5.0 is currently offline</p>
+    <p class="offline-desc">
+      Your internet connection seems to have glided offline. Please restore your link to check active tracks, timeline schedules, and live notifications.
+    </p>
+    <button class="retry-btn" onclick="retryConnection()">Reconnect</button>
+    <div class="status-container">
+      <div class="status-dot"></div>
+      <span>Offline Mode Activated</span>
+    </div>
+  </div>
+
+  <script>
+    function retryConnection() {
+      const btn = document.querySelector('.retry-btn');
+      btn.innerText = 'Connecting...';
+      btn.disabled = true;
+      
+      // Give it a tiny delay to feel interactive
+      setTimeout(() => {
+        if (navigator.onLine) {
+          window.location.reload();
+        } else {
+          btn.innerText = 'Reconnect';
+          btn.disabled = false;
+        }
+      }, 800);
+    }
+
+    // Auto-reload when network reconnects automatically
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

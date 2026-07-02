@@ -1,10 +1,11 @@
-const CACHE_NAME = 'starlet-cache-v1';
+const CACHE_NAME = 'starlet-cache-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/offline.html',
   '/brand/favicon.png',
-  '/pwa-icon-192.png',
-  '/pwa-icon-512.png'
+  '/brand/pwa-icon-192.png',
+  '/brand/pwa-icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -64,9 +65,27 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         if (event.request.mode === 'navigate') {
-          return caches.match('/');
+          return caches.match('/offline.html');
         }
       });
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Focus existing open window if possible
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
     })
   );
 });
