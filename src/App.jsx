@@ -201,6 +201,13 @@ const eventsData = [
     person: "Tiffany Brar",
     company: "",
     image: "events/Tiffany Brar .jpeg"
+  },
+  {
+    id: 7,
+    name: "Speaker",
+    person: "Ms. Padmini",
+    company: "Principal, Smrithi Special School",
+    image: "events/Ms. Padmini.jpeg"
   }
 ];
 
