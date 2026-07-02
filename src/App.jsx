@@ -1724,10 +1724,32 @@ function App() {
     if (!confirmReport) return;
 
     try {
-      const issueDesc = `REPORT POST: Post ID [${post.id}] uploaded by ${post.profiles?.full_name || 'Anonymous'}. Media URL: ${post.media_url}. Reason: User flagged this content.`;
+      // Parse media items for thumbnail preview
+      let mediaItems = [];
+      try {
+        mediaItems = post.media_type === 'carousel' || post.media_url?.startsWith('[')
+          ? JSON.parse(post.media_url)
+          : [{ url: post.media_url, type: post.media_type }];
+      } catch (_) {
+        mediaItems = [{ url: post.media_url, type: post.media_type }];
+      }
+      const firstMedia = mediaItems[0] || {};
+
+      const reportPayload = {
+        user_id:            session.user.id,
+        report_type:        'post',
+        post_id:            post.id,
+        reported_user_id:   post.user_id,
+        reported_user_name: post.profiles?.full_name || 'Anonymous',
+        media_url:          firstMedia.url || post.media_url,
+        media_type:         firstMedia.type || post.media_type,
+        caption:            post.caption || '',
+        description:        `POST REPORT — Post by "${post.profiles?.full_name || 'Anonymous'}". Caption: "${(post.caption || '').slice(0, 120)}". Media: ${firstMedia.url || post.media_url}`,
+      };
+
       const { error } = await supabase
         .from('system_issues')
-        .insert([{ user_id: session.user.id, description: issueDesc }]);
+        .insert([reportPayload]);
 
       if (error) throw error;
       setUploadAlert({ type: 'success', message: 'Thank you! The post has been reported to the admins.' });
@@ -2162,7 +2184,7 @@ function App() {
 
     const { data: issues } = await supabase
       .from('system_issues')
-      .select('*, profiles(full_name)')
+      .select('*, profiles:user_id(full_name, avatar_url)')
       .eq('status', 'open')
       .order('created_at', { ascending: false });
     if (issues) setSystemIssues(issues);
@@ -5217,26 +5239,110 @@ function App() {
 
               <div className="admin-main-grid">
                 <div className="admin-panel mentor-queue" id="system-reports-section">
-                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>System Reports</h2>
-                  <div className="admin-issues-list">
-                    {systemIssues.length === 0 ? (
-                      <p>No active issues reported.</p>
-                    ) : (
-                      systemIssues.map(issue => (
-                        <div key={issue.id} className="approval-card">
-                          <div className="user-meta">
-                            <strong>{issue.profiles?.full_name || 'Anonymous'}</strong>
-                            <p>{issue.description}</p>
-                            <small>{new Date(issue.created_at).toLocaleString()}</small>
-                          </div>
-                          <button className="btn-small accept" onClick={() => handleResolveIssue(issue.id)}>
-                            RESOLVE
-                          </button>
+                <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
+                  System Reports
+                  {systemIssues.length > 0 && (
+                    <span style={{ marginLeft: '0.6rem', background: '#e53e3e', color: '#fff', borderRadius: '50px', fontSize: '0.72rem', padding: '2px 9px', fontFamily: 'sans-serif', fontWeight: 700, verticalAlign: 'middle' }}>
+                      {systemIssues.length}
+                    </span>
+                  )}
+                </h2>
+                <div className="admin-issues-list">
+                  {systemIssues.length === 0 ? (
+                    <p>No active issues reported.</p>
+                  ) : (
+                    systemIssues.map(issue => (
+                      <div key={issue.id} className="approval-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+
+                        {/* Header row: badge + timestamp */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%' }}>
+                          <span style={{
+                            background: issue.report_type === 'post' ? '#fed7d7' : '#e9d8fd',
+                            color: issue.report_type === 'post' ? '#c53030' : '#553c9a',
+                            borderRadius: '6px', padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
+                          }}>
+                            {issue.report_type === 'post' ? '🚩 Post Report' : '⚠️ System Issue'}
+                          </span>
+                          <small style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                            {new Date(issue.created_at).toLocaleString()}
+                          </small>
                         </div>
-                      ))
-                    )}
-                  </div>
+
+                        {/* Reporter row */}
+                        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                          {issue.profiles?.avatar_url ? (
+                            <img src={issue.profiles.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
+                          ) : (
+                            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--yellow-star)', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
+                          )}
+                          <div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Reported by</div>
+                            <strong style={{ fontSize: '0.88rem' }}>{issue.profiles?.full_name || 'Anonymous'}</strong>
+                          </div>
+                        </div>
+
+                        {/* Post details card (only for post reports) */}
+                        {issue.report_type === 'post' && (
+                          <div style={{ background: '#fff8f0', border: '1.5px solid #f6ad55', borderRadius: '10px', padding: '0.75rem 1rem', width: '100%', boxSizing: 'border-box' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#744210', marginBottom: '0.35rem', fontWeight: 700 }}>
+                              REPORTED POST — uploaded by {issue.reported_user_name || 'Unknown'}
+                            </div>
+                            {issue.caption && (
+                              <p style={{ fontSize: '0.84rem', margin: '0 0 0.5rem', color: '#2d3748', fontStyle: 'italic', lineHeight: 1.4 }}>
+                                "{issue.caption.slice(0, 180)}{issue.caption.length > 180 ? '…' : ''}"
+                              </p>
+                            )}
+                            {issue.media_url && issue.media_type !== 'video' && (
+                              <img
+                                src={issue.media_url}
+                                alt="Reported post media"
+                                style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
+                              />
+                            )}
+                            {issue.media_url && issue.media_type === 'video' && (
+                              <video
+                                src={issue.media_url}
+                                muted
+                                preload="metadata"
+                                style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
+                              />
+                            )}
+                            <div style={{ fontSize: '0.7rem', color: '#a0aec0', marginTop: '0.4rem' }}>
+                              Post ID: <code>{issue.post_id}</code>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Plain description for non-post issues */}
+                        {issue.report_type !== 'post' && (
+                          <p style={{ fontSize: '0.88rem', margin: 0, color: '#2d3748' }}>{issue.description}</p>
+                        )}
+
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                          <button className="btn-small accept" onClick={() => handleResolveIssue(issue.id)}>
+                            ✓ RESOLVE
+                          </button>
+                          {issue.report_type === 'post' && issue.post_id && (
+                            <button
+                              className="btn-small delete"
+                              onClick={async () => {
+                                if (!confirm('Permanently delete this reported post?')) return;
+                                const { error } = await supabase.from('blog_posts').delete().eq('id', issue.post_id);
+                                if (!error) { handleResolveIssue(issue.id); fetchBlogPosts(true); }
+                                else alert('Failed to delete post: ' + error.message);
+                              }}
+                            >
+                              🗑 DELETE POST
+                            </button>
+                          )}
+                        </div>
+
+                      </div>
+                    ))
+                  )}
                 </div>
+              </div>
 
                 <div className="admin-panel mentor-queue">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Your Mentor Help Requests</h2>
