@@ -263,6 +263,9 @@ function App() {
   const [profileTab, setProfileTab] = useState('posts');
   const [userSavedPosts, setUserSavedPosts] = useState([]);
   const [savedPostIds, setSavedPostIds] = useState(new Set());
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const [activeViewPost, setActiveViewPost] = useState(null);
+  const [carouselIndices, setCarouselIndices] = useState({});
 
   useEffect(() => {
     const handleResize = () => {
@@ -1375,98 +1378,98 @@ function App() {
     }
   };
 
-  const handleUploadPost = (e) => {
+  const uploadSingleFilePromise = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}-${Date.now()}-${Math.floor(Math.random() * 1000)}.${fileExt}`;
+      const filePath = `posts/${fileName}`;
+      const url = `${supabaseUrl}/storage/v1/object/blog-media/${filePath}`;
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+      xhr.setRequestHeader('apikey', supabaseAnonKey);
+      xhr.setRequestHeader('Content-Type', file.type);
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201) {
+          const { data } = supabase.storage.from('blog-media').getPublicUrl(filePath);
+          resolve({
+            url: data.publicUrl,
+            type: file.type.startsWith('video') ? 'video' : 'image'
+          });
+        } else {
+          reject(new Error(`Failed to upload ${file.name}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error(`Network error uploading ${file.name}`));
+      xhr.send(file);
+    });
+  };
+
+  const handleUploadPost = async (e) => {
     e.preventDefault();
     if (!isLoggedIn || !session?.user?.id) {
       playErrorSound();
       setUploadAlert({ type: 'error', message: 'Please log in to upload posts!' });
       return;
     }
-    if (!uploadFile) {
+    if (uploadFiles.length === 0) {
       playErrorSound();
-      setUploadAlert({ type: 'error', message: 'Please select a photo or video file to upload!' });
+      setUploadAlert({ type: 'error', message: 'Please select at least one photo or video file to upload!' });
       return;
     }
 
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(10);
 
-    const fileExt = uploadFile.name.split('.').pop();
-    const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
-    const filePath = `posts/${fileName}`;
-
-    const xhr = new XMLHttpRequest();
-    const url = `${supabaseUrl}/storage/v1/object/blog-media/${filePath}`;
-
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-    xhr.setRequestHeader('apikey', supabaseAnonKey);
-    xhr.setRequestHeader('Content-Type', uploadFile.type);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(percentComplete);
+    try {
+      const mediaItems = [];
+      const totalFiles = uploadFiles.length;
+      
+      for (let i = 0; i < totalFiles; i++) {
+        const file = uploadFiles[i];
+        const result = await uploadSingleFilePromise(file);
+        mediaItems.push(result);
+        setUploadProgress(Math.round(((i + 1) / totalFiles) * 90) + 10);
       }
-    };
 
-    xhr.onload = async () => {
-      if (xhr.status === 200 || xhr.status === 201) {
-        const { data: urlData } = supabase.storage
-          .from('blog-media')
-          .getPublicUrl(filePath);
+      const mediaUrlPayload = mediaItems.length === 1 ? mediaItems[0].url : JSON.stringify(mediaItems);
+      const mediaTypePayload = mediaItems.length === 1 ? mediaItems[0].type : 'carousel';
 
-        const mediaUrl = urlData.publicUrl;
+      const { error: dbError } = await supabase
+        .from('blog_posts')
+        .insert([{
+          user_id: session.user.id,
+          caption: uploadCaption,
+          media_url: mediaUrlPayload,
+          media_type: mediaTypePayload
+        }]);
 
-        const { error: dbError } = await supabase
-          .from('blog_posts')
-          .insert([{
-            user_id: session.user.id,
-            caption: uploadCaption,
-            media_url: mediaUrl,
-            media_type: uploadFileType
-          }]);
-
-        if (dbError) {
-          playErrorSound();
-          setUploadAlert({ type: 'error', message: 'Failed to save post info: ' + dbError.message });
-          setIsUploading(false);
-        } else {
-          playSuccessSound();
-          setUploadAlert({ type: 'success', message: 'Vlog posted successfully!' });
-          
-          setUploadCaption('');
-          setUploadFile(null);
-          setIsUploadModalOpen(false);
-          setUploadProgress(0);
-
-          setTimeout(() => setUploadAlert(null), 4000);
-
-          fetchBlogPosts();
-          fetchUserProfilePosts(session.user.id);
-          setIsUploading(false);
-        }
-      } else {
-        let errorMsg = 'Upload failed';
-        try {
-          const res = JSON.parse(xhr.responseText);
-          errorMsg = res.message || errorMsg;
-        } catch (_) {}
-        playErrorSound();
-        setUploadAlert({ type: 'error', message: errorMsg });
-        setIsUploading(false);
-        setUploadProgress(0);
+      if (dbError) {
+        throw dbError;
       }
-    };
 
-    xhr.onerror = () => {
-      playErrorSound();
-      setUploadAlert({ type: 'error', message: 'Network connection error during upload.' });
-      setIsUploading(false);
+      playSuccessSound();
+      setUploadAlert({ type: 'success', message: 'Vlog posted successfully!' });
+      
+      setUploadCaption('');
+      setUploadFiles([]);
+      setIsUploadModalOpen(false);
       setUploadProgress(0);
-    };
 
-    xhr.send(uploadFile);
+      setTimeout(() => setUploadAlert(null), 4000);
+
+      fetchBlogPosts();
+      fetchUserProfilePosts(session.user.id);
+    } catch (err) {
+      console.error(err);
+      playErrorSound();
+      setUploadAlert({ type: 'error', message: 'Upload failed: ' + err.message });
+      setUploadProgress(0);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDeletePost = async (postId) => {
@@ -1629,6 +1632,82 @@ function App() {
     }
   };
 
+  const renderPostMedia = (post) => {
+    let mediaItems = [];
+    try {
+      if (post.media_type === 'carousel' || post.media_url.startsWith('[')) {
+        mediaItems = JSON.parse(post.media_url);
+      } else {
+        mediaItems = [{ url: post.media_url, type: post.media_type }];
+      }
+    } catch (e) {
+      mediaItems = [{ url: post.media_url, type: post.media_type }];
+    }
+
+    const activeIndex = carouselIndices[post.id] || 0;
+
+    return (
+      <div 
+        className="blog-post-media" 
+        onClick={() => handlePostMediaClick(post)}
+        style={{ position: 'relative', width: '100%', overflow: 'hidden' }}
+      >
+        {/* Slide Indicator Overlay (Top Right) */}
+        {mediaItems.length > 1 && (
+          <div className="carousel-slide-indicator">
+            {activeIndex + 1}/{mediaItems.length}
+          </div>
+        )}
+
+        {/* Carousel Container */}
+        <div 
+          className="carousel-container-horizontal" 
+          onScroll={(e) => {
+            const idx = Math.round(e.target.scrollLeft / e.target.clientWidth);
+            if (carouselIndices[post.id] !== idx) {
+              setCarouselIndices(prev => ({ ...prev, [post.id]: idx }));
+            }
+          }}
+          style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {mediaItems.map((item, idx) => (
+            <div 
+              key={idx} 
+              className="carousel-slide-item" 
+              style={{ flex: '0 0 100%', width: '100%', aspectRatio: '1 / 1', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
+            >
+              {item.type === 'video' ? (
+                <video 
+                  src={item.url} 
+                  controls 
+                  playsInline 
+                  loop 
+                  preload="metadata" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                <img 
+                  src={item.url} 
+                  alt={`slide ${idx}`} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} 
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Double-tap overlay */}
+        {activeDoubleTapPostId === post.id && (
+          <div className="double-tap-star-overlay">
+            <svg viewBox="0 0 24 24" width="75" height="75" fill="var(--yellow-star)" stroke="var(--text-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const handlePostMediaClick = (post) => {
     const currentTime = Date.now();
     const timeDiff = currentTime - lastClickRef.current.time;
@@ -1664,7 +1743,8 @@ function App() {
             media_url,
             media_type,
             created_at,
-            profiles:user_id (full_name, avatar_url)
+            profiles:user_id (full_name, avatar_url),
+            blog_post_stars (user_id)
           )
         `)
         .eq('user_id', session.user.id);
@@ -1676,7 +1756,18 @@ function App() {
       }
       
       if (data) {
-        const posts = data.map(item => item.blog_posts).filter(Boolean);
+        const posts = data.map(item => {
+          const post = item.blog_posts;
+          if (!post) return null;
+          const starsList = post.blog_post_stars || [];
+          const starCount = starsList.length;
+          const isStarred = session?.user?.id ? starsList.some(s => s.user_id === session.user.id) : false;
+          return {
+            ...post,
+            starCount,
+            isStarred
+          };
+        }).filter(Boolean);
         setUserSavedPosts(posts);
       }
     } catch (e) {
@@ -1741,6 +1832,10 @@ function App() {
       if (error) throw error;
       setUploadAlert({ type: 'success', message: 'Caption updated successfully!' });
       playSuccessSound();
+      
+      if (activeViewPost?.id === post.id) {
+        setActiveViewPost(prev => ({ ...prev, caption: newCaption }));
+      }
       
       fetchBlogPosts();
       fetchUserProfilePosts(session.user.id);
@@ -5944,7 +6039,7 @@ function App() {
                         ) : (
                           <div className="profile-vlogs-grid">
                             {userProfilePosts.map(post => (
-                              <div key={post.id} className="profile-vlog-item" onClick={() => setFullscreenImageUrl(post.media_url)}>
+                              <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
                                 {post.media_type === 'video' ? (
                                   <div className="video-thumbnail-placeholder">
                                     <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
@@ -5963,7 +6058,7 @@ function App() {
                         ) : (
                           <div className="profile-vlogs-grid">
                             {userSavedPosts.map(post => (
-                              <div key={post.id} className="profile-vlog-item" onClick={() => setFullscreenImageUrl(post.media_url)}>
+                              <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
                                 {post.media_type === 'video' ? (
                                   <div className="video-thumbnail-placeholder">
                                     <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
@@ -6381,7 +6476,7 @@ function App() {
                     ) : (
                       <div className="profile-vlogs-grid">
                         {userProfilePosts.map(post => (
-                          <div key={post.id} className="profile-vlog-item" onClick={() => setFullscreenImageUrl(post.media_url)}>
+                          <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
                             {post.media_type === 'video' ? (
                               <div className="video-thumbnail-placeholder">
                                 <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
@@ -6400,7 +6495,7 @@ function App() {
                     ) : (
                       <div className="profile-vlogs-grid">
                         {userSavedPosts.map(post => (
-                          <div key={post.id} className="profile-vlog-item" onClick={() => setFullscreenImageUrl(post.media_url)}>
+                          <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
                             {post.media_type === 'video' ? (
                               <div className="video-thumbnail-placeholder">
                                 <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
@@ -6816,29 +6911,7 @@ function App() {
                     </div>
 
                     {/* Post Content Media */}
-                    <div 
-                      className="blog-post-media" 
-                      onClick={() => handlePostMediaClick(post)}
-                      style={{ position: 'relative' }}
-                    >
-                      {post.media_type === 'video' ? (
-                        <video src={post.media_url} controls playsInline loop preload="metadata" />
-                      ) : (
-                        <img 
-                          src={post.media_url} 
-                          alt="post upload" 
-                          style={{ cursor: 'pointer' }}
-                        />
-                      )}
-                      
-                      {activeDoubleTapPostId === post.id && (
-                        <div className="double-tap-star-overlay">
-                          <svg viewBox="0 0 24 24" width="75" height="75" fill="var(--yellow-star)" stroke="var(--text-navy)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                          </svg>
-                        </div>
-                      )}
-                    </div>
+                    {renderPostMedia(post)}
 
                     {/* Post Actions & Caption */}
                     <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
@@ -6897,79 +6970,62 @@ function App() {
                     )}
                   </div>
 
-                  <div className="input-group" style={{ marginTop: '1.2rem' }}>
-                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Media Type</label>
-                    <div className="blog-media-type-switch">
-                      <button 
-                        type="button" 
-                        className={uploadFileType === 'image' ? 'active' : ''} 
-                        onClick={() => { setUploadFileType('image'); setUploadFile(null); }}
-                      >
-                        PHOTO
-                      </button>
-                      <button 
-                        type="button" 
-                        className={uploadFileType === 'video' ? 'active' : ''} 
-                        onClick={() => { setUploadFileType('video'); setUploadFile(null); }}
-                      >
-                        VIDEO
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="input-group" style={{ marginTop: '1.2rem' }}>
-                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Media Source</label>
-                    <div className="blog-media-source-switch">
-                      <button 
-                        type="button" 
-                        className={sourceMode === 'gallery' ? 'active' : ''} 
-                        onClick={() => { setSourceMode('gallery'); setUploadFile(null); }}
-                      >
-                        GALLERY
-                      </button>
-                      <button 
-                        type="button" 
-                        className={sourceMode === 'camera' ? 'active' : ''} 
-                        onClick={() => { setSourceMode('camera'); setUploadFile(null); }}
-                      >
-                        LIVE CAMERA
-                      </button>
-                    </div>
-                  </div>
-
                   <div className="input-group" style={{ marginTop: '1.5rem' }}>
-                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>
-                      {sourceMode === 'camera' ? 'Capture Media' : 'Select File'}
-                    </label>
+                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Add Photos or Videos (Multiple allowed)</label>
                     <div className="custom-file-upload">
                       <input 
                         type="file" 
                         id="blog-media-file"
-                        accept={uploadFileType === 'video' ? 'video/*' : 'image/*'} 
-                        capture={sourceMode === 'camera' ? 'environment' : undefined}
-                        onChange={(e) => setUploadFile(e.target.files[0])}
-                        required
+                        multiple
+                        accept="image/*,video/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setUploadFiles(prev => [...prev, ...files]);
+                        }}
                         style={{ display: 'none' }}
                       />
                       <label htmlFor="blog-media-file" className="blog-file-label">
                         <span className="file-icon" style={{ display: 'flex', alignItems: 'center' }}>
-                          {sourceMode === 'camera' ? (
-                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                              <circle cx="12" cy="13" r="4"></circle>
-                            </svg>
-                          ) : (
-                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                          )}
+                          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                          </svg>
                         </span>
                         <span className="file-text">
-                          {uploadFile ? uploadFile.name : sourceMode === 'camera' ? `Tap to open camera to record/take ${uploadFileType}...` : `Click to select ${uploadFileType}...`}
+                          {uploadFiles.length > 0 ? `${uploadFiles.length} file(s) selected` : 'Click to select photos/videos...'}
                         </span>
                       </label>
                     </div>
                   </div>
+
+                  {/* Image/Video Preview Thumbnails */}
+                  {uploadFiles.length > 0 && (
+                    <div className="upload-preview-thumbnails" style={{ display: 'flex', gap: '0.6rem', overflowX: 'auto', marginTop: '1rem', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
+                      {uploadFiles.map((file, idx) => {
+                        const isVideo = file.type.startsWith('video');
+                        let objectUrl = "";
+                        try {
+                          objectUrl = URL.createObjectURL(file);
+                        } catch(err) {}
+
+                        return (
+                          <div key={idx} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '12px', border: '3.5px solid var(--text-navy)', overflow: 'hidden', flexShrink: 0, background: '#f8fafc' }}>
+                            {isVideo ? (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>📹</div>
+                            ) : (
+                              <img src={objectUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            )}
+                            <button 
+                              type="button" 
+                              onClick={() => setUploadFiles(prev => prev.filter((_, i) => i !== idx))}
+                              style={{ position: 'absolute', top: 2, right: 2, background: 'var(--text-navy)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {isUploading && (
                     <div className="blog-upload-progress-container" style={{ marginTop: '1.5rem' }}>
@@ -7094,7 +7150,7 @@ function App() {
               ) : (
                 <div className="profile-vlogs-grid">
                   {userProfilePosts.map(post => (
-                    <div key={post.id} className="profile-vlog-item" onClick={() => setFullscreenImageUrl(post.media_url)}>
+                    <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
                       {post.media_type === 'video' ? (
                         <div className="video-thumbnail-placeholder">
                           <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
@@ -7664,6 +7720,103 @@ function App() {
                 alt="Enlarged profile avatar"
                 style={{ maxHeight: '80vh', maxWidth: '90vw', borderRadius: '15px', border: '8px solid #fff', boxShadow: '0 30px 60px rgba(0,0,0,0.5)', objectFit: 'contain' }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeViewPost && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setActiveViewPost(null)} 
+          style={{ zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.5)' }}
+        >
+          <div 
+            className="modal-content post-detail-popup-card-wrapper" 
+            onClick={e => e.stopPropagation()} 
+            style={{ padding: '0.8rem', background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '24px', boxShadow: '10px 10px 0 var(--text-navy)', maxWidth: '480px', width: '92vw', position: 'relative' }}
+          >
+            <button 
+              className="modal-close" 
+              onClick={() => setActiveViewPost(null)} 
+              style={{ position: 'absolute', top: '10px', right: '15px', fontSize: '2rem', border: 'none', background: 'none', cursor: 'pointer', zIndex: 10 }}
+            >
+              ×
+            </button>
+            <div className="blog-post-card" style={{ border: 'none', boxShadow: 'none', margin: 0, padding: 0 }}>
+              {/* Post Header */}
+              <div className="blog-post-header" style={{ padding: '0.8rem 1rem 0.5rem 1rem' }}>
+                <div className="blog-post-author" onClick={() => { handleViewUserProfile(activeViewPost.user_id); setActiveViewPost(null); }} style={{ cursor: 'pointer' }}>
+                  <div className="author-avatar">
+                    <img 
+                      src={activeViewPost.profiles?.avatar_url || 'icons/user-profile.svg'} 
+                      alt={activeViewPost.profiles?.full_name || 'User'} 
+                    />
+                  </div>
+                  <div className="author-meta">
+                    <strong>{activeViewPost.profiles?.full_name || 'Anonymous User'}</strong>
+                    <span>{formatPostTimestamp(activeViewPost.created_at)}</span>
+                  </div>
+                </div>
+                
+                {/* Options menu dropdown (3 vertical dots) */}
+                <div className="blog-post-menu-container" style={{ position: 'relative' }}>
+                  <button className="blog-menu-dots-btn" onClick={(e) => togglePostMenu(activeViewPost.id, e)} title="Options">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                      <circle cx="12" cy="5" r="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <circle cx="12" cy="19" r="2" />
+                    </svg>
+                  </button>
+                  {activePostMenuId === activeViewPost.id && (
+                    <div className="blog-post-menu-dropdown" onClick={(e) => e.stopPropagation()}>
+                      {(session?.user?.id && (activeViewPost.user_id === session.user.id || user?.role === 'admin')) && (
+                        <div className="blog-menu-item delete" onClick={() => { handleDeletePost(activeViewPost.id); setActivePostMenuId(null); setActiveViewPost(null); }}>
+                          Delete
+                        </div>
+                      )}
+                      {(session?.user?.id && activeViewPost.user_id === session.user.id) && (
+                        <div className="blog-menu-item edit" onClick={() => { handleEditPostCaption(activeViewPost); setActivePostMenuId(null); }}>
+                          Edit Caption
+                        </div>
+                      )}
+                      {(!session?.user?.id || activeViewPost.user_id !== session.user.id) && (
+                        <div className="blog-menu-item report" onClick={() => { handleReportPost(activeViewPost); setActivePostMenuId(null); }}>
+                          Report
+                        </div>
+                      )}
+                      {session?.user?.id && (
+                        <div className="blog-menu-item save" onClick={() => { handleSaveToggle(activeViewPost); setActivePostMenuId(null); }}>
+                          {savedPostIds.has(activeViewPost.id) ? 'Unsave' : 'Save'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Render Media */}
+              {renderPostMedia(activeViewPost)}
+
+              {/* Footer */}
+              <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem' }}>
+                <button 
+                  className={`blog-star-btn ${activeViewPost.isStarred ? 'starred' : ''}`}
+                  onClick={() => handleStarToggle(activeViewPost.id)}
+                  title={activeViewPost.isStarred ? 'Unstar post' : 'Star post'}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={activeViewPost.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+                
+                {activeViewPost.caption && (
+                  <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
+                    <span>{renderCaptionWithMentions(activeViewPost.caption)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
