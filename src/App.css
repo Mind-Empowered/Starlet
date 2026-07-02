@@ -7619,11 +7619,12 @@ input:checked + .a11y-slider:before {
 }
 
 .blog-post-footer {
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     background: #fff;
     display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .blog-post-actions {
