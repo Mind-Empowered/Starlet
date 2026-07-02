@@ -1,0 +1,21 @@
+{
+  "short_name": "Starlet",
+  "name": "Starlet 5.0 Hackathon",
+  "icons": [
+    {
+      "src": "pwa-icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "pwa-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#fffdf6",
+  "theme_color": "#ff007f",
+  "display": "standalone",
+  "orientation": "portrait"
+}
