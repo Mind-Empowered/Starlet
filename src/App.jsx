@@ -1521,6 +1521,29 @@ function App() {
     setMentionSuggestions([]);
   };
 
+  const formatPostTimestamp = (dateString) => {
+    const postedDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - postedDate.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHrs = Math.floor(diffMins / 60);
+    
+    if (diffSecs < 1) {
+      return 'just now';
+    }
+    if (diffSecs < 60) {
+      return `${diffSecs}s ago`;
+    }
+    if (diffMins < 60) {
+      return `${diffMins} mint ago`;
+    }
+    if (diffHrs < 24) {
+      return `${diffHrs}hr ago`;
+    }
+    return postedDate.toLocaleDateString();
+  };
+
   const renderCaptionWithMentions = (captionText) => {
     if (!captionText) return null;
     const tokens = captionText.split(/(\s+)/);
@@ -6752,7 +6775,7 @@ function App() {
                         </div>
                         <div className="author-meta">
                           <strong>{post.profiles?.full_name || 'Anonymous User'}</strong>
-                          <span>{new Date(post.created_at).toLocaleDateString()} at {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{formatPostTimestamp(post.created_at)}</span>
                         </div>
                       </div>
                       
@@ -6818,23 +6841,20 @@ function App() {
                     </div>
 
                     {/* Post Actions & Caption */}
-                    <div className="blog-post-footer">
-                      <div className="blog-post-actions-row" style={{ marginBottom: '0.2rem' }}>
-                        <div className="blog-post-actions-left">
-                          <button 
-                            className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
-                            onClick={() => handleStarToggle(post.id)}
-                            title={post.isStarred ? 'Unstar post' : 'Star post'}
-                          >
-                            <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
+                    <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
+                      <button 
+                        className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
+                        onClick={() => handleStarToggle(post.id)}
+                        title={post.isStarred ? 'Unstar post' : 'Star post'}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                      </button>
+                      
                       {post.caption && (
-                        <div className="blog-post-caption">
+                        <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
                           <span>{renderCaptionWithMentions(post.caption)}</span>
                         </div>
                       )}
@@ -7095,7 +7115,7 @@ function App() {
         </div>
       ) : null}
 
-      <div className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`} onClick={scrollToTop}>
+      <div className={`scroll-top-btn ${showScrollTop && activeView !== 'blog' ? 'visible' : ''}`} onClick={scrollToTop}>
         <img src="icons/rocket.svg" alt="top" />
       </div>
       {showAboutPopup && (
