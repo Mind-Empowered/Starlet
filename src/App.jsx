@@ -330,6 +330,7 @@ function App() {
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [volunteerSearchQuery, setVolunteerSearchQuery] = useState('');
   const [volunteerPage, setVolunteerPage] = useState(1);
+  const [expandedVolunteerId, setExpandedVolunteerId] = useState(null);
   const [isOtherTrackSelected, setIsOtherTrackSelected] = useState(false);
   const [customTrackTitle, setCustomTrackTitle] = useState('');
   const [customTrackDesc, setCustomTrackDesc] = useState('');
@@ -1838,7 +1839,7 @@ function App() {
           thumbUrl = parsed[0].url;
           isVid = parsed[0].type === 'video';
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return isVid ? (
       <div className="video-thumbnail-placeholder">
@@ -2076,7 +2077,7 @@ function App() {
       } else {
         query = query.eq('user_id', userId);
       }
-      
+
       const { data, error } = await query;
 
       if (data) {
@@ -2835,7 +2836,7 @@ function App() {
   const handleToggleAttendance = async (userId, isPresent) => {
     // Optimistically update the UI so the checkbox ticks instantly
     setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, is_approved: isPresent } : u));
-    
+
     const { error } = await supabase.from('profiles').update({ is_approved: isPresent }).eq('id', userId);
     if (error) {
       alert(error.message);
@@ -5069,11 +5070,11 @@ function App() {
             </form>
           </div>
         </div>
-      // ==========================================
+        // ==========================================
 
-      // 🖥️ RENDER: MY PROFILE PAGE (ATTENDEE/MENTOR)
+        // 🖥️ RENDER: MY PROFILE PAGE (ATTENDEE/MENTOR)
 
-      // ==========================================
+        // ==========================================
 
       ) : activeView === 'profile' ? (
         <div className={user.role === 'admin' && adminActiveTab === 'admin' ? "admin-page-wrapper" : "profile-container"}>
@@ -6170,28 +6171,51 @@ function App() {
 
                     return (
                       <>
-                        <div className="custom-table-container">
-                          <table className="custom-table admin-table">
-                            <thead>
-                              <tr>
-                                <th>User Info</th>
-                                <th>Phone</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {paginated.map(u => (
-                                <tr key={u.id} className="table-row-hover">
-                                  <td>
-                                    <div className="table-user">
-                                      <strong>{u.full_name}</strong>
-                                      <span>{u.email}</span>
+                        <div className="volunteer-card-list">
+                          {paginated.map(u => {
+                            const isExpanded = expandedVolunteerId === u.id;
+                            return (
+                              <div key={u.id} className={`volunteer-card ${isExpanded ? 'expanded' : ''}`} onClick={() => setExpandedVolunteerId(isExpanded ? null : u.id)}>
+                                <div className="volunteer-card-header">
+                                  <strong className="volunteer-name">{u.full_name}</strong>
+                                  <button
+                                    className="btn-table-action delete volunteer-delete-btn"
+                                    title="Remove Volunteer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteUser(u.id, u.full_name);
+                                    }}
+                                  >
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="3 6 5 6 21 6"></polyline>
+                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                  </button>
+                                </div>
+                                {isExpanded && (
+                                  <div className="volunteer-card-details">
+                                    <div className="volunteer-avatar-wrapper">
+                                      <img src={u.avatar_url || u.avatarUrl || 'icons/user-profile.svg'} alt={u.full_name} className="volunteer-avatar" style={{ objectFit: (u.avatar_url || u.avatarUrl) ? 'cover' : 'contain' }} />
                                     </div>
-                                  </td>
-                                  <td>{u.phone || '-'}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                                    <div className="volunteer-info">
+                                      <div className="info-item">
+                                        <label>College:</label>
+                                        <span>{u.college || u.venue || 'N/A'}</span>
+                                      </div>
+                                      <div className="info-item">
+                                        <label>Phone:</label>
+                                        <span>{u.phone || 'N/A'}</span>
+                                      </div>
+                                      <div className="info-item">
+                                        <label>Email:</label>
+                                        <span>{u.email || 'N/A'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                         {renderPagination(volunteerPage, filtered.length, 5, setVolunteerPage)}
                       </>
@@ -7524,366 +7548,366 @@ function App() {
         </div>
       ) : activeView === 'sponsors-overview' ? (
         <SponsorsPage onBack={() => setActiveView('landing')} />
-      // ==========================================
+        // ==========================================
 
-      // 🖥️ RENDER: BLOG FEED
+        // 🖥️ RENDER: BLOG FEED
 
-      // ==========================================
+        // ==========================================
 
       ) : activeView === 'blog' ? (
         <div className="blog-page-layout">
-        <div className="blog-feed-container" style={{ paddingTop: '100px' }}>
-          {isLoggedIn && (
-            <button
-              className="floating-add-post-btn"
-              onClick={() => setIsUploadModalOpen(true)}
-              title="Share a vlog or photo"
-            >
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          )}
-
-          <div className="blog-posts-feed">
-            {isLoadingBlog ? (
-              <BlogPostSkeleton count={3} />
-            ) : blogPosts.length === 0 ? (
-              <div className="empty-blog-placeholder">
-                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="var(--yellow-star)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '1rem' }}>
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          <div className="blog-feed-container" style={{ paddingTop: '100px' }}>
+            {isLoggedIn && (
+              <button
+                className="floating-add-post-btn"
+                onClick={() => setIsUploadModalOpen(true)}
+                title="Share a vlog or photo"
+              >
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                <h2>No Posts Yet</h2>
-                <p>Be the first one to share a highlight from the event!</p>
-              </div>
-            ) : (
-              <div className="blog-posts-list">
-                {blogPosts.map(post => (
-                  <div key={post.id} className="blog-post-card">
-                    {/* Post Header */}
-                    <div className="blog-post-header">
-                      <div className="blog-post-author" onClick={() => handleViewUserProfile(post.user_id)} style={{ cursor: 'pointer' }}>
-                        <div className="author-avatar">
-                          <img
-                            src={post.profiles?.avatar_url || 'icons/user-profile.svg'}
-                            alt={post.profiles?.full_name || 'User'}
-                          />
+              </button>
+            )}
+
+            <div className="blog-posts-feed">
+              {isLoadingBlog ? (
+                <BlogPostSkeleton count={3} />
+              ) : blogPosts.length === 0 ? (
+                <div className="empty-blog-placeholder">
+                  <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="var(--yellow-star)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '1rem' }}>
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <h2>No Posts Yet</h2>
+                  <p>Be the first one to share a highlight from the event!</p>
+                </div>
+              ) : (
+                <div className="blog-posts-list">
+                  {blogPosts.map(post => (
+                    <div key={post.id} className="blog-post-card">
+                      {/* Post Header */}
+                      <div className="blog-post-header">
+                        <div className="blog-post-author" onClick={() => handleViewUserProfile(post.user_id)} style={{ cursor: 'pointer' }}>
+                          <div className="author-avatar">
+                            <img
+                              src={post.profiles?.avatar_url || 'icons/user-profile.svg'}
+                              alt={post.profiles?.full_name || 'User'}
+                            />
+                          </div>
+                          <div className="author-meta">
+                            <strong>{post.profiles?.full_name || 'Anonymous User'}</strong>
+                            <span>{formatPostTimestamp(post.created_at)}</span>
+                          </div>
                         </div>
-                        <div className="author-meta">
-                          <strong>{post.profiles?.full_name || 'Anonymous User'}</strong>
-                          <span>{formatPostTimestamp(post.created_at)}</span>
+
+                        {/* Options menu dropdown (3 vertical dots) */}
+                        <div className="blog-post-menu-container" style={{ position: 'relative' }}>
+                          <button className="blog-menu-dots-btn" onClick={(e) => togglePostMenu(post.id, e)} title="Options">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                              <circle cx="12" cy="5" r="2" />
+                              <circle cx="12" cy="12" r="2" />
+                              <circle cx="12" cy="19" r="2" />
+                            </svg>
+                          </button>
+                          {activePostMenuId === post.id && (
+                            <div className="blog-post-menu-dropdown" onClick={(e) => e.stopPropagation()}>
+                              {(session?.user?.id && (post.user_id === session.user.id || user?.role === 'admin')) && (
+                                <div className="blog-menu-item delete" onClick={() => { handleDeletePost(post.id); setActivePostMenuId(null); }}>
+                                  Delete
+                                </div>
+                              )}
+                              {(session?.user?.id && post.user_id === session.user.id) && (
+                                <div className="blog-menu-item edit" onClick={() => { handleEditPostCaption(post); setActivePostMenuId(null); }}>
+                                  Edit Caption
+                                </div>
+                              )}
+                              {(!session?.user?.id || post.user_id !== session.user.id) && (
+                                <div className="blog-menu-item report" onClick={() => { handleReportPost(post); setActivePostMenuId(null); }}>
+                                  Report
+                                </div>
+                              )}
+                              {session?.user?.id && (
+                                <div className="blog-menu-item save" onClick={() => { handleSaveToggle(post); setActivePostMenuId(null); }}>
+                                  {savedPostIds.has(post.id) ? 'Unsave' : 'Save'}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Options menu dropdown (3 vertical dots) */}
-                      <div className="blog-post-menu-container" style={{ position: 'relative' }}>
-                        <button className="blog-menu-dots-btn" onClick={(e) => togglePostMenu(post.id, e)} title="Options">
-                          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                            <circle cx="12" cy="5" r="2" />
-                            <circle cx="12" cy="12" r="2" />
-                            <circle cx="12" cy="19" r="2" />
+                      {/* Post Content Media */}
+                      {renderPostMedia(post)}
+
+                      {/* Post Actions & Caption */}
+                      <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
+                        <button
+                          className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
+                          onClick={() => handleStarToggle(post.id)}
+                          title={post.isStarred ? 'Unstar post' : 'Star post'}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                           </svg>
                         </button>
-                        {activePostMenuId === post.id && (
-                          <div className="blog-post-menu-dropdown" onClick={(e) => e.stopPropagation()}>
-                            {(session?.user?.id && (post.user_id === session.user.id || user?.role === 'admin')) && (
-                              <div className="blog-menu-item delete" onClick={() => { handleDeletePost(post.id); setActivePostMenuId(null); }}>
-                                Delete
-                              </div>
-                            )}
-                            {(session?.user?.id && post.user_id === session.user.id) && (
-                              <div className="blog-menu-item edit" onClick={() => { handleEditPostCaption(post); setActivePostMenuId(null); }}>
-                                Edit Caption
-                              </div>
-                            )}
-                            {(!session?.user?.id || post.user_id !== session.user.id) && (
-                              <div className="blog-menu-item report" onClick={() => { handleReportPost(post); setActivePostMenuId(null); }}>
-                                Report
-                              </div>
-                            )}
-                            {session?.user?.id && (
-                              <div className="blog-menu-item save" onClick={() => { handleSaveToggle(post); setActivePostMenuId(null); }}>
-                                {savedPostIds.has(post.id) ? 'Unsave' : 'Save'}
-                              </div>
-                            )}
+
+                        {post.caption && (
+                          <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
+                            <span>{renderCaptionWithMentions(post.caption)}</span>
                           </div>
                         )}
+
+                        {/* Share Button — right side */}
+                        <div className="blog-share-wrapper" style={{ marginLeft: 'auto' }}>
+                          <button
+                            className="blog-share-btn"
+                            title="Share post"
+                            onClick={(e) => { e.stopPropagation(); setActiveSharePostId(activeSharePostId === post.id ? null : post.id); }}
+                          >
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="18" cy="5" r="3" />
+                              <circle cx="6" cy="12" r="3" />
+                              <circle cx="18" cy="19" r="3" />
+                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                            </svg>
+                          </button>
+                          {activeSharePostId === post.id && (
+                            <div className="blog-share-dropdown" onClick={e => e.stopPropagation()}>
+                              <a
+                                className="blog-share-option instagram"
+                                href={`https://www.instagram.com/`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => { navigator.clipboard?.writeText(`${window.location.href} — Check out this post by @mind.empowered on Starlet! 🌟`); setActiveSharePostId(null); }}
+                                title="Caption copied to clipboard — paste it into your Instagram post!"
+                              >
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                                </svg>
+                                <span>Instagram</span>
+                                <span className="blog-share-hint">📋 Copies caption</span>
+                              </a>
+                              <a
+                                className="blog-share-option linkedin"
+                                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${encodeURIComponent((post.caption || 'Check out this post on Starlet!') + ' — Follow @mind-empowered for more 🌟')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setActiveSharePostId(null)}
+                              >
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                  <rect x="2" y="9" width="4" height="12" />
+                                  <circle cx="4" cy="4" r="2" />
+                                </svg>
+                                <span>LinkedIn</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                    {/* Post Content Media */}
-                    {renderPostMedia(post)}
-
-                    {/* Post Actions & Caption */}
-                    <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
-                      <button
-                        className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
-                        onClick={() => handleStarToggle(post.id)}
-                        title={post.isStarred ? 'Unstar post' : 'Star post'}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <svg className="star-icon-svg" viewBox="0 0 24 24" width="24" height="24" fill={post.isStarred ? "var(--yellow-star)" : "none"} stroke="var(--text-navy)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                      </button>
-
-                      {post.caption && (
-                        <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
-                          <span>{renderCaptionWithMentions(post.caption)}</span>
+            {/* UPLOAD MODAL */}
+            {isUploadModalOpen && (
+              <div className="modal-overlay" onClick={() => setIsUploadModalOpen(false)}>
+                <div className="modal-content blog-upload-modal" onClick={e => e.stopPropagation()}>
+                  <button className="modal-close" onClick={() => setIsUploadModalOpen(false)}>×</button>
+                  <h2 className="text-3d" style={{ marginBottom: '1.5rem', marginTop: '1rem', textAlign: 'center' }}>Upload Vlog or Photo</h2>
+                  <form className="auth-form" onSubmit={handleUploadPost}>
+                    <div className="input-group">
+                      <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Post Caption</label>
+                      <textarea
+                        placeholder="Write something cool about this post... Use @ to tag users!"
+                        value={uploadCaption}
+                        onChange={(e) => handleCaptionChange(e.target.value)}
+                        required
+                        className="blog-form-textarea"
+                      />
+                      {mentionSuggestions.length > 0 && (
+                        <div className="mention-autocomplete-dropdown">
+                          {mentionSuggestions.map(user => (
+                            <div
+                              key={user.id}
+                              className="mention-suggestion-item"
+                              onClick={() => handleSelectMention(user)}
+                            >
+                              <strong>@{user.full_name.replace(/\s+/g, '_')}</strong>
+                              <span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '8px' }}>({user.full_name})</span>
+                            </div>
+                          ))}
                         </div>
                       )}
+                    </div>
 
-                      {/* Share Button — right side */}
-                      <div className="blog-share-wrapper" style={{ marginLeft: 'auto' }}>
-                        <button
-                          className="blog-share-btn"
-                          title="Share post"
-                          onClick={(e) => { e.stopPropagation(); setActiveSharePostId(activeSharePostId === post.id ? null : post.id); }}
-                        >
-                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="18" cy="5" r="3" />
-                            <circle cx="6" cy="12" r="3" />
-                            <circle cx="18" cy="19" r="3" />
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                          </svg>
-                        </button>
-                        {activeSharePostId === post.id && (
-                          <div className="blog-share-dropdown" onClick={e => e.stopPropagation()}>
-                            <a
-                              className="blog-share-option instagram"
-                              href={`https://www.instagram.com/`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => { navigator.clipboard?.writeText(`${window.location.href} — Check out this post by @mind.empowered on Starlet! 🌟`); setActiveSharePostId(null); }}
-                              title="Caption copied to clipboard — paste it into your Instagram post!"
-                            >
-                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                              </svg>
-                              <span>Instagram</span>
-                              <span className="blog-share-hint">📋 Copies caption</span>
-                            </a>
-                            <a
-                              className="blog-share-option linkedin"
-                              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${encodeURIComponent((post.caption || 'Check out this post on Starlet!') + ' — Follow @mind-empowered for more 🌟')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => setActiveSharePostId(null)}
-                            >
-                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                                <rect x="2" y="9" width="4" height="12" />
-                                <circle cx="4" cy="4" r="2" />
-                              </svg>
-                              <span>LinkedIn</span>
-                            </a>
-                          </div>
-                        )}
+                    <div className="input-group" style={{ marginTop: '1.5rem' }}>
+                      <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Add Photos or Videos (Multiple allowed)</label>
+                      <div className="custom-file-upload">
+                        <input
+                          type="file"
+                          id="blog-media-file"
+                          multiple
+                          accept="image/*,video/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            // Size check
+                            const tooBig = files.find(f => f.size > 50 * 1024 * 1024);
+                            if (tooBig) {
+                              const sizeMB = (tooBig.size / (1024 * 1024)).toFixed(1);
+                              setUploadAlert({ type: 'error', message: `"${tooBig.name}" is ${sizeMB} MB — max 50 MB per file.` });
+                              return;
+                            }
+                            if (uploadFiles.length + files.length > 5) {
+                              setUploadAlert({ type: 'error', message: 'Maximum 5 files per post.' });
+                              const remaining = 5 - uploadFiles.length;
+                              if (remaining > 0) {
+                                setUploadFiles(prev => [...prev, ...files.slice(0, remaining)]);
+                                setUploadPositions(prev => [...prev, ...Array(Math.min(remaining, files.length)).fill({ x: 50, y: 50 })]);
+                              }
+                            } else {
+                              setUploadFiles(prev => [...prev, ...files]);
+                              setUploadPositions(prev => [...prev, ...Array(files.length).fill({ x: 50, y: 50 })]);
+                              setActivePreviewIdx(uploadFiles.length); // focus newly added first
+                            }
+                          }}
+                          style={{ display: 'none' }}
+                        />
+                        <label htmlFor="blog-media-file" className="blog-file-label">
+                          <span className="file-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                          </span>
+                          <span className="file-text">
+                            {uploadFiles.length > 0 ? `${uploadFiles.length} file(s) selected` : 'Click to select photos/videos...'}
+                          </span>
+                        </label>
                       </div>
                     </div>
-                  </div>
-                ))}
+
+                    {/* ── Drag-to-Pan Preview + Thumbnail Strip ── */}
+                    {uploadFiles.length > 0 && (() => {
+                      const activeFile = uploadFiles[activePreviewIdx];
+                      const isVideo = activeFile?.type?.startsWith('video');
+                      let objectUrl = '';
+                      try { objectUrl = URL.createObjectURL(activeFile); } catch (_) { }
+                      const pos = uploadPositions[activePreviewIdx] || { x: 50, y: 50 };
+
+                      return (
+                        <div style={{ marginTop: '1rem' }}>
+                          {/* Main square preview */}
+                          <div style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '14px', overflow: 'hidden', border: '3px solid var(--text-navy)', background: '#0a0a1a', cursor: isVideo ? 'default' : isDraggingPreview ? 'grabbing' : 'grab' }}
+                            onPointerDown={(e) => {
+                              if (isVideo) return;
+                              e.currentTarget.setPointerCapture(e.pointerId);
+                              setIsDraggingPreview(true);
+                              dragStartRef.current = { mx: e.clientX, my: e.clientY, px: pos.x, py: pos.y };
+                            }}
+                            onPointerMove={(e) => {
+                              if (!isDraggingPreview || isVideo) return;
+                              const dx = e.clientX - dragStartRef.current.mx;
+                              const dy = e.clientY - dragStartRef.current.my;
+                              // Moving right → move focus left (smaller x%) and vice versa
+                              const newX = Math.max(0, Math.min(100, dragStartRef.current.px - dx * 0.3));
+                              const newY = Math.max(0, Math.min(100, dragStartRef.current.py - dy * 0.3));
+                              setUploadPositions(prev => {
+                                const next = [...prev];
+                                next[activePreviewIdx] = { x: Math.round(newX), y: Math.round(newY) };
+                                return next;
+                              });
+                            }}
+                            onPointerUp={() => setIsDraggingPreview(false)}
+                            onPointerCancel={() => setIsDraggingPreview(false)}
+                          >
+                            <div style={{ position: 'absolute', inset: 0 }}>
+                              {isVideo ? (
+                                <video src={objectUrl} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <img
+                                  src={objectUrl}
+                                  alt="preview"
+                                  draggable={false}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${pos.x}% ${pos.y}%`, userSelect: 'none', pointerEvents: 'none' }}
+                                />
+                              )}
+                              {/* Drag hint overlay */}
+                              {!isVideo && (
+                                <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.7rem', borderRadius: '20px', padding: '3px 10px', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+                                  ✥ drag to reposition
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Thumbnail strip */}
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto', paddingBottom: '0.4rem' }}>
+                            {uploadFiles.map((file, idx) => {
+                              const isVid = file.type.startsWith('video');
+                              let tUrl = '';
+                              try { tUrl = URL.createObjectURL(file); } catch (_) { }
+                              const tPos = uploadPositions[idx] || { x: 50, y: 50 };
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => setActivePreviewIdx(idx)}
+                                  style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '10px', border: `3px solid ${activePreviewIdx === idx ? 'var(--pink-primary)' : 'var(--text-navy)'}`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', background: '#f8fafc', boxSizing: 'border-box' }}
+                                >
+                                  {isVid ? (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>📹</div>
+                                  ) : (
+                                    <img src={tUrl} alt="thumb" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${tPos.x}% ${tPos.y}%`, pointerEvents: 'none' }} />
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(ev) => { ev.stopPropagation(); setUploadFiles(prev => prev.filter((_, i) => i !== idx)); setUploadPositions(prev => prev.filter((_, i) => i !== idx)); setActivePreviewIdx(p => Math.max(0, p >= idx ? p - 1 : p)); }}
+                                    style={{ position: 'absolute', top: 2, right: 2, background: 'var(--text-navy)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, zIndex: 2 }}
+                                  >×</button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {isUploading && (
+                      <div className="blog-upload-progress-container" style={{ marginTop: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-navy)' }}>
+                          <span>Uploading file...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="blog-progress-bar-bg">
+                          <div className="blog-progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="join-btn"
+                      disabled={isUploading}
+                      style={{ width: '100%', marginTop: '2rem' }}
+                    >
+                      {isUploading ? `UPLOADING (${uploadProgress}%)` : 'POST TO BLOG FEED ✦'}
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
           </div>
 
-          {/* UPLOAD MODAL */}
-          {isUploadModalOpen && (
-            <div className="modal-overlay" onClick={() => setIsUploadModalOpen(false)}>
-              <div className="modal-content blog-upload-modal" onClick={e => e.stopPropagation()}>
-                <button className="modal-close" onClick={() => setIsUploadModalOpen(false)}>×</button>
-                <h2 className="text-3d" style={{ marginBottom: '1.5rem', marginTop: '1rem', textAlign: 'center' }}>Upload Vlog or Photo</h2>
-                <form className="auth-form" onSubmit={handleUploadPost}>
-                  <div className="input-group">
-                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Post Caption</label>
-                    <textarea
-                      placeholder="Write something cool about this post... Use @ to tag users!"
-                      value={uploadCaption}
-                      onChange={(e) => handleCaptionChange(e.target.value)}
-                      required
-                      className="blog-form-textarea"
-                    />
-                    {mentionSuggestions.length > 0 && (
-                      <div className="mention-autocomplete-dropdown">
-                        {mentionSuggestions.map(user => (
-                          <div
-                            key={user.id}
-                            className="mention-suggestion-item"
-                            onClick={() => handleSelectMention(user)}
-                          >
-                            <strong>@{user.full_name.replace(/\s+/g, '_')}</strong>
-                            <span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '8px' }}>({user.full_name})</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="input-group" style={{ marginTop: '1.5rem' }}>
-                    <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Add Photos or Videos (Multiple allowed)</label>
-                    <div className="custom-file-upload">
-                      <input
-                        type="file"
-                        id="blog-media-file"
-                        multiple
-                        accept="image/*,video/*"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          // Size check
-                          const tooBig = files.find(f => f.size > 50 * 1024 * 1024);
-                          if (tooBig) {
-                            const sizeMB = (tooBig.size / (1024 * 1024)).toFixed(1);
-                            setUploadAlert({ type: 'error', message: `"${tooBig.name}" is ${sizeMB} MB — max 50 MB per file.` });
-                            return;
-                          }
-                          if (uploadFiles.length + files.length > 5) {
-                            setUploadAlert({ type: 'error', message: 'Maximum 5 files per post.' });
-                            const remaining = 5 - uploadFiles.length;
-                            if (remaining > 0) {
-                              setUploadFiles(prev => [...prev, ...files.slice(0, remaining)]);
-                              setUploadPositions(prev => [...prev, ...Array(Math.min(remaining, files.length)).fill({ x: 50, y: 50 })]);
-                            }
-                          } else {
-                            setUploadFiles(prev => [...prev, ...files]);
-                            setUploadPositions(prev => [...prev, ...Array(files.length).fill({ x: 50, y: 50 })]);
-                            setActivePreviewIdx(uploadFiles.length); // focus newly added first
-                          }
-                        }}
-                        style={{ display: 'none' }}
-                      />
-                      <label htmlFor="blog-media-file" className="blog-file-label">
-                        <span className="file-icon" style={{ display: 'flex', alignItems: 'center' }}>
-                          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                          </svg>
-                        </span>
-                        <span className="file-text">
-                          {uploadFiles.length > 0 ? `${uploadFiles.length} file(s) selected` : 'Click to select photos/videos...'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* ── Drag-to-Pan Preview + Thumbnail Strip ── */}
-                  {uploadFiles.length > 0 && (() => {
-                    const activeFile = uploadFiles[activePreviewIdx];
-                    const isVideo = activeFile?.type?.startsWith('video');
-                    let objectUrl = '';
-                    try { objectUrl = URL.createObjectURL(activeFile); } catch (_) { }
-                    const pos = uploadPositions[activePreviewIdx] || { x: 50, y: 50 };
-
-                    return (
-                      <div style={{ marginTop: '1rem' }}>
-                        {/* Main square preview */}
-                        <div style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '14px', overflow: 'hidden', border: '3px solid var(--text-navy)', background: '#0a0a1a', cursor: isVideo ? 'default' : isDraggingPreview ? 'grabbing' : 'grab' }}
-                          onPointerDown={(e) => {
-                            if (isVideo) return;
-                            e.currentTarget.setPointerCapture(e.pointerId);
-                            setIsDraggingPreview(true);
-                            dragStartRef.current = { mx: e.clientX, my: e.clientY, px: pos.x, py: pos.y };
-                          }}
-                          onPointerMove={(e) => {
-                            if (!isDraggingPreview || isVideo) return;
-                            const dx = e.clientX - dragStartRef.current.mx;
-                            const dy = e.clientY - dragStartRef.current.my;
-                            // Moving right → move focus left (smaller x%) and vice versa
-                            const newX = Math.max(0, Math.min(100, dragStartRef.current.px - dx * 0.3));
-                            const newY = Math.max(0, Math.min(100, dragStartRef.current.py - dy * 0.3));
-                            setUploadPositions(prev => {
-                              const next = [...prev];
-                              next[activePreviewIdx] = { x: Math.round(newX), y: Math.round(newY) };
-                              return next;
-                            });
-                          }}
-                          onPointerUp={() => setIsDraggingPreview(false)}
-                          onPointerCancel={() => setIsDraggingPreview(false)}
-                        >
-                          <div style={{ position: 'absolute', inset: 0 }}>
-                            {isVideo ? (
-                              <video src={objectUrl} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <img
-                                src={objectUrl}
-                                alt="preview"
-                                draggable={false}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${pos.x}% ${pos.y}%`, userSelect: 'none', pointerEvents: 'none' }}
-                              />
-                            )}
-                            {/* Drag hint overlay */}
-                            {!isVideo && (
-                              <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.7rem', borderRadius: '20px', padding: '3px 10px', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-                                ✥ drag to reposition
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Thumbnail strip */}
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto', paddingBottom: '0.4rem' }}>
-                          {uploadFiles.map((file, idx) => {
-                            const isVid = file.type.startsWith('video');
-                            let tUrl = '';
-                            try { tUrl = URL.createObjectURL(file); } catch (_) { }
-                            const tPos = uploadPositions[idx] || { x: 50, y: 50 };
-                            return (
-                              <div
-                                key={idx}
-                                onClick={() => setActivePreviewIdx(idx)}
-                                style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '10px', border: `3px solid ${activePreviewIdx === idx ? 'var(--pink-primary)' : 'var(--text-navy)'}`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', background: '#f8fafc', boxSizing: 'border-box' }}
-                              >
-                                {isVid ? (
-                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>📹</div>
-                                ) : (
-                                  <img src={tUrl} alt="thumb" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${tPos.x}% ${tPos.y}%`, pointerEvents: 'none' }} />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={(ev) => { ev.stopPropagation(); setUploadFiles(prev => prev.filter((_, i) => i !== idx)); setUploadPositions(prev => prev.filter((_, i) => i !== idx)); setActivePreviewIdx(p => Math.max(0, p >= idx ? p - 1 : p)); }}
-                                  style={{ position: 'absolute', top: 2, right: 2, background: 'var(--text-navy)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, zIndex: 2 }}
-                                >×</button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {isUploading && (
-                    <div className="blog-upload-progress-container" style={{ marginTop: '1.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-navy)' }}>
-                        <span>Uploading file...</span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <div className="blog-progress-bar-bg">
-                        <div className="blog-progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    className="join-btn"
-                    disabled={isUploading}
-                    style={{ width: '100%', marginTop: '2rem' }}
-                  >
-                    {isUploading ? `UPLOADING (${uploadProgress}%)` : 'POST TO BLOG FEED ✦'}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-        
 
         </div>
-      // ==========================================
-      // 🖥️ RENDER: 3RD PERSON PROFILE VIEWER
-      // ==========================================
+        // ==========================================
+        // 🖥️ RENDER: 3RD PERSON PROFILE VIEWER
+        // ==========================================
 
       ) : activeView === 'profile-view' ? (
         <div className="profile-container" style={{ paddingTop: '120px' }}>
