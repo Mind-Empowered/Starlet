@@ -30,6 +30,13 @@ const sectionsData = [
     content: "Collaboration over competition to build technology that empowers people with disabilities, improves accessibility, and creates a more inclusive world. Whether through software, hardware, or AI, your solutions will break down barriers and foster real-world independence.",
     image: "svg/3.svg"
   },
+
+  {
+    id: 99,
+    type: 'about-me',
+    title: "ABOUT MIND EMPOWERED",
+    image: "collaborators/Mind Empowered.gif"
+  },
   {
     id: 3,
     type: 'tracks',
@@ -447,7 +454,7 @@ function App() {
     }
 
     const html = document.documentElement;
-    
+
     // 1. Handle Contrast
     if (a11ySettings.contrast === 'high-contrast') {
       html.classList.add('a11y-high-contrast');
@@ -536,19 +543,19 @@ function App() {
 
       const tag = target.tagName.toLowerCase();
       const isTextTag = ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'strong', 'em', 'small', 'td', 'th'].includes(tag);
-      
+
       if (isTextTag && target.innerText) {
         window.speechSynthesis?.cancel();
-        
+
         const utterance = new SpeechSynthesisUtterance(target.innerText);
-        
+
         // Adjust pitch and rate to sound like a young girl
         utterance.pitch = 1.45;
         utterance.rate = 1.05;
-        
+
         if (window.speechSynthesis) {
           const voices = window.speechSynthesis.getVoices();
-          const youngFemaleVoice = voices.find(voice => 
+          const youngFemaleVoice = voices.find(voice =>
             voice.name.toLowerCase().includes('samantha') ||
             voice.name.toLowerCase().includes('zira') ||
             voice.name.toLowerCase().includes('google us english') ||
@@ -562,7 +569,7 @@ function App() {
             utterance.voice = youngFemaleVoice;
           }
         }
-        
+
         target.classList.add('a11y-speaking-active');
         utterance.onend = () => {
           target.classList.remove('a11y-speaking-active');
@@ -570,7 +577,7 @@ function App() {
         utterance.onerror = () => {
           target.classList.remove('a11y-speaking-active');
         };
-        
+
         window.speechSynthesis?.speak(utterance);
       }
     };
@@ -618,7 +625,7 @@ function App() {
     if (!isSoundEnabled || a11ySettings.muteSound) return;
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
+
       // Tone 1
       const osc1 = audioCtx.createOscillator();
       const gain1 = audioCtx.createGain();
@@ -662,7 +669,7 @@ function App() {
       gain1.connect(audioCtx.destination);
       osc1.start();
       osc1.stop(audioCtx.currentTime + 0.45);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const playErrorSound = () => {
@@ -680,7 +687,7 @@ function App() {
       gain1.connect(audioCtx.destination);
       osc1.start();
       osc1.stop(audioCtx.currentTime + 0.4);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const showSystemNotification = (title, body, tag = 'starlet-notification') => {
@@ -717,7 +724,7 @@ function App() {
     if (!isSoundEnabled || a11ySettings.muteSound) return;
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
+
       // Tone 1: retro/triangle wave beep
       const osc1 = audioCtx.createOscillator();
       const gain1 = audioCtx.createGain();
@@ -785,7 +792,7 @@ function App() {
     if (settings.event_announcement) {
       const dismissed = localStorage.getItem('dismissed_announcement');
       const isNew = prevAnnouncementRef.current !== settings.event_announcement;
-      
+
       prevAnnouncementRef.current = settings.event_announcement;
 
       const isDismissed = dismissed === settings.event_announcement;
@@ -1445,7 +1452,7 @@ function App() {
         .from('blog_post_stars')
         .select('post_id')
         .eq('user_id', session.user.id);
-      
+
       if (data) {
         setStarredPostIds(new Set(data.map(item => item.post_id)));
       }
@@ -1469,7 +1476,7 @@ function App() {
           .delete()
           .eq('post_id', postId)
           .eq('user_id', currentUserId);
-        
+
         if (!error) {
           playNotificationSound();
         }
@@ -1477,7 +1484,7 @@ function App() {
         const { error } = await supabase
           .from('blog_post_stars')
           .insert([{ post_id: postId, user_id: currentUserId }]);
-        
+
         if (!error) {
           playNotificationSound();
         }
@@ -1554,7 +1561,7 @@ function App() {
     try {
       const mediaItems = [];
       const totalFiles = uploadFiles.length;
-      
+
       for (let i = 0; i < totalFiles; i++) {
         const file = uploadFiles[i];
         const result = await uploadSingleFilePromise(file);
@@ -1588,7 +1595,7 @@ function App() {
 
       playSuccessSound();
       setUploadAlert({ type: 'success', message: 'Vlog posted successfully!' });
-      
+
       setUploadCaption('');
       setUploadFiles([]);
       setUploadPositions([]);
@@ -1617,7 +1624,7 @@ function App() {
         .from('blog_posts')
         .delete()
         .eq('id', postId);
-      
+
       if (error) {
         alert('Failed to delete post: ' + error.message);
       } else {
@@ -1669,7 +1676,7 @@ function App() {
     const diffSecs = Math.floor(diffMs / 1000);
     const diffMins = Math.floor(diffSecs / 60);
     const diffHrs = Math.floor(diffMins / 60);
-    
+
     if (diffSecs < 1) {
       return 'just now';
     }
@@ -1692,9 +1699,9 @@ function App() {
       if (token.startsWith('@') && token.length > 1) {
         const cleanName = token.substring(1).replace(/_/g, ' ');
         return (
-          <span 
-            key={idx} 
-            className="caption-mention-link" 
+          <span
+            key={idx}
+            className="caption-mention-link"
             style={{ color: 'var(--pink-primary)', cursor: 'pointer', fontWeight: 'bold' }}
             onClick={async () => {
               try {
@@ -1767,15 +1774,15 @@ function App() {
       const firstMedia = mediaItems[0] || {};
 
       const reportPayload = {
-        user_id:            session.user.id,
-        report_type:        'post',
-        post_id:            post.id,
-        reported_user_id:   post.user_id,
+        user_id: session.user.id,
+        report_type: 'post',
+        post_id: post.id,
+        reported_user_id: post.user_id,
         reported_user_name: post.profiles?.full_name || 'Anonymous',
-        media_url:          firstMedia.url || post.media_url,
-        media_type:         firstMedia.type || post.media_type,
-        caption:            post.caption || '',
-        description:        `POST REPORT — Post by "${post.profiles?.full_name || 'Anonymous'}". Caption: "${(post.caption || '').slice(0, 120)}". Media: ${firstMedia.url || post.media_url}`,
+        media_url: firstMedia.url || post.media_url,
+        media_type: firstMedia.type || post.media_type,
+        caption: post.caption || '',
+        description: `POST REPORT — Post by "${post.profiles?.full_name || 'Anonymous'}". Caption: "${(post.caption || '').slice(0, 120)}". Media: ${firstMedia.url || post.media_url}`,
       };
 
       const { error } = await supabase
@@ -1807,8 +1814,8 @@ function App() {
     const activeIndex = carouselIndices[post.id] || 0;
 
     return (
-      <div 
-        className="blog-post-media" 
+      <div
+        className="blog-post-media"
         onClick={() => handlePostMediaClick(post)}
         style={{ position: 'relative', width: '100%', overflow: 'hidden' }}
       >
@@ -1820,8 +1827,8 @@ function App() {
         )}
 
         {/* Carousel Container */}
-        <div 
-          className="carousel-container-horizontal" 
+        <div
+          className="carousel-container-horizontal"
           onScroll={(e) => {
             const idx = Math.round(e.target.scrollLeft / e.target.clientWidth);
             if (carouselIndices[post.id] !== idx) {
@@ -1834,9 +1841,9 @@ function App() {
             const positions = Array.isArray(post.media_positions) ? post.media_positions : [];
             const objPos = positions[idx]?.position || 'center center';
             return (
-              <div 
-                key={idx} 
-                className="carousel-slide-item" 
+              <div
+                key={idx}
+                className="carousel-slide-item"
                 style={{ flex: '0 0 100%', width: '100%', aspectRatio: '1 / 1', minHeight: '200px', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
               >
                 <MediaSlide item={item} idx={idx} objectPosition={objPos} />
@@ -1860,14 +1867,14 @@ function App() {
   const handlePostMediaClick = (post) => {
     const currentTime = Date.now();
     const timeDiff = currentTime - lastClickRef.current.time;
-    
+
     if (lastClickRef.current.post === post.id && timeDiff < 300) {
       handlePostDoubleTap(post.id);
       lastClickRef.current.time = 0;
     } else {
       lastClickRef.current.time = currentTime;
       lastClickRef.current.post = post.id;
-      
+
       setTimeout(() => {
         if (lastClickRef.current.time === currentTime) {
           if (post.media_type === 'image') {
@@ -1902,7 +1909,7 @@ function App() {
         setUserSavedPosts([]);
         return;
       }
-      
+
       if (data) {
         const posts = data.map(item => {
           const post = item.blog_posts;
@@ -1929,7 +1936,7 @@ function App() {
       playErrorSound();
       return;
     }
-    
+
     const isSaved = savedPostIds.has(post.id);
     try {
       if (isSaved) {
@@ -1948,7 +1955,7 @@ function App() {
         setUploadAlert({ type: 'success', message: 'Post saved successfully!' });
       }
       playSuccessSound();
-      
+
       // Update local saves set and lists
       const updatedSaves = new Set(savedPostIds);
       if (isSaved) {
@@ -1957,7 +1964,7 @@ function App() {
         updatedSaves.add(post.id);
       }
       setSavedPostIds(updatedSaves);
-      
+
       fetchUserSavedPosts();
     } catch (err) {
       console.error(err);
@@ -1969,21 +1976,21 @@ function App() {
   const handleEditPostCaption = async (post) => {
     const newCaption = prompt("Edit your post caption:", post.caption || '');
     if (newCaption === null) return;
-    
+
     try {
       const { error } = await supabase
         .from('blog_posts')
         .update({ caption: newCaption })
         .eq('id', post.id);
-        
+
       if (error) throw error;
       setUploadAlert({ type: 'success', message: 'Caption updated successfully!' });
       playSuccessSound();
-      
+
       if (activeViewPost?.id === post.id) {
         setActiveViewPost(prev => ({ ...prev, caption: newCaption }));
       }
-      
+
       fetchBlogPosts(true);
       fetchUserProfilePosts(session.user.id);
     } catch (err) {
@@ -2037,12 +2044,12 @@ function App() {
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) {
         console.error('Error fetching target profile:', error);
         return;
       }
-      
+
       if (profile) {
         const mappedUser = {
           id: profile.id,
@@ -2152,7 +2159,7 @@ function App() {
               .select('full_name, avatar_url, team_name')
               .eq('id', payload.new.user_id)
               .single();
-            
+
             setActiveAlert({
               id: payload.new.id,
               type: 'system_issue',
@@ -2247,7 +2254,7 @@ function App() {
 
       const link = json.magic_link;
       // Copy to clipboard
-      try { await navigator.clipboard.writeText(link); } catch (_) {}
+      try { await navigator.clipboard.writeText(link); } catch (_) { }
       setMagicLinkState(prev => ({ ...prev, [u.id]: { link } }));
     } catch (err) {
       alert('Magic link failed: ' + err.message);
@@ -2315,28 +2322,28 @@ function App() {
     if (!log.details || typeof log.details !== 'object') {
       return String(log.details || '');
     }
-    
+
     if (log.action.startsWith('Updated Setting:')) {
       const settingKey = log.action.split('Updated Setting: ')[1];
       return `Set "${settingKey}" to: "${log.details.value}"`;
     }
-    
+
     if (log.action === 'Approved Mentor') {
       return `Mentor Name: ${log.details.name}`;
     }
-    
+
     if (log.action === 'Added Venue') {
       return `Venue Name: ${log.details.name} (Images: ${log.details.images || 0})`;
     }
-    
+
     if (log.action === 'Added Mentor') {
       return `Mentor Name: ${log.details.name}`;
     }
-    
+
     if (log.action === 'Deleted Mentor') {
       return `Mentor Name: ${log.details.name}`;
     }
-    
+
     if (log.action === 'Deleted User') {
       return `User Name: ${log.details.name} (ID: ${log.details.userId})`;
     }
@@ -3658,184 +3665,130 @@ function App() {
         {/* Live Announcement Banner */}
         {settings.event_announcement && !isBannerDismissed && (
           <div className="live-announcement-banner">
-          <div className="banner-content">
-            <span className="banner-icon">📢</span>
-            <div className="banner-text-wrapper">
-              <span className="banner-badge">ANNOUNCEMENT</span>
-              <span className="banner-text">{settings.event_announcement}</span>
-            </div>
-          </div>
-          <button className="banner-close-btn" onClick={dismissBanner} aria-label="Dismiss announcement">
-            &times;
-          </button>
-        </div>
-      )}
-
-      {/* PWA Install Banner */}
-      {installPrompt && showInstallBanner && (
-        <div className="pwa-install-banner">
-          <div className="pwa-install-banner-content">
-            <span className="pwa-install-logo">✦</span>
-            <div className="pwa-install-text-wrapper">
-              <span className="pwa-install-badge">APP UPGRADE</span>
-              <span className="pwa-install-text">Install the Starlet 5.0 application on your device for offline support and system notifications!</span>
-            </div>
-          </div>
-          <div className="pwa-install-actions">
-            <button className="pwa-install-dismiss" onClick={() => setShowInstallBanner(false)} aria-label="Dismiss install prompt">Not Now</button>
-            <button className="pwa-install-btn-accent" onClick={handleInstallClick} aria-label="Install App">Install</button>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Sparkles */}
-      <div className="sparkle s1">✦</div>
-      <div className="sparkle s2">✧</div>
-      <div className="sparkle s3">✦</div>
-
-      <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' && activeView !== 'audit-logs' && activeView !== 'blog' && activeView !== 'profile-view' && activeView !== 'venue' ? 'header-minimal' : ''}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
-            <img src="brand/Logo.png" alt="Starlet Logo" />
-          </div>
-          {(activeView === 'profile' || activeView === 'sponsors-overview' || activeView === 'audit-logs' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue' || isMobile) && (
-            <span className="logo-text-starlet" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
-              Starlet
-            </span>
-          )}
-        </div>
-
-        {(activeView === 'landing' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue') && (
-          <>
-            <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
-              <>
-                <a href="#mission" className="nav-link" onClick={(e) => handleHomeNavClick('mission', e)}>Mission</a>
-                <a href="#tracks" className="nav-link" onClick={(e) => handleHomeNavClick('tracks', e)}>Tracks</a>
-                <a href="#timeline" className="nav-link" onClick={(e) => handleHomeNavClick('timeline', e)}>Timeline</a>
-                <a href="#events" className="nav-link" onClick={(e) => handleHomeNavClick('events', e)}>Events</a>
-                <a href="#rules" className="nav-link" onClick={(e) => handleHomeNavClick('rules', e)}>Rules</a>
-                <a href="#sponsors" className="nav-link" onClick={(e) => handleHomeNavClick('sponsors', e)}>Sponsors</a>
-                <a href="#uic-overview" className="nav-link" onClick={(e) => handleHomeNavClick('uic-overview', e)}>UIC Overview</a>
-                <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
-                <a href="#" className={`nav-link ${activeView === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('blog'); setIsMenuOpen(false); }}>Blog</a>
-              </>
-
-              <div className="mobile-auth-wrapper">
-                {isLoggedIn ? (
-                  <>
-                    <div className="mobile-profile-link" onClick={() => { setActiveView('venue'); setIsMenuOpen(false); }}>
-                      <img src="icons/location.svg" alt="venue" />
-                      <span>Venue Details</span>
-                    </div>
-                    <div className="mobile-profile-link" onClick={() => { setActiveView('profile'); setIsMenuOpen(false); }}>
-                      <img src="icons/user-profile.svg" alt="profile" />
-                      <span>My Profile</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="mobile-auth-btns">
-                    <div className="login-btn" onClick={() => { setActiveView('login'); setIsMenuOpen(false); }}>LOGIN</div>
-                    <div className="join-btn" onClick={() => { setActiveView('signup'); setIsMenuOpen(false); }}>SIGN UP</div>
-                  </div>
-                )}
-              </div>
-            </nav>
-
-            <div className="header-actions">
-              <div className="desktop-auth-btns">
-                {isLoggedIn ? (
-                  <>
-                    <img
-                      src="icons/location.svg"
-                      className="nav-icon-btn"
-                      alt="venue"
-                      onClick={() => setActiveView('venue')}
-                      title="Venue Details"
-                    />
-                    <img
-                      src="icons/user-profile.svg"
-                      className="nav-icon-btn"
-                      alt="profile"
-                      onClick={() => setActiveView('profile')}
-                      title="My Profile"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="login-btn" onClick={() => setActiveView('login')}>LOGIN</div>
-                    <div className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</div>
-                  </>
-                )}
-              </div>
-
-              <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
+            <div className="banner-content">
+              <span className="banner-icon">📢</span>
+              <div className="banner-text-wrapper">
+                <span className="banner-badge">ANNOUNCEMENT</span>
+                <span className="banner-text">{settings.event_announcement}</span>
               </div>
             </div>
-          </>
+            <button className="banner-close-btn" onClick={dismissBanner} aria-label="Dismiss announcement">
+              &times;
+            </button>
+          </div>
         )}
 
-        {activeView === 'sponsors-overview' && (
-          <>
-            <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
-              <a href="pdf/Milaap%202026%20Starlet%20.pdf" download="Milaap 2026 Starlet.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Milaap 2026 Starlet PDF</a>
-              <a href="pdf/Starlet%205.0%20adishankara.pdf" download="Starlet 5.0 adishankara.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Starlet 5.0 Adi Shankara PDF</a>
-            </nav>
-            <div className="header-actions">
-              <div
-                className="nav-btn-round"
-                onClick={() => setActiveView('landing')}
-                title="Back to Home"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-              </div>
-              <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
+        {/* PWA Install Banner */}
+        {installPrompt && showInstallBanner && (
+          <div className="pwa-install-banner">
+            <div className="pwa-install-banner-content">
+              <span className="pwa-install-logo">✦</span>
+              <div className="pwa-install-text-wrapper">
+                <span className="pwa-install-badge">APP UPGRADE</span>
+                <span className="pwa-install-text">Install the Starlet 5.0 application on your device for offline support and system notifications!</span>
               </div>
             </div>
-          </>
+            <div className="pwa-install-actions">
+              <button className="pwa-install-dismiss" onClick={() => setShowInstallBanner(false)} aria-label="Dismiss install prompt">Not Now</button>
+              <button className="pwa-install-btn-accent" onClick={handleInstallClick} aria-label="Install App">Install</button>
+            </div>
+          </div>
         )}
 
-        {(activeView === 'profile' || activeView === 'audit-logs') && (
-          <>
-            <nav className={`nav-links ${user.role === 'admin' && adminActiveTab === 'admin' ? 'admin-top-nav' : 'profile-nav-links'} ${isMenuOpen ? 'mobile-active' : ''}`}>
-              {user.role === 'admin' && adminActiveTab === 'admin' && (
+        {/* Floating Sparkles */}
+        <div className="sparkle s1">✦</div>
+        <div className="sparkle s2">✧</div>
+        <div className="sparkle s3">✦</div>
+
+        <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' && activeView !== 'audit-logs' && activeView !== 'blog' && activeView !== 'profile-view' && activeView !== 'venue' ? 'header-minimal' : ''}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
+              <img src="brand/Logo.png" alt="Starlet Logo" />
+            </div>
+            {(activeView === 'profile' || activeView === 'sponsors-overview' || activeView === 'audit-logs' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue' || isMobile) && (
+              <span className="logo-text-starlet" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
+                Starlet
+              </span>
+            )}
+          </div>
+
+          {(activeView === 'landing' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue') && (
+            <>
+              <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
                 <>
-                  <a href="#project-submissions-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('project-submissions-section'); }}>Submissions</a>
-                  <a href="#active-squads-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('active-squads-section'); }}>Active Squads</a>
-                  <a href="#global-config-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('global-config-section'); }}>Config</a>
-                  <a href="#venue-management-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('venue-management-section'); }}>Venue</a>
-                  <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('audit-logs'); setIsMenuOpen(false); }}>Logs</a>
+                  <a href="#mission" className="nav-link" onClick={(e) => handleHomeNavClick('mission', e)}>Mission</a>
+                  <a href="#tracks" className="nav-link" onClick={(e) => handleHomeNavClick('tracks', e)}>Tracks</a>
+                  <a href="#timeline" className="nav-link" onClick={(e) => handleHomeNavClick('timeline', e)}>Timeline</a>
+                  <a href="#events" className="nav-link" onClick={(e) => handleHomeNavClick('events', e)}>Events</a>
+                  <a href="#rules" className="nav-link" onClick={(e) => handleHomeNavClick('rules', e)}>Rules</a>
+                  <a href="#sponsors" className="nav-link" onClick={(e) => handleHomeNavClick('sponsors', e)}>Sponsors</a>
+                  <a href="#uic-overview" className="nav-link" onClick={(e) => handleHomeNavClick('uic-overview', e)}>UIC Overview</a>
+                  <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
+                  <a href="#" className={`nav-link ${activeView === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('blog'); setIsMenuOpen(false); }}>Blog</a>
                 </>
-              )}
-            </nav>
 
-            <div className="header-actions">
-              <div className="profile-header-icons">
-                {user.role === 'admin' && (
-                  <div
-                    className="nav-btn-round profile-switch-btn"
-                    onClick={() => {
-                      setAdminActiveTab(adminActiveTab === 'admin' ? 'mentor' : 'admin');
-                      if (activeView === 'audit-logs') {
-                        setActiveView('profile');
-                      }
-                    }}
-                    title={adminActiveTab === 'admin' ? 'Switch to Mentor View' : 'Switch to Admin View'}
-                    style={{ borderColor: 'var(--yellow-primary)', color: 'var(--yellow-primary)' }}
-                  >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M8 3L3 8l5 5"></path>
-                      <path d="M3 8h18"></path>
-                      <path d="M16 21l5-5-5-5"></path>
-                      <path d="M21 16H3"></path>
-                    </svg>
-                  </div>
-                )}
+                <div className="mobile-auth-wrapper">
+                  {isLoggedIn ? (
+                    <>
+                      <div className="mobile-profile-link" onClick={() => { setActiveView('venue'); setIsMenuOpen(false); }}>
+                        <img src="icons/location.svg" alt="venue" />
+                        <span>Venue Details</span>
+                      </div>
+                      <div className="mobile-profile-link" onClick={() => { setActiveView('profile'); setIsMenuOpen(false); }}>
+                        <img src="icons/user-profile.svg" alt="profile" />
+                        <span>My Profile</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mobile-auth-btns">
+                      <div className="login-btn" onClick={() => { setActiveView('login'); setIsMenuOpen(false); }}>LOGIN</div>
+                      <div className="join-btn" onClick={() => { setActiveView('signup'); setIsMenuOpen(false); }}>SIGN UP</div>
+                    </div>
+                  )}
+                </div>
+              </nav>
 
+              <div className="header-actions">
+                <div className="desktop-auth-btns">
+                  {isLoggedIn ? (
+                    <>
+                      <img
+                        src="icons/location.svg"
+                        className="nav-icon-btn"
+                        alt="venue"
+                        onClick={() => setActiveView('venue')}
+                        title="Venue Details"
+                      />
+                      <img
+                        src="icons/user-profile.svg"
+                        className="nav-icon-btn"
+                        alt="profile"
+                        onClick={() => setActiveView('profile')}
+                        title="My Profile"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <div className="login-btn" onClick={() => setActiveView('login')}>LOGIN</div>
+                      <div className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</div>
+                    </>
+                  )}
+                </div>
+
+                <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                  <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeView === 'sponsors-overview' && (
+            <>
+              <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
+                <a href="pdf/Milaap%202026%20Starlet%20.pdf" download="Milaap 2026 Starlet.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Milaap 2026 Starlet PDF</a>
+                <a href="pdf/Starlet%205.0%20adishankara.pdf" download="Starlet 5.0 adishankara.pdf" className="nav-link" onClick={() => setIsMenuOpen(false)}>Starlet 5.0 Adi Shankara PDF</a>
+              </nav>
+              <div className="header-actions">
                 <div
                   className="nav-btn-round"
                   onClick={() => setActiveView('landing')}
@@ -3846,30 +3799,84 @@ function App() {
                     <polyline points="9 22 9 12 15 12 15 22"></polyline>
                   </svg>
                 </div>
-
-                <div
-                  className="nav-btn-round"
-                  onClick={(e) => { e.preventDefault(); handleLogout(); setIsMenuOpen(false); }}
-                  title="Logout"
-                  style={{ borderColor: 'var(--pink-primary)', color: 'var(--pink-primary)' }}
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                </div>
-              </div>
-              {user.role === 'admin' && adminActiveTab === 'admin' && (
                 <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                   <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
                 </div>
-              )}
-            </div>
-          </>
-        )}
-      </header>
-    </div>
+              </div>
+            </>
+          )}
+
+          {(activeView === 'profile' || activeView === 'audit-logs') && (
+            <>
+              <nav className={`nav-links ${user.role === 'admin' && adminActiveTab === 'admin' ? 'admin-top-nav' : 'profile-nav-links'} ${isMenuOpen ? 'mobile-active' : ''}`}>
+                {user.role === 'admin' && adminActiveTab === 'admin' && (
+                  <>
+                    <a href="#project-submissions-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('project-submissions-section'); }}>Submissions</a>
+                    <a href="#active-squads-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('active-squads-section'); }}>Active Squads</a>
+                    <a href="#global-config-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('global-config-section'); }}>Config</a>
+                    <a href="#venue-management-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('venue-management-section'); }}>Venue</a>
+                    <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('audit-logs'); setIsMenuOpen(false); }}>Logs</a>
+                  </>
+                )}
+              </nav>
+
+              <div className="header-actions">
+                <div className="profile-header-icons">
+                  {user.role === 'admin' && (
+                    <div
+                      className="nav-btn-round profile-switch-btn"
+                      onClick={() => {
+                        setAdminActiveTab(adminActiveTab === 'admin' ? 'mentor' : 'admin');
+                        if (activeView === 'audit-logs') {
+                          setActiveView('profile');
+                        }
+                      }}
+                      title={adminActiveTab === 'admin' ? 'Switch to Mentor View' : 'Switch to Admin View'}
+                      style={{ borderColor: 'var(--yellow-primary)', color: 'var(--yellow-primary)' }}
+                    >
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 3L3 8l5 5"></path>
+                        <path d="M3 8h18"></path>
+                        <path d="M16 21l5-5-5-5"></path>
+                        <path d="M21 16H3"></path>
+                      </svg>
+                    </div>
+                  )}
+
+                  <div
+                    className="nav-btn-round"
+                    onClick={() => setActiveView('landing')}
+                    title="Back to Home"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                  </div>
+
+                  <div
+                    className="nav-btn-round"
+                    onClick={(e) => { e.preventDefault(); handleLogout(); setIsMenuOpen(false); }}
+                    title="Logout"
+                    style={{ borderColor: 'var(--pink-primary)', color: 'var(--pink-primary)' }}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                  </div>
+                </div>
+                {user.role === 'admin' && adminActiveTab === 'admin' && (
+                  <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    <img src={isMenuOpen ? "icons/close.svg" : "icons/hamburger.svg"} alt="menu" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </header>
+      </div>
 
       {activeView === 'landing' ? (
         <>
@@ -3920,7 +3927,7 @@ function App() {
                             <h3 className="whiteboard-title handwritten" style={{ marginBottom: '1rem', fontSize: '2rem' }}>
                               Starlet 5.0 Schedule
                             </h3>
-                            
+
                             {/* Manual Day Selection Tabs */}
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', zIndex: 10 }}>
                               <button
@@ -4144,18 +4151,18 @@ function App() {
                           const numPages = Math.ceil(allTracks.length / PAGE_SIZE);
                           const startIndex = mobileTrackPageIndex * PAGE_SIZE;
                           const pageTracks = allTracks.slice(startIndex, startIndex + PAGE_SIZE);
-                          
+
                           if (pageTracks.length === 0) return null;
-                          
+
                           return (
                             <>
                               <div className="tracks-grid-interactive paginated-mobile-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', width: '100%' }}>
                                 {pageTracks.map((track) => {
                                   const absoluteIndex = allTracks.indexOf(track);
                                   return (
-                                    <div 
-                                      key={track.id} 
-                                      className={`track-card-mini paginated-active-card slide-${slideDirection}`} 
+                                    <div
+                                      key={track.id}
+                                      className={`track-card-mini paginated-active-card slide-${slideDirection}`}
                                       onClick={() => setSelectedTrack({ ...track, index: track.id === 'other' ? 'Other' : absoluteIndex + 1 })}
                                       style={{ width: '100%', margin: '0 auto' }}
                                     >
@@ -4170,7 +4177,7 @@ function App() {
                               </div>
 
                               <div className="track-pagination-controls">
-                                <button 
+                                <button
                                   className="track-pagination-arrow"
                                   onClick={() => {
                                     if (mobileTrackPageIndex > 0) {
@@ -4197,7 +4204,7 @@ function App() {
                                     </button>
                                   ))}
                                 </div>
-                                <button 
+                                <button
                                   className="track-pagination-arrow"
                                   onClick={() => {
                                     if (mobileTrackPageIndex < numPages - 1) {
@@ -4244,12 +4251,6 @@ function App() {
 
                       {/* Organizers & Collaborators Grid */}
                       <div className="partners-grid-custom" ref={partnersRef}>
-                        <div className="partner-card-square main-org clickable" onClick={() => setShowAboutPopup(true)}>
-                          <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2 }}>MAIN ORGANIZER</span>
-                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', borderRadius: '26px', zIndex: 1 }}>
-                            <img src="collaborators/Mind Empowered.gif" alt="Mind Empowered" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                        </div>
 
                         <div className="partner-card-wide partner-card-extra-wide clickable" onClick={() => setShowAdiPopup(true)}>
                           <span className="badge-main" style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%) rotate(-2deg)', zIndex: 2, background: 'var(--pink-primary)' }}>COLLABORATOR</span>
@@ -4328,7 +4329,7 @@ function App() {
                       <div className="gallery-grid" ref={landingGalleryRef} style={{ overflowX: 'auto', display: 'flex', scrollBehavior: 'smooth', padding: '1rem 0' }}>
                         {Array.from({ length: 42 }, (_, i) => {
                           const index = i + 1;
-                          const path = index <= 9 ? `gallery/${index}.JPG` : `gallery/${index}.jpeg`;
+                          const path = index <= 9 ? `gallery/${index}.JPG` : `gallery/${index}.jpg`;
                           const caption = galleryCaptions[i] || `Starlet Memory #${index}`;
                           return (
                             <div
@@ -4364,7 +4365,7 @@ function App() {
                   ) : section.type === 'prizes' ? (
                     <div className="section-content">
                       <h2 className="text-3d" style={{ fontSize: '2.5rem', marginBottom: '3rem', textAlign: 'center' }}>{section.title}</h2>
-                      
+
                       {/* Jury Showcase (Top) */}
                       <div className="jury-arcade-deck">
                         <h3 className="arcade-subtitle">👾 JURY SELECTION GRID 👾</h3>
@@ -4416,7 +4417,7 @@ function App() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="arcade-ticket rank-2">
                             <div className="ticket-left">
                               <div className="ticket-rank">02</div>
@@ -4559,7 +4560,7 @@ function App() {
                     <div className="section-content">
                       <h2 className="text-3d" style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>{section.title}</h2>
                       <p style={{ color: '#fff', marginBottom: '2.5rem', fontSize: '1.1rem' }}>{section.content}</p>
-                      
+
                       <div className="events-grid" style={{
                         display: 'flex',
                         overflowX: 'auto',
@@ -4728,6 +4729,20 @@ function App() {
                             )}
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  ) : section.type === 'about-me' ? (
+                    <div className="section-content">
+                      <h2 className="text-3d" style={{ fontSize: '2.5rem' }}>{section.title}</h2>
+                      <div className="section-inner">
+                        <div style={{ flex: 1, textAlign: 'left' }}>
+                          <p style={{ marginBottom: '1.5rem' }}>Mind Empowered (ME) is a charitable organization based in India. It is the brainchild of Maya Menon and her sister - two sisters who resonate positivity and happiness wherever they go.</p>
+                          <p style={{ marginBottom: '2.5rem' }}>The sisters realized there was a strong need to eliminate the stigma associated with mental health from our society. Hence, the idea of an open forum to help the students came to life by forming "ME".</p>
+                          <strong style={{ color: 'var(--blue-shadow)', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.9rem', display: 'block' }}>A MIND EMPOWERED INITIATIVE</strong>
+                        </div>
+                        <div className="section-visual-small" style={{ borderRadius: '26px', overflow: 'hidden', border: '3px solid var(--text-navy)', boxShadow: '4px 4px 0px var(--text-navy)', maxWidth: '350px', background: '#fff' }}>
+                          <img src={section.image} alt={section.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -5329,110 +5344,110 @@ function App() {
 
               <div className="admin-main-grid">
                 <div className="admin-panel mentor-queue" id="system-reports-section">
-                <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
-                  System Reports
-                  {systemIssues.length > 0 && (
-                    <span style={{ marginLeft: '0.6rem', background: '#e53e3e', color: '#fff', borderRadius: '50px', fontSize: '0.72rem', padding: '2px 9px', fontFamily: 'sans-serif', fontWeight: 700, verticalAlign: 'middle' }}>
-                      {systemIssues.length}
-                    </span>
-                  )}
-                </h2>
-                <div className="admin-issues-list">
-                  {systemIssues.length === 0 ? (
-                    <p>No active issues reported.</p>
-                  ) : (
-                    systemIssues.map(issue => (
-                      <div key={issue.id} className="approval-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>
+                    System Reports
+                    {systemIssues.length > 0 && (
+                      <span style={{ marginLeft: '0.6rem', background: '#e53e3e', color: '#fff', borderRadius: '50px', fontSize: '0.72rem', padding: '2px 9px', fontFamily: 'sans-serif', fontWeight: 700, verticalAlign: 'middle' }}>
+                        {systemIssues.length}
+                      </span>
+                    )}
+                  </h2>
+                  <div className="admin-issues-list">
+                    {systemIssues.length === 0 ? (
+                      <p>No active issues reported.</p>
+                    ) : (
+                      systemIssues.map(issue => (
+                        <div key={issue.id} className="approval-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
 
-                        {/* Header row: badge + timestamp */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%' }}>
-                          <span style={{
-                            background: issue.report_type === 'post' ? '#fed7d7' : '#e9d8fd',
-                            color: issue.report_type === 'post' ? '#c53030' : '#553c9a',
-                            borderRadius: '6px', padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
-                          }}>
-                            {issue.report_type === 'post' ? '🚩 Post Report' : '⚠️ System Issue'}
-                          </span>
-                          <small style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                            {new Date(issue.created_at).toLocaleString()}
-                          </small>
-                        </div>
+                          {/* Header row: badge + timestamp */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%' }}>
+                            <span style={{
+                              background: issue.report_type === 'post' ? '#fed7d7' : '#e9d8fd',
+                              color: issue.report_type === 'post' ? '#c53030' : '#553c9a',
+                              borderRadius: '6px', padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>
+                              {issue.report_type === 'post' ? '🚩 Post Report' : '⚠️ System Issue'}
+                            </span>
+                            <small style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                              {new Date(issue.created_at).toLocaleString()}
+                            </small>
+                          </div>
 
-                        {/* Reporter row */}
-                        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                          {issue.profiles?.avatar_url ? (
-                            <img src={issue.profiles.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
-                          ) : (
-                            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--yellow-star)', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
+                          {/* Reporter row */}
+                          <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                            {issue.profiles?.avatar_url ? (
+                              <img src={issue.profiles.avatar_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--yellow-star)', border: '2px solid var(--text-navy)', flexShrink: 0 }} />
+                            )}
+                            <div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Reported by</div>
+                              <strong style={{ fontSize: '0.88rem' }}>{issue.profiles?.full_name || 'Anonymous'}</strong>
+                            </div>
+                          </div>
+
+                          {/* Post details card (only for post reports) */}
+                          {issue.report_type === 'post' && (
+                            <div style={{ background: '#fff8f0', border: '1.5px solid #f6ad55', borderRadius: '10px', padding: '0.75rem 1rem', width: '100%', boxSizing: 'border-box' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#744210', marginBottom: '0.35rem', fontWeight: 700 }}>
+                                REPORTED POST — uploaded by {issue.reported_user_name || 'Unknown'}
+                              </div>
+                              {issue.caption && (
+                                <p style={{ fontSize: '0.84rem', margin: '0 0 0.5rem', color: '#2d3748', fontStyle: 'italic', lineHeight: 1.4 }}>
+                                  "{issue.caption.slice(0, 180)}{issue.caption.length > 180 ? '…' : ''}"
+                                </p>
+                              )}
+                              {issue.media_url && issue.media_type !== 'video' && (
+                                <img
+                                  src={issue.media_url}
+                                  alt="Reported post media"
+                                  style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
+                                />
+                              )}
+                              {issue.media_url && issue.media_type === 'video' && (
+                                <video
+                                  src={issue.media_url}
+                                  muted
+                                  preload="metadata"
+                                  style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
+                                />
+                              )}
+                              <div style={{ fontSize: '0.7rem', color: '#a0aec0', marginTop: '0.4rem' }}>
+                                Post ID: <code>{issue.post_id}</code>
+                              </div>
+                            </div>
                           )}
-                          <div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Reported by</div>
-                            <strong style={{ fontSize: '0.88rem' }}>{issue.profiles?.full_name || 'Anonymous'}</strong>
-                          </div>
-                        </div>
 
-                        {/* Post details card (only for post reports) */}
-                        {issue.report_type === 'post' && (
-                          <div style={{ background: '#fff8f0', border: '1.5px solid #f6ad55', borderRadius: '10px', padding: '0.75rem 1rem', width: '100%', boxSizing: 'border-box' }}>
-                            <div style={{ fontSize: '0.75rem', color: '#744210', marginBottom: '0.35rem', fontWeight: 700 }}>
-                              REPORTED POST — uploaded by {issue.reported_user_name || 'Unknown'}
-                            </div>
-                            {issue.caption && (
-                              <p style={{ fontSize: '0.84rem', margin: '0 0 0.5rem', color: '#2d3748', fontStyle: 'italic', lineHeight: 1.4 }}>
-                                "{issue.caption.slice(0, 180)}{issue.caption.length > 180 ? '…' : ''}"
-                              </p>
-                            )}
-                            {issue.media_url && issue.media_type !== 'video' && (
-                              <img
-                                src={issue.media_url}
-                                alt="Reported post media"
-                                style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
-                              />
-                            )}
-                            {issue.media_url && issue.media_type === 'video' && (
-                              <video
-                                src={issue.media_url}
-                                muted
-                                preload="metadata"
-                                style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
-                              />
-                            )}
-                            <div style={{ fontSize: '0.7rem', color: '#a0aec0', marginTop: '0.4rem' }}>
-                              Post ID: <code>{issue.post_id}</code>
-                            </div>
-                          </div>
-                        )}
+                          {/* Plain description for non-post issues */}
+                          {issue.report_type !== 'post' && (
+                            <p style={{ fontSize: '0.88rem', margin: 0, color: '#2d3748' }}>{issue.description}</p>
+                          )}
 
-                        {/* Plain description for non-post issues */}
-                        {issue.report_type !== 'post' && (
-                          <p style={{ fontSize: '0.88rem', margin: 0, color: '#2d3748' }}>{issue.description}</p>
-                        )}
-
-                        {/* Action buttons */}
-                        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                          <button className="btn-small accept" onClick={() => handleResolveIssue(issue.id)}>
-                            ✓ RESOLVE
-                          </button>
-                          {issue.report_type === 'post' && issue.post_id && (
-                            <button
-                              className="btn-small delete"
-                              onClick={async () => {
-                                if (!confirm('Permanently delete this reported post?')) return;
-                                const { error } = await supabase.from('blog_posts').delete().eq('id', issue.post_id);
-                                if (!error) { handleResolveIssue(issue.id); fetchBlogPosts(true); }
-                                else alert('Failed to delete post: ' + error.message);
-                              }}
-                            >
-                              🗑 DELETE POST
+                          {/* Action buttons */}
+                          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                            <button className="btn-small accept" onClick={() => handleResolveIssue(issue.id)}>
+                              ✓ RESOLVE
                             </button>
-                          )}
-                        </div>
+                            {issue.report_type === 'post' && issue.post_id && (
+                              <button
+                                className="btn-small delete"
+                                onClick={async () => {
+                                  if (!confirm('Permanently delete this reported post?')) return;
+                                  const { error } = await supabase.from('blog_posts').delete().eq('id', issue.post_id);
+                                  if (!error) { handleResolveIssue(issue.id); fetchBlogPosts(true); }
+                                  else alert('Failed to delete post: ' + error.message);
+                                }}
+                              >
+                                🗑 DELETE POST
+                              </button>
+                            )}
+                          </div>
 
-                      </div>
-                    ))
-                  )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
 
                 <div className="admin-panel mentor-queue">
                   <h2 className="text-3d" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Your Mentor Help Requests</h2>
@@ -5884,7 +5899,7 @@ function App() {
                                                   }
                                                 </span>
                                               </div>
-                                                 {u.user_role === 'mentor' && (
+                                              {u.user_role === 'mentor' && (
                                                 <>
                                                   <div className="user-detail-item">
                                                     <span className="detail-label">LinkedIn</span>
@@ -6352,22 +6367,22 @@ function App() {
                     {/* MY VLOGS / POSTS / SAVED GRID */}
                     <div className="profile-card" style={{ marginTop: '2rem', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '20px' }}>
                       <div className="profile-tabs-header" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', borderBottom: '3px solid var(--text-navy)', paddingBottom: '0.5rem' }}>
-                        <h3 
-                          className={`profile-tab-title ${profileTab === 'posts' ? 'active' : ''}`} 
+                        <h3
+                          className={`profile-tab-title ${profileTab === 'posts' ? 'active' : ''}`}
                           onClick={() => setProfileTab('posts')}
                           style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'posts' ? 1 : 0.4 }}
                         >
                           MY POSTS
                         </h3>
-                        <h3 
-                          className={`profile-tab-title ${profileTab === 'saved' ? 'active' : ''}`} 
+                        <h3
+                          className={`profile-tab-title ${profileTab === 'saved' ? 'active' : ''}`}
                           onClick={() => setProfileTab('saved')}
                           style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'saved' ? 1 : 0.4 }}
                         >
                           SAVED POSTS
                         </h3>
                       </div>
-                      
+
                       {profileTab === 'posts' ? (
                         userProfilePosts.length === 0 ? (
                           <p style={{ opacity: 0.5, fontStyle: 'italic' }}>No posts uploaded yet. Head over to the Blog Feed to upload your first vlog!</p>
@@ -6789,22 +6804,22 @@ function App() {
                 {/* MY VLOGS / POSTS / SAVED GRID */}
                 <div className="profile-card" style={{ marginTop: '2rem', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '20px' }}>
                   <div className="profile-tabs-header" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', borderBottom: '3px solid var(--text-navy)', paddingBottom: '0.5rem' }}>
-                    <h3 
-                      className={`profile-tab-title ${profileTab === 'posts' ? 'active' : ''}`} 
+                    <h3
+                      className={`profile-tab-title ${profileTab === 'posts' ? 'active' : ''}`}
                       onClick={() => setProfileTab('posts')}
                       style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'posts' ? 1 : 0.4 }}
                     >
                       MY POSTS
                     </h3>
-                    <h3 
-                      className={`profile-tab-title ${profileTab === 'saved' ? 'active' : ''}`} 
+                    <h3
+                      className={`profile-tab-title ${profileTab === 'saved' ? 'active' : ''}`}
                       onClick={() => setProfileTab('saved')}
                       style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'saved' ? 1 : 0.4 }}
                     >
                       SAVED POSTS
                     </h3>
                   </div>
-                  
+
                   {profileTab === 'posts' ? (
                     userProfilePosts.length === 0 ? (
                       <p style={{ opacity: 0.5, fontStyle: 'italic' }}>No posts uploaded yet. Head over to the Blog Feed to upload your first vlog!</p>
@@ -7151,7 +7166,7 @@ function App() {
       ) : activeView === 'blog' ? (
         <div className="blog-feed-container" style={{ paddingTop: '100px' }}>
           {isLoggedIn && (
-            <button 
+            <button
               className="floating-add-post-btn"
               onClick={() => setIsUploadModalOpen(true)}
               title="Share a vlog or photo"
@@ -7182,9 +7197,9 @@ function App() {
                     <div className="blog-post-header">
                       <div className="blog-post-author" onClick={() => handleViewUserProfile(post.user_id)} style={{ cursor: 'pointer' }}>
                         <div className="author-avatar">
-                          <img 
-                            src={post.profiles?.avatar_url || 'icons/user-profile.svg'} 
-                            alt={post.profiles?.full_name || 'User'} 
+                          <img
+                            src={post.profiles?.avatar_url || 'icons/user-profile.svg'}
+                            alt={post.profiles?.full_name || 'User'}
                           />
                         </div>
                         <div className="author-meta">
@@ -7192,7 +7207,7 @@ function App() {
                           <span>{formatPostTimestamp(post.created_at)}</span>
                         </div>
                       </div>
-                      
+
                       {/* Options menu dropdown (3 vertical dots) */}
                       <div className="blog-post-menu-container" style={{ position: 'relative' }}>
                         <button className="blog-menu-dots-btn" onClick={(e) => togglePostMenu(post.id, e)} title="Options">
@@ -7234,7 +7249,7 @@ function App() {
 
                     {/* Post Actions & Caption */}
                     <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
-                      <button 
+                      <button
                         className={`blog-star-btn ${post.isStarred ? 'starred' : ''}`}
                         onClick={() => handleStarToggle(post.id)}
                         title={post.isStarred ? 'Unstar post' : 'Star post'}
@@ -7244,7 +7259,7 @@ function App() {
                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                         </svg>
                       </button>
-                      
+
                       {post.caption && (
                         <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
                           <span>{renderCaptionWithMentions(post.caption)}</span>
@@ -7259,11 +7274,11 @@ function App() {
                           onClick={(e) => { e.stopPropagation(); setActiveSharePostId(activeSharePostId === post.id ? null : post.id); }}
                         >
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="18" cy="5" r="3"/>
-                            <circle cx="6" cy="12" r="3"/>
-                            <circle cx="18" cy="19" r="3"/>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                            <circle cx="18" cy="5" r="3" />
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="18" cy="19" r="3" />
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                           </svg>
                         </button>
                         {activeSharePostId === post.id && (
@@ -7277,9 +7292,9 @@ function App() {
                               title="Caption copied to clipboard — paste it into your Instagram post!"
                             >
                               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                               </svg>
                               <span>Instagram</span>
                               <span className="blog-share-hint">📋 Copies caption</span>
@@ -7292,9 +7307,9 @@ function App() {
                               onClick={() => setActiveSharePostId(null)}
                             >
                               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-                                <rect x="2" y="9" width="4" height="12"/>
-                                <circle cx="4" cy="4" r="2"/>
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                <rect x="2" y="9" width="4" height="12" />
+                                <circle cx="4" cy="4" r="2" />
                               </svg>
                               <span>LinkedIn</span>
                             </a>
@@ -7317,8 +7332,8 @@ function App() {
                 <form className="auth-form" onSubmit={handleUploadPost}>
                   <div className="input-group">
                     <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Post Caption</label>
-                    <textarea 
-                      placeholder="Write something cool about this post... Use @ to tag users!" 
+                    <textarea
+                      placeholder="Write something cool about this post... Use @ to tag users!"
                       value={uploadCaption}
                       onChange={(e) => handleCaptionChange(e.target.value)}
                       required
@@ -7327,9 +7342,9 @@ function App() {
                     {mentionSuggestions.length > 0 && (
                       <div className="mention-autocomplete-dropdown">
                         {mentionSuggestions.map(user => (
-                          <div 
-                            key={user.id} 
-                            className="mention-suggestion-item" 
+                          <div
+                            key={user.id}
+                            className="mention-suggestion-item"
                             onClick={() => handleSelectMention(user)}
                           >
                             <strong>@{user.full_name.replace(/\s+/g, '_')}</strong>
@@ -7343,8 +7358,8 @@ function App() {
                   <div className="input-group" style={{ marginTop: '1.5rem' }}>
                     <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Add Photos or Videos (Multiple allowed)</label>
                     <div className="custom-file-upload">
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         id="blog-media-file"
                         multiple
                         accept="image/*,video/*"
@@ -7390,7 +7405,7 @@ function App() {
                     const activeFile = uploadFiles[activePreviewIdx];
                     const isVideo = activeFile?.type?.startsWith('video');
                     let objectUrl = '';
-                    try { objectUrl = URL.createObjectURL(activeFile); } catch (_) {}
+                    try { objectUrl = URL.createObjectURL(activeFile); } catch (_) { }
                     const pos = uploadPositions[activePreviewIdx] || { x: 50, y: 50 };
 
                     return (
@@ -7444,7 +7459,7 @@ function App() {
                           {uploadFiles.map((file, idx) => {
                             const isVid = file.type.startsWith('video');
                             let tUrl = '';
-                            try { tUrl = URL.createObjectURL(file); } catch (_) {}
+                            try { tUrl = URL.createObjectURL(file); } catch (_) { }
                             const tPos = uploadPositions[idx] || { x: 50, y: 50 };
                             return (
                               <div
@@ -7482,9 +7497,9 @@ function App() {
                     </div>
                   )}
 
-                  <button 
-                    type="submit" 
-                    className="join-btn" 
+                  <button
+                    type="submit"
+                    className="join-btn"
                     disabled={isUploading}
                     style={{ width: '100%', marginTop: '2rem' }}
                   >
@@ -7509,7 +7524,7 @@ function App() {
             <div className={`status-badge ${viewProfileUser.role}`}>
               {viewProfileUser.role.toUpperCase()}
             </div>
-            
+
             <div className="vlogs-count-badge" style={{ marginTop: '1rem' }}>
               📷 {userProfilePosts.length} {userProfilePosts.length === 1 ? 'Post / Vlog' : 'Posts / Vlogs'}
             </div>
@@ -7520,7 +7535,7 @@ function App() {
                 {viewProfileUser.bio || 'No bio written yet.'}
               </div>
             </div>
-            
+
             <button className="join-btn" style={{ marginTop: '2rem', width: '100%' }} onClick={() => setActiveView('blog')}>
               BACK TO BLOG FEED
             </button>
@@ -7919,7 +7934,7 @@ function App() {
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
             <div className="lightbox-image-container">
               <img
-                src={selectedGalleryImage + 1 <= 9 ? `gallery/${selectedGalleryImage + 1}.JPG` : `gallery/${selectedGalleryImage + 1}.jpeg`}
+                src={selectedGalleryImage + 1 <= 9 ? `gallery/${selectedGalleryImage + 1}.JPG` : `gallery/${selectedGalleryImage + 1}.jpg`}
                 alt="Enlarged"
               />
               <div className="lightbox-caption">
@@ -8169,19 +8184,19 @@ function App() {
       )}
 
       {activeViewPost && (
-        <div 
-          className="modal-overlay" 
-          onClick={() => setActiveViewPost(null)} 
+        <div
+          className="modal-overlay"
+          onClick={() => setActiveViewPost(null)}
           style={{ zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.5)' }}
         >
-          <div 
-            className="modal-content post-detail-popup-card-wrapper" 
-            onClick={e => e.stopPropagation()} 
+          <div
+            className="modal-content post-detail-popup-card-wrapper"
+            onClick={e => e.stopPropagation()}
             style={{ padding: '0.8rem', background: '#fff', border: '4px solid var(--text-navy)', borderRadius: '24px', boxShadow: '10px 10px 0 var(--text-navy)', maxWidth: '480px', width: '92vw', position: 'relative' }}
           >
-            <button 
-              className="modal-close" 
-              onClick={() => setActiveViewPost(null)} 
+            <button
+              className="modal-close"
+              onClick={() => setActiveViewPost(null)}
               style={{ position: 'absolute', top: '10px', right: '15px', fontSize: '2rem', border: 'none', background: 'none', cursor: 'pointer', zIndex: 10 }}
             >
               ×
@@ -8191,9 +8206,9 @@ function App() {
               <div className="blog-post-header" style={{ padding: '0.8rem 1rem 0.5rem 1rem' }}>
                 <div className="blog-post-author" onClick={() => { handleViewUserProfile(activeViewPost.user_id); setActiveViewPost(null); }} style={{ cursor: 'pointer' }}>
                   <div className="author-avatar">
-                    <img 
-                      src={activeViewPost.profiles?.avatar_url || 'icons/user-profile.svg'} 
-                      alt={activeViewPost.profiles?.full_name || 'User'} 
+                    <img
+                      src={activeViewPost.profiles?.avatar_url || 'icons/user-profile.svg'}
+                      alt={activeViewPost.profiles?.full_name || 'User'}
                     />
                   </div>
                   <div className="author-meta">
@@ -8201,7 +8216,7 @@ function App() {
                     <span>{formatPostTimestamp(activeViewPost.created_at)}</span>
                   </div>
                 </div>
-                
+
                 {/* Options menu dropdown (3 vertical dots) */}
                 <div className="blog-post-menu-container" style={{ position: 'relative' }}>
                   <button className="blog-menu-dots-btn" onClick={(e) => togglePostMenu(activeViewPost.id, e)} title="Options">
@@ -8243,7 +8258,7 @@ function App() {
 
               {/* Footer */}
               <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem' }}>
-                <button 
+                <button
                   className={`blog-star-btn ${activeViewPost.isStarred ? 'starred' : ''}`}
                   onClick={() => handleStarToggle(activeViewPost.id)}
                   title={activeViewPost.isStarred ? 'Unstar post' : 'Star post'}
@@ -8253,7 +8268,7 @@ function App() {
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
                 </button>
-                
+
                 {activeViewPost.caption && (
                   <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
                     <span>{renderCaptionWithMentions(activeViewPost.caption)}</span>
@@ -8268,11 +8283,11 @@ function App() {
                     onClick={(e) => { e.stopPropagation(); setActiveSharePostId(activeSharePostId === activeViewPost.id ? null : activeViewPost.id); }}
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="18" cy="5" r="3"/>
-                      <circle cx="6" cy="12" r="3"/>
-                      <circle cx="18" cy="19" r="3"/>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                     </svg>
                   </button>
                   {activeSharePostId === activeViewPost.id && (
@@ -8286,9 +8301,9 @@ function App() {
                         title="Caption copied to clipboard — paste it into your Instagram post!"
                       >
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                         </svg>
                         <span>Instagram</span>
                         <span className="blog-share-hint">📋 Copies caption</span>
@@ -8301,9 +8316,9 @@ function App() {
                         onClick={() => setActiveSharePostId(null)}
                       >
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-                          <rect x="2" y="9" width="4" height="12"/>
-                          <circle cx="4" cy="4" r="2"/>
+                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                          <rect x="2" y="9" width="4" height="12" />
+                          <circle cx="4" cy="4" r="2" />
                         </svg>
                         <span>LinkedIn</span>
                       </a>
@@ -8318,7 +8333,7 @@ function App() {
 
       {a11ySettings.readingMask && (
         <>
-          <div 
+          <div
             className="a11y-reading-mask-top"
             style={{
               position: 'fixed',
@@ -8331,7 +8346,7 @@ function App() {
               zIndex: 999999
             }}
           />
-          <div 
+          <div
             className="a11y-reading-mask-ruler"
             style={{
               position: 'fixed',
@@ -8346,7 +8361,7 @@ function App() {
               backgroundColor: 'transparent'
             }}
           />
-          <div 
+          <div
             className="a11y-reading-mask-bottom"
             style={{
               position: 'fixed',
@@ -8365,303 +8380,303 @@ function App() {
       {/* Floating Accessibility Widget */}
       {!isMenuOpen && !showSplash && (
         <div className="a11y-widget-container" ref={a11yRef}>
-        <button
-          className="a11y-widget-btn"
-          onClick={() => setIsA11yOpen(!isA11yOpen)}
-          aria-expanded={isA11yOpen}
-          aria-haspopup="dialog"
-          aria-label="Accessibility Settings Menu"
-          title="Accessibility Menu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <button
+            className="a11y-widget-btn"
+            onClick={() => setIsA11yOpen(!isA11yOpen)}
+            aria-expanded={isA11yOpen}
+            aria-haspopup="dialog"
+            aria-label="Accessibility Settings Menu"
+            title="Accessibility Menu"
           >
-            <circle cx="12" cy="5" r="2" />
-            <path d="m9 22 3-6 3 6" />
-            <path d="m6 8 6 2 6-2" />
-            <path d="M12 10v6" />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="5" r="2" />
+              <path d="m9 22 3-6 3 6" />
+              <path d="m6 8 6 2 6-2" />
+              <path d="M12 10v6" />
+            </svg>
+          </button>
 
-        {isA11yOpen && (
-          <div className="a11y-widget-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-panel-title">
-            <div className="a11y-widget-header">
-              <h3 id="a11y-panel-title">Accessibility Tools</h3>
-              <button
-                className="a11y-widget-close"
-                onClick={() => setIsA11yOpen(false)}
-                aria-label="Close accessibility tools panel"
-              >
-                &times;
-              </button>
-            </div>
-
-            <div className="a11y-widget-options">
-              {/* High Contrast Toggle */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">High Contrast</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.contrast === 'high-contrast'}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        contrast: e.target.checked ? 'high-contrast' : 'default'
-                      }))
-                    }
-                    aria-label="Toggle High Contrast Mode"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
+          {isA11yOpen && (
+            <div className="a11y-widget-panel" role="dialog" aria-modal="true" aria-labelledby="a11y-panel-title">
+              <div className="a11y-widget-header">
+                <h3 id="a11y-panel-title">Accessibility Tools</h3>
+                <button
+                  className="a11y-widget-close"
+                  onClick={() => setIsA11yOpen(false)}
+                  aria-label="Close accessibility tools panel"
+                >
+                  &times;
+                </button>
               </div>
 
-              {/* Sizing controls */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Font Sizing</span>
-                <div className="a11y-font-size-control">
-                  <button
-                    className="a11y-font-size-btn"
-                    onClick={() =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        fontSize: Math.max(80, prev.fontSize - 10)
-                      }))
-                    }
-                    aria-label="Decrease Font Size"
-                  >
-                    A-
-                  </button>
-                  <span className="a11y-font-size-value">{a11ySettings.fontSize}%</span>
-                  <button
-                    className="a11y-font-size-btn"
-                    onClick={() =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        fontSize: Math.min(150, prev.fontSize + 10)
-                      }))
-                    }
-                    aria-label="Increase Font Size"
-                  >
-                    A+
-                  </button>
-                </div>
-              </div>
-
-              {/* Dyslexia Font Toggle */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Dyslexia Font</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.dyslexiaFont}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        dyslexiaFont: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Dyslexia-Friendly Typography"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Reduced Motion Toggle */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Reduced Motion</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.reducedMotion}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        reducedMotion: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Animation Motion Reductions"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Highlight Links */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Highlight Links</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.highlightLinks}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        highlightLinks: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Link and Button Outlines"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Big Cursor (Desktop Only) */}
-              {!isMobile && (
+              <div className="a11y-widget-options">
+                {/* High Contrast Toggle */}
                 <div className="a11y-option-item">
-                  <span className="a11y-option-label">Big Cursor</span>
+                  <span className="a11y-option-label">High Contrast</span>
                   <label className="a11y-switch">
                     <input
                       type="checkbox"
-                      checked={a11ySettings.bigCursor}
+                      checked={a11ySettings.contrast === 'high-contrast'}
                       onChange={(e) =>
                         setA11ySettings((prev) => ({
                           ...prev,
-                          bigCursor: e.target.checked
+                          contrast: e.target.checked ? 'high-contrast' : 'default'
                         }))
                       }
-                      aria-label="Toggle Enlarged Mouse Pointer cursor"
+                      aria-label="Toggle High Contrast Mode"
                     />
                     <span className="a11y-slider"></span>
                   </label>
                 </div>
-              )}
 
-              {/* Hide Images */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Hide Images</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.hideImages}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        hideImages: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Hide Visual Content Images"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Reading Ruler */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Reading Ruler</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.readingMask}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        readingMask: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Reading Ruler Mask"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Screen Reader (TTS) */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Screen Reader (TTS)</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.textToSpeech}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        textToSpeech: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Screen Reader Text-to-Speech"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* Mute Audio Beeps */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">Mute Audio Beeps</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.muteSound}
-                    onChange={(e) =>
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        muteSound: e.target.checked
-                      }))
-                    }
-                    aria-label="Toggle Sound Effects Muting"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
-
-              {/* System Notifications */}
-              <div className="a11y-option-item">
-                <span className="a11y-option-label">System Notifications</span>
-                <label className="a11y-switch">
-                  <input
-                    type="checkbox"
-                    checked={a11ySettings.systemNotifications}
-                    onChange={async (e) => {
-                      const checked = e.target.checked;
-                      if (checked && 'Notification' in window) {
-                        const permission = await Notification.requestPermission();
-                        if (permission !== 'granted') {
-                          alert('Please enable notification permissions in your browser or device settings.');
-                          return;
-                        }
+                {/* Sizing controls */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Font Sizing</span>
+                  <div className="a11y-font-size-control">
+                    <button
+                      className="a11y-font-size-btn"
+                      onClick={() =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          fontSize: Math.max(80, prev.fontSize - 10)
+                        }))
                       }
-                      setA11ySettings((prev) => ({
-                        ...prev,
-                        systemNotifications: checked
-                      }));
-                    }}
-                    aria-label="Toggle System Notifications"
-                  />
-                  <span className="a11y-slider"></span>
-                </label>
-              </div>
+                      aria-label="Decrease Font Size"
+                    >
+                      A-
+                    </button>
+                    <span className="a11y-font-size-value">{a11ySettings.fontSize}%</span>
+                    <button
+                      className="a11y-font-size-btn"
+                      onClick={() =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          fontSize: Math.min(150, prev.fontSize + 10)
+                        }))
+                      }
+                      aria-label="Increase Font Size"
+                    >
+                      A+
+                    </button>
+                  </div>
+                </div>
 
-              {/* Reset Button */}
-              <button
-                className="a11y-reset-btn"
-                onClick={() =>
-                  setA11ySettings({
-                    contrast: 'default',
-                    fontSize: 100,
-                    reducedMotion: false,
-                    dyslexiaFont: false,
-                    highlightLinks: false,
-                    bigCursor: false,
-                    hideImages: false,
-                    muteSound: false,
-                    readingMask: false,
-                    textToSpeech: false,
-                    systemNotifications: false
-                  })
-                }
-              >
-                Reset All Settings
-              </button>
+                {/* Dyslexia Font Toggle */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Dyslexia Font</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.dyslexiaFont}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          dyslexiaFont: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Dyslexia-Friendly Typography"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Reduced Motion Toggle */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Reduced Motion</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.reducedMotion}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          reducedMotion: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Animation Motion Reductions"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Highlight Links */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Highlight Links</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.highlightLinks}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          highlightLinks: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Link and Button Outlines"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Big Cursor (Desktop Only) */}
+                {!isMobile && (
+                  <div className="a11y-option-item">
+                    <span className="a11y-option-label">Big Cursor</span>
+                    <label className="a11y-switch">
+                      <input
+                        type="checkbox"
+                        checked={a11ySettings.bigCursor}
+                        onChange={(e) =>
+                          setA11ySettings((prev) => ({
+                            ...prev,
+                            bigCursor: e.target.checked
+                          }))
+                        }
+                        aria-label="Toggle Enlarged Mouse Pointer cursor"
+                      />
+                      <span className="a11y-slider"></span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Hide Images */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Hide Images</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.hideImages}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          hideImages: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Hide Visual Content Images"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Reading Ruler */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Reading Ruler</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.readingMask}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          readingMask: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Reading Ruler Mask"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Screen Reader (TTS) */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Screen Reader (TTS)</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.textToSpeech}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          textToSpeech: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Screen Reader Text-to-Speech"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Mute Audio Beeps */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">Mute Audio Beeps</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.muteSound}
+                      onChange={(e) =>
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          muteSound: e.target.checked
+                        }))
+                      }
+                      aria-label="Toggle Sound Effects Muting"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* System Notifications */}
+                <div className="a11y-option-item">
+                  <span className="a11y-option-label">System Notifications</span>
+                  <label className="a11y-switch">
+                    <input
+                      type="checkbox"
+                      checked={a11ySettings.systemNotifications}
+                      onChange={async (e) => {
+                        const checked = e.target.checked;
+                        if (checked && 'Notification' in window) {
+                          const permission = await Notification.requestPermission();
+                          if (permission !== 'granted') {
+                            alert('Please enable notification permissions in your browser or device settings.');
+                            return;
+                          }
+                        }
+                        setA11ySettings((prev) => ({
+                          ...prev,
+                          systemNotifications: checked
+                        }));
+                      }}
+                      aria-label="Toggle System Notifications"
+                    />
+                    <span className="a11y-slider"></span>
+                  </label>
+                </div>
+
+                {/* Reset Button */}
+                <button
+                  className="a11y-reset-btn"
+                  onClick={() =>
+                    setA11ySettings({
+                      contrast: 'default',
+                      fontSize: 100,
+                      reducedMotion: false,
+                      dyslexiaFont: false,
+                      highlightLinks: false,
+                      bigCursor: false,
+                      hideImages: false,
+                      muteSound: false,
+                      readingMask: false,
+                      textToSpeech: false,
+                      systemNotifications: false
+                    })
+                  }
+                >
+                  Reset All Settings
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       )}
     </div>
   );
