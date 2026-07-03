@@ -695,6 +695,10 @@ header.header-minimal {
     background: #fff1f1 !important;
 }
 
+.about-me-section {
+    background: var(--yellow-star) !important;
+}
+
 /* Danger Red-ish */
 .sponsors-section {
     background: #fefcf0 !important;
