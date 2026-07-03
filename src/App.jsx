@@ -1896,7 +1896,7 @@ function App() {
               <div
                 key={idx}
                 className="carousel-slide-item"
-                style={{ flex: '0 0 100%', width: '100%', aspectRatio: '1 / 1', minHeight: '200px', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
+                style={{ flex: '0 0 100%', width: '100%', aspectRatio: 'auto', minHeight: '200px', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
               >
                 <MediaSlide item={item} idx={idx} objectPosition={objPos} />
               </div>
