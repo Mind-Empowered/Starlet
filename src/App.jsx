@@ -4750,6 +4750,9 @@ function App() {
                           <p style={{ marginBottom: '1.5rem' }}>Mind Empowered (ME) is a charitable organization based in India. It is the brainchild of Maya Menon and her sister - two sisters who resonate positivity and happiness wherever they go.</p>
                           <p style={{ marginBottom: '2.5rem' }}>The sisters realized there was a strong need to eliminate the stigma associated with mental health from our society. Hence, the idea of an open forum to help the students came to life by forming "ME".</p>
                           <strong style={{ color: 'var(--blue-shadow)', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.9rem', display: 'block' }}>A MIND EMPOWERED INITIATIVE</strong>
+                          <a href="https://www.mind-empowered.org" target="_blank" rel="noreferrer" className="join-btn" style={{ display: 'inline-block', marginTop: '1.5rem', textDecoration: 'none', padding: '12px 24px', fontSize: '1rem' }}>
+                            VISIT US
+                          </a>
                         </div>
                         <div className="section-visual-small" style={{ borderRadius: '26px', overflow: 'hidden', border: '3px solid var(--text-navy)', boxShadow: '4px 4px 0px var(--text-navy)', maxWidth: '350px', background: '#fff' }}>
                           <img src={section.image} alt={section.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
