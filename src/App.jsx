@@ -7158,11 +7158,11 @@ function App() {
                   ) : (
                     <form className="auth-form" onSubmit={handleProjectSubmit} style={{ marginTop: '1rem' }}>
                       <div className="submission-instructions-box" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px dashed var(--blue-shadow)', borderRadius: '12px', padding: '1.2rem', marginBottom: '1.5rem' }}>
-                        <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.5rem' }}>Submission Guidelines</h4>
-                        <p style={{ fontSize: '0.9rem', color: '#fff', marginBottom: '0.8rem', lineHeight: '1.4' }}>
+                        <h4 style={{ color: '#000', fontFamily: "'Fredoka One', cursive", marginBottom: '0.5rem' }}>Submission Guidelines</h4>
+                        <p style={{ fontSize: '0.9rem', color: '#000', marginBottom: '0.8rem', lineHeight: '1.4' }}>
                           Please follow the steps below to submit your project:
                         </p>
-                        <ol style={{ fontSize: '0.85rem', color: '#eee', paddingLeft: '1.2rem', lineHeight: '1.6' }}>
+                        <ol style={{ fontSize: '0.85rem', color: '#000', paddingLeft: '1.2rem', lineHeight: '1.6' }}>
                           <li>Open the event's shared <a href={settings.google_drive_link || "https://drive.google.com"} target="_blank" rel="noreferrer" style={{ color: 'var(--yellow-star)', textDecoration: 'underline', fontWeight: 'bold' }}>Google Drive Folder</a>.</li>
                           <li>Create a new folder inside, named exactly after your group/team name (<strong>{user.teamName || "Your Team Name"}</strong>).</li>
                           <li>Upload your <strong>demo video</strong> and <strong>presentation slide deck (PPTX/PDF)</strong> into that team folder.</li>
