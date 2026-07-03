@@ -3722,7 +3722,7 @@ function App() {
                   <a href="#events" className="nav-link" onClick={(e) => handleHomeNavClick('events', e)}>Events</a>
                   <a href="#rules" className="nav-link" onClick={(e) => handleHomeNavClick('rules', e)}>Rules</a>
                   <a href="#sponsors" className="nav-link" onClick={(e) => handleHomeNavClick('sponsors', e)}>Sponsors</a>
-                  <a href="#uic-overview" className="nav-link" onClick={(e) => handleHomeNavClick('uic-overview', e)}>UIC Overview</a>
+                  <a href="#uic-overview" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('sponsors-overview'); setIsMenuOpen(false); }}>UIC Overview</a>
                   <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
                   <a href="#" className={`nav-link ${activeView === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('blog'); setIsMenuOpen(false); }}>Blog</a>
                 </>
