@@ -232,7 +232,7 @@ const galleryCaptions = [
    causing React to unmount+remount every slide and reset its
    `loaded` state → the shimmer flicker.
 ──────────────────────────────────────────────────────────────── */
-const MediaSlide = ({ item, idx }) => {
+const MediaSlide = ({ item, idx, objectPosition = 'center center' }) => {
   const [loaded, setLoaded] = React.useState(false);
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -276,6 +276,7 @@ const MediaSlide = ({ item, idx }) => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            objectPosition,
             cursor: 'pointer',
             display: 'block',
             opacity: loaded ? 1 : 0,
@@ -331,6 +332,11 @@ function App() {
   const [activeViewPost, setActiveViewPost] = useState(null);
   const [carouselIndices, setCarouselIndices] = useState({});
   const [activeSharePostId, setActiveSharePostId] = useState(null);
+  // Image pan/crop state for upload modal
+  const [uploadPositions, setUploadPositions] = useState([]); // [{x:50,y:50}] per file
+  const [activePreviewIdx, setActivePreviewIdx] = useState(0); // which thumbnail is selected
+  const [isDraggingPreview, setIsDraggingPreview] = useState(false);
+  const dragStartRef = React.useRef({ mx: 0, my: 0, px: 50, py: 50 });
 
   useEffect(() => {
     const handleResize = () => {
@@ -1406,7 +1412,7 @@ function App() {
         // Comparing id+starCount+isStarred+caption covers all visible mutations.
         // This prevents unnecessary re-renders (and shimmer replay) when the
         // data from Supabase is identical to what we already have.
-        const sig = (list) => list.map(p => `${p.id}:${p.starCount}:${p.isStarred}:${p.caption}`).join('|');
+        const sig = (list) => list.map(p => `${p.id}:${p.starCount}:${p.isStarred}:${p.caption}:${JSON.stringify(p.media_positions)}`).join('|');
         setBlogPosts(prev => sig(prev) === sig(mappedPosts) ? prev : mappedPosts);
       }
 
@@ -1421,7 +1427,7 @@ function App() {
             setSavedPostIds(new Set(saves.map(s => s.post_id)));
           }
         } catch (err) {
-          console.warn('Saves table might not exist yet:', err.message);
+          // saves table error — silently skip
         }
       }
     } catch (e) {
@@ -1527,6 +1533,20 @@ function App() {
       return;
     }
 
+    // ── File size validation ──────────────────────────────────────────
+    const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+    for (const file of uploadFiles) {
+      if (file.size > MAX_SIZE) {
+        playErrorSound();
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        setUploadAlert({
+          type: 'error',
+          message: `"${file.name}" is ${sizeMB} MB — files must be under 50 MB. Please compress the video or choose a shorter clip.`
+        });
+        return;
+      }
+    }
+
     setIsUploading(true);
     setUploadProgress(10);
 
@@ -1544,13 +1564,21 @@ function App() {
       const mediaUrlPayload = mediaItems.length === 1 ? mediaItems[0].url : JSON.stringify(mediaItems);
       const mediaTypePayload = mediaItems.length === 1 ? mediaItems[0].type : 'carousel';
 
+      // Build positions array — only for images; videos don't need pan
+      const positionsPayload = uploadFiles.map((file, idx) => {
+        if (file.type.startsWith('video')) return { position: 'center center' };
+        const pos = uploadPositions[idx] || { x: 50, y: 50 };
+        return { position: `${pos.x}% ${pos.y}%` };
+      });
+
       const { error: dbError } = await supabase
         .from('blog_posts')
         .insert([{
           user_id: session.user.id,
           caption: uploadCaption,
           media_url: mediaUrlPayload,
-          media_type: mediaTypePayload
+          media_type: mediaTypePayload,
+          media_positions: positionsPayload,
         }]);
 
       if (dbError) {
@@ -1562,6 +1590,8 @@ function App() {
       
       setUploadCaption('');
       setUploadFiles([]);
+      setUploadPositions([]);
+      setActivePreviewIdx(0);
       setIsUploadModalOpen(false);
       setUploadProgress(0);
 
@@ -1799,15 +1829,19 @@ function App() {
           }}
           style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {mediaItems.map((item, idx) => (
-            <div 
-              key={idx} 
-              className="carousel-slide-item" 
-              style={{ flex: '0 0 100%', width: '100%', aspectRatio: '1 / 1', minHeight: '200px', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
-            >
-              <MediaSlide item={item} idx={idx} />
-            </div>
-          ))}
+          {mediaItems.map((item, idx) => {
+            const positions = Array.isArray(post.media_positions) ? post.media_positions : [];
+            const objPos = positions[idx]?.position || 'center center';
+            return (
+              <div 
+                key={idx} 
+                className="carousel-slide-item" 
+                style={{ flex: '0 0 100%', width: '100%', aspectRatio: '1 / 1', minHeight: '200px', scrollSnapAlign: 'start', overflow: 'hidden', position: 'relative' }}
+              >
+                <MediaSlide item={item} idx={idx} objectPosition={objPos} />
+              </div>
+            );
+          })}
         </div>
 
         {/* Double-tap overlay */}
@@ -1864,7 +1898,6 @@ function App() {
         .eq('user_id', session.user.id);
 
       if (error) {
-        console.warn('Saves table might not exist yet:', error.message);
         setUserSavedPosts([]);
         return;
       }
@@ -1885,7 +1918,6 @@ function App() {
         setUserSavedPosts(posts);
       }
     } catch (e) {
-      console.warn('Error fetching saved posts:', e);
       setUserSavedPosts([]);
     }
   };
@@ -7213,14 +7245,24 @@ function App() {
                         accept="image/*,video/*"
                         onChange={(e) => {
                           const files = Array.from(e.target.files || []);
+                          // Size check
+                          const tooBig = files.find(f => f.size > 50 * 1024 * 1024);
+                          if (tooBig) {
+                            const sizeMB = (tooBig.size / (1024 * 1024)).toFixed(1);
+                            setUploadAlert({ type: 'error', message: `"${tooBig.name}" is ${sizeMB} MB — max 50 MB per file.` });
+                            return;
+                          }
                           if (uploadFiles.length + files.length > 5) {
-                            alert("Maximum 5 photos or videos can be uploaded in a single post!");
+                            setUploadAlert({ type: 'error', message: 'Maximum 5 files per post.' });
                             const remaining = 5 - uploadFiles.length;
                             if (remaining > 0) {
                               setUploadFiles(prev => [...prev, ...files.slice(0, remaining)]);
+                              setUploadPositions(prev => [...prev, ...Array(Math.min(remaining, files.length)).fill({ x: 50, y: 50 })]);
                             }
                           } else {
                             setUploadFiles(prev => [...prev, ...files]);
+                            setUploadPositions(prev => [...prev, ...Array(files.length).fill({ x: 50, y: 50 })]);
+                            setActivePreviewIdx(uploadFiles.length); // focus newly added first
                           }
                         }}
                         style={{ display: 'none' }}
@@ -7238,35 +7280,90 @@ function App() {
                     </div>
                   </div>
 
-                  {/* Image/Video Preview Thumbnails */}
-                  {uploadFiles.length > 0 && (
-                    <div className="upload-preview-thumbnails" style={{ display: 'flex', gap: '0.6rem', overflowX: 'auto', marginTop: '1rem', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
-                      {uploadFiles.map((file, idx) => {
-                        const isVideo = file.type.startsWith('video');
-                        let objectUrl = "";
-                        try {
-                          objectUrl = URL.createObjectURL(file);
-                        } catch(err) {}
+                  {/* ── Drag-to-Pan Preview + Thumbnail Strip ── */}
+                  {uploadFiles.length > 0 && (() => {
+                    const activeFile = uploadFiles[activePreviewIdx];
+                    const isVideo = activeFile?.type?.startsWith('video');
+                    let objectUrl = '';
+                    try { objectUrl = URL.createObjectURL(activeFile); } catch (_) {}
+                    const pos = uploadPositions[activePreviewIdx] || { x: 50, y: 50 };
 
-                        return (
-                          <div key={idx} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '12px', border: '3.5px solid var(--text-navy)', overflow: 'hidden', flexShrink: 0, background: '#f8fafc' }}>
+                    return (
+                      <div style={{ marginTop: '1rem' }}>
+                        {/* Main square preview */}
+                        <div style={{ position: 'relative', width: '100%', paddingTop: '100%', borderRadius: '14px', overflow: 'hidden', border: '3px solid var(--text-navy)', background: '#0a0a1a', cursor: isVideo ? 'default' : isDraggingPreview ? 'grabbing' : 'grab' }}
+                          onPointerDown={(e) => {
+                            if (isVideo) return;
+                            e.currentTarget.setPointerCapture(e.pointerId);
+                            setIsDraggingPreview(true);
+                            dragStartRef.current = { mx: e.clientX, my: e.clientY, px: pos.x, py: pos.y };
+                          }}
+                          onPointerMove={(e) => {
+                            if (!isDraggingPreview || isVideo) return;
+                            const dx = e.clientX - dragStartRef.current.mx;
+                            const dy = e.clientY - dragStartRef.current.my;
+                            // Moving right → move focus left (smaller x%) and vice versa
+                            const newX = Math.max(0, Math.min(100, dragStartRef.current.px - dx * 0.3));
+                            const newY = Math.max(0, Math.min(100, dragStartRef.current.py - dy * 0.3));
+                            setUploadPositions(prev => {
+                              const next = [...prev];
+                              next[activePreviewIdx] = { x: Math.round(newX), y: Math.round(newY) };
+                              return next;
+                            });
+                          }}
+                          onPointerUp={() => setIsDraggingPreview(false)}
+                          onPointerCancel={() => setIsDraggingPreview(false)}
+                        >
+                          <div style={{ position: 'absolute', inset: 0 }}>
                             {isVideo ? (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>📹</div>
+                              <video src={objectUrl} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <img src={objectUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img
+                                src={objectUrl}
+                                alt="preview"
+                                draggable={false}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${pos.x}% ${pos.y}%`, userSelect: 'none', pointerEvents: 'none' }}
+                              />
                             )}
-                            <button 
-                              type="button" 
-                              onClick={() => setUploadFiles(prev => prev.filter((_, i) => i !== idx))}
-                              style={{ position: 'absolute', top: 2, right: 2, background: 'var(--text-navy)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
-                            >
-                              ×
-                            </button>
+                            {/* Drag hint overlay */}
+                            {!isVideo && (
+                              <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.7rem', borderRadius: '20px', padding: '3px 10px', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+                                ✥ drag to reposition
+                              </div>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                        </div>
+
+                        {/* Thumbnail strip */}
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto', paddingBottom: '0.4rem' }}>
+                          {uploadFiles.map((file, idx) => {
+                            const isVid = file.type.startsWith('video');
+                            let tUrl = '';
+                            try { tUrl = URL.createObjectURL(file); } catch (_) {}
+                            const tPos = uploadPositions[idx] || { x: 50, y: 50 };
+                            return (
+                              <div
+                                key={idx}
+                                onClick={() => setActivePreviewIdx(idx)}
+                                style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '10px', border: `3px solid ${activePreviewIdx === idx ? 'var(--pink-primary)' : 'var(--text-navy)'}`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', background: '#f8fafc', boxSizing: 'border-box' }}
+                              >
+                                {isVid ? (
+                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>📹</div>
+                                ) : (
+                                  <img src={tUrl} alt="thumb" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${tPos.x}% ${tPos.y}%`, pointerEvents: 'none' }} />
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(ev) => { ev.stopPropagation(); setUploadFiles(prev => prev.filter((_, i) => i !== idx)); setUploadPositions(prev => prev.filter((_, i) => i !== idx)); setActivePreviewIdx(p => Math.max(0, p >= idx ? p - 1 : p)); }}
+                                  style={{ position: 'absolute', top: 2, right: 2, background: 'var(--text-navy)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, zIndex: 2 }}
+                                >×</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {isUploading && (
                     <div className="blog-upload-progress-container" style={{ marginTop: '1.5rem' }}>
