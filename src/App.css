@@ -696,7 +696,7 @@ header.header-minimal {
 }
 
 .about-me-section {
-    background: var(--yellow-star) !important;
+    background: #FFF9C4 !important; /* Softer, less bright yellow */
 }
 
 /* Danger Red-ish */
