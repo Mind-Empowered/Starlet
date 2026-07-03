@@ -1804,6 +1804,28 @@ function App() {
     }
   };
 
+  const renderProfileGridMedia = (post) => {
+    let thumbUrl = post.media_url;
+    let isVid = post.media_type === 'video';
+    if (post.media_type === 'carousel' || (thumbUrl && typeof thumbUrl === 'string' && thumbUrl.startsWith('['))) {
+      try {
+        const parsed = JSON.parse(thumbUrl);
+        if (parsed.length > 0) {
+          thumbUrl = parsed[0].url;
+          isVid = parsed[0].type === 'video';
+        }
+      } catch (e) {}
+    }
+    return isVid ? (
+      <div className="video-thumbnail-placeholder">
+        <video src={thumbUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+        <div className="video-play-indicator">▶</div>
+      </div>
+    ) : (
+      <img src={thumbUrl} alt="vlog" />
+    );
+  };
+
   const renderPostMedia = (post) => {
     let mediaItems = [];
     try {
@@ -6488,14 +6510,7 @@ function App() {
                           <div className="profile-vlogs-grid">
                             {userProfilePosts.map(post => (
                               <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
-                                {post.media_type === 'video' ? (
-                                  <div className="video-thumbnail-placeholder">
-                                    <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                                    <div className="video-play-indicator">▶</div>
-                                  </div>
-                                ) : (
-                                  <img src={post.media_url} alt="vlog" />
-                                )}
+                                {renderProfileGridMedia(post)}
                               </div>
                             ))}
                           </div>
@@ -6507,14 +6522,7 @@ function App() {
                           <div className="profile-vlogs-grid">
                             {userSavedPosts.map(post => (
                               <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
-                                {post.media_type === 'video' ? (
-                                  <div className="video-thumbnail-placeholder">
-                                    <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                                    <div className="video-play-indicator">▶</div>
-                                  </div>
-                                ) : (
-                                  <img src={post.media_url} alt="vlog" />
-                                )}
+                                {renderProfileGridMedia(post)}
                               </div>
                             ))}
                           </div>
@@ -6643,6 +6651,52 @@ function App() {
                     });
                     return renderPagination(volunteerPage, filtered.length, 10, setVolunteerPage);
                   })()}
+                </div>
+
+                {/* MY VLOGS / POSTS / SAVED GRID */}
+                <div className="admin-panel" style={{ marginTop: '2rem', padding: '2rem', borderRadius: '20px' }}>
+                  <div className="profile-tabs-header" style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', borderBottom: '3px solid var(--text-navy)', paddingBottom: '0.5rem' }}>
+                    <h3
+                      className={`profile-tab-title ${profileTab === 'posts' ? 'active' : ''}`}
+                      onClick={() => setProfileTab('posts')}
+                      style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'posts' ? 1 : 0.4 }}
+                    >
+                      MY POSTS
+                    </h3>
+                    <h3
+                      className={`profile-tab-title ${profileTab === 'saved' ? 'active' : ''}`}
+                      onClick={() => setProfileTab('saved')}
+                      style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, cursor: 'pointer', opacity: profileTab === 'saved' ? 1 : 0.4 }}
+                    >
+                      SAVED POSTS
+                    </h3>
+                  </div>
+
+                  {profileTab === 'posts' ? (
+                    userProfilePosts.length === 0 ? (
+                      <p style={{ opacity: 0.5, fontStyle: 'italic' }}>No posts uploaded yet. Head over to the Blog Feed to upload your first vlog!</p>
+                    ) : (
+                      <div className="profile-vlogs-grid">
+                        {userProfilePosts.map(post => (
+                          <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
+                            {renderProfileGridMedia(post)}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    userSavedPosts.length === 0 ? (
+                      <p style={{ opacity: 0.5, fontStyle: 'italic' }}>No saved posts yet. Explore the feed and save vlogs to view them here!</p>
+                    ) : (
+                      <div className="profile-vlogs-grid">
+                        {userSavedPosts.map(post => (
+                          <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
+                            {renderProfileGridMedia(post)}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </>
@@ -7046,14 +7100,7 @@ function App() {
                       <div className="profile-vlogs-grid">
                         {userProfilePosts.map(post => (
                           <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
-                            {post.media_type === 'video' ? (
-                              <div className="video-thumbnail-placeholder">
-                                <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                                <div className="video-play-indicator">▶</div>
-                              </div>
-                            ) : (
-                              <img src={post.media_url} alt="vlog" />
-                            )}
+                            {renderProfileGridMedia(post)}
                           </div>
                         ))}
                       </div>
@@ -7065,14 +7112,7 @@ function App() {
                       <div className="profile-vlogs-grid">
                         {userSavedPosts.map(post => (
                           <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
-                            {post.media_type === 'video' ? (
-                              <div className="video-thumbnail-placeholder">
-                                <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                                <div className="video-play-indicator">▶</div>
-                              </div>
-                            ) : (
-                              <img src={post.media_url} alt="vlog" />
-                            )}
+                            {renderProfileGridMedia(post)}
                           </div>
                         ))}
                       </div>
@@ -7828,14 +7868,7 @@ function App() {
                 <div className="profile-vlogs-grid">
                   {userProfilePosts.map(post => (
                     <div key={post.id} className="profile-vlog-item" onClick={() => setActiveViewPost(post)}>
-                      {post.media_type === 'video' ? (
-                        <div className="video-thumbnail-placeholder">
-                          <video src={post.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                          <div className="video-play-indicator">▶</div>
-                        </div>
-                      ) : (
-                        <img src={post.media_url} alt="vlog" />
-                      )}
+                      {renderProfileGridMedia(post)}
                       <div className="profile-vlog-hover">
                         <span>⭐ {post.starCount}</span>
                       </div>
