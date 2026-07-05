@@ -361,6 +361,7 @@ function App() {
   const [activePostMenuId, setActivePostMenuId] = useState(null);
   const [profileTab, setProfileTab] = useState('posts');
   const [userSavedPosts, setUserSavedPosts] = useState([]);
+  const [submitterName, setSubmitterName] = useState('');
 
   const [savedPostIds, setSavedPostIds] = useState(new Set());
   const [magicLinkState, setMagicLinkState] = useState({}); // { [userId]: 'loading' | 'done' | null }
@@ -2611,7 +2612,26 @@ function App() {
     }
 
     const { data } = await query.maybeSingle();
-    if (data) setMySubmission(data);
+    if (data) {
+      setMySubmission(data);
+      if (data.submitted_by !== session.user.id) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', data.submitted_by)
+          .single();
+        if (prof) {
+          setSubmitterName(prof.full_name);
+        } else {
+          setSubmitterName('');
+        }
+      } else {
+        setSubmitterName('');
+      }
+    } else {
+      setMySubmission(null);
+      setSubmitterName('');
+    }
   };
 
   const handleProjectSubmit = async (e) => {
@@ -6499,7 +6519,24 @@ function App() {
                                     <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                       {sub && (isExpanded ? '▼' : '▶')} {getDisplayTeamName(team)}
                                     </strong>
-                                    {sub && <p style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</p>}
+                                    {sub && (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</span>
+                                        {sub.ai_percentage !== null && sub.ai_percentage !== undefined && (
+                                          <span style={{
+                                            fontSize: '0.72rem',
+                                            fontWeight: 'bold',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            background: 'rgba(255, 255, 255, 0.1)',
+                                            color: '#fff',
+                                            border: '1px solid rgba(255, 255, 255, 0.15)'
+                                          }}>
+                                            🤖 {sub.ai_percentage}% AI
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
                                   </td>
                                   <td>
                                     {sub ? (
@@ -7414,6 +7451,11 @@ function App() {
                       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚀</div>
                       <h3>Project Submitted!</h3>
                       <p>Your team's project <strong>"{mySubmission.project_name}"</strong> has been received.</p>
+                      {submitterName && (
+                        <p style={{ fontSize: '0.9rem', color: '#001f3f', fontWeight: 'bold', marginTop: '0.5rem' }}>
+                          Submitted by teammate: <span style={{ color: 'var(--pink-primary)' }}>{submitterName}</span>
+                        </p>
+                      )}
                       <div className="submission-links-row" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                         <a href={mySubmission.github_url} target="_blank" rel="noreferrer" className="btn-small accept">VIEW CODE</a>
                         {mySubmission.demo_url && (
