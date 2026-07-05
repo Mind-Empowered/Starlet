@@ -2707,6 +2707,14 @@ footer {
         box-shadow: 8px 8px 0px var(--pink-primary);
     }
 
+    .profile-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        margin-bottom: 2rem !important;
+    }
+
     .profile-header-top-row {
         display: flex !important;
         flex-direction: row !important;
@@ -2759,6 +2767,26 @@ footer {
         font-size: 0.75rem !important;
         line-height: 1.2 !important;
     }
+
+    .desktop-only-btn {
+        display: none !important;
+    }
+
+    .mobile-only-btn {
+        display: block !important;
+        width: 100% !important;
+        margin: 2rem 0 !important;
+        padding: 1rem !important;
+        font-size: 1.1rem !important;
+    }
+}
+
+.desktop-only-btn {
+    display: inline-block !important;
+}
+
+.mobile-only-btn {
+    display: none !important;
 }
 
 .profile-field {

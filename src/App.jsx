@@ -6767,7 +6767,7 @@ function App() {
 
                 <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
                   <button
-                    className="join-btn"
+                    className="join-btn desktop-only-btn"
                     onClick={updateProfile}
                     disabled={!hasProfileChanged}
                     style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s' }}
@@ -6998,6 +6998,15 @@ function App() {
                         )
                       )}
                     </div>
+                    {/* Mobile-only Save Changes Button */}
+                    <button
+                      className="join-btn mobile-only-btn"
+                      onClick={updateProfile}
+                      disabled={!hasProfileChanged}
+                      style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s', width: '100%' }}
+                    >
+                      SAVE CHANGES
+                    </button>
                   </div>
                 </div>
               </div>
@@ -7218,7 +7227,7 @@ function App() {
                     </div>
                   </div>
                   <button
-                    className="join-btn"
+                    className="join-btn desktop-only-btn"
                     onClick={updateProfile}
                     disabled={!hasProfileChanged}
                     style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s' }}
@@ -7625,6 +7634,15 @@ function App() {
                       </div>
                     )
                   )}
+                  {/* Mobile-only Save Changes Button */}
+                  <button
+                    className="join-btn mobile-only-btn"
+                    onClick={updateProfile}
+                    disabled={!hasProfileChanged}
+                    style={{ opacity: hasProfileChanged ? 1 : 0.45, cursor: hasProfileChanged ? 'pointer' : 'not-allowed', transition: 'opacity 0.2s', width: '100%' }}
+                  >
+                    SAVE CHANGES
+                  </button>
                 </div>
               </div>
             </>
