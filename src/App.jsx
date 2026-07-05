@@ -820,6 +820,7 @@ function App() {
   const [systemIssues, setSystemIssues] = useState([]);
   const [isInstalling, setIsInstalling] = useState(false);
   const [installComplete, setInstallComplete] = useState(false);
+  const [installProgress, setInstallProgress] = useState(0);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [settings, setSettings] = useState({
@@ -960,14 +961,18 @@ function App() {
 
     const handleAppInstalled = () => {
       setInstallPrompt(null);
-      setIsInstalling(false);
-      setInstallComplete(true);
-      console.log('Starlet PWA was installed successfully');
+      setInstallProgress(100);
       
       setTimeout(() => {
-        setInstallComplete(false);
-        setActiveView('landing');
-      }, 2500);
+        setIsInstalling(false);
+        setInstallComplete(true);
+        console.log('Starlet PWA was installed successfully');
+        
+        setTimeout(() => {
+          setInstallComplete(false);
+          setActiveView('landing');
+        }, 2500);
+      }, 800);
     };
 
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -985,20 +990,43 @@ function App() {
       console.log(`User response to install prompt: ${outcome}`);
       if (outcome === 'accepted') {
         setIsInstalling(true);
+        setInstallProgress(0);
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.floor(Math.random() * 4) + 1;
+          if (progress >= 95) {
+            progress = 95;
+            clearInterval(interval);
+          }
+          setInstallProgress(progress);
+        }, 120);
       } else {
         setInstallPrompt(null);
       }
     } else {
-      // Universal fallback for iOS Safari, Firefox, and other search engines
+      // Universal simulated progress overlay for iOS, Safari, Firefox, etc.
       setIsInstalling(true);
-      setTimeout(() => {
-        setIsInstalling(false);
-        setInstallComplete(true);
-        setTimeout(() => {
-          setInstallComplete(false);
-          navigateToLanding();
-        }, 2500);
-      }, 3000);
+      setInstallProgress(0);
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.floor(Math.random() * 8) + 2;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          setTimeout(() => {
+            setIsInstalling(false);
+            setInstallComplete(true);
+            setTimeout(() => {
+              setInstallComplete(false);
+              navigateToLanding();
+            }, 2500);
+          }, 600);
+        }
+        setInstallProgress(progress);
+      }, 150);
     }
   };
 
@@ -10182,9 +10210,17 @@ function App() {
       {isInstalling && (
         <div className="install-loading-overlay">
           <div className="install-loading-card">
-            <div className="install-spinner"></div>
+            <div className="install-spinner-container">
+              <div className="install-spinner"></div>
+              <div className="install-progress-text">{installProgress}%</div>
+            </div>
             <h3>Installing Starlet 5.0</h3>
             <p>Setting up offline assets and secure database connections. Please wait...</p>
+            
+            {/* Progress Bar */}
+            <div className="install-progress-bar-wrapper">
+              <div className="install-progress-bar-fill" style={{ width: `${installProgress}%` }}></div>
+            </div>
           </div>
         </div>
       )}
