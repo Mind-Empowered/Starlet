@@ -207,7 +207,7 @@
                         if (session && session.user) {
                             const { data: profile } = await supabase
                                 .from('profiles')
-                                .select('full_name, user_role, is_approved')
+                                .select('full_name, user_role, is_approved, email')
                                 .eq('id', session.user.id)
                                 .single();
                             if (profile) {
@@ -220,6 +220,30 @@
                                     `;
                                     return;
                                 }
+
+                                // Check if user is a special award winner (should not get participation certificate)
+                                const { data: settingsData } = await supabase.from('event_settings').select('*');
+                                const settingsMap = {};
+                                if (settingsData) {
+                                    settingsData.forEach(s => settingsMap[s.id] = s.value);
+                                }
+                                const winnerEmails = [
+                                    settingsMap['winner_1st_email'],
+                                    settingsMap['winner_2nd_email'],
+                                    settingsMap['winner_3rd_email'],
+                                    settingsMap['winner_innovation_email']
+                                ].map(e => e ? e.toLowerCase().trim() : '');
+
+                                if (profile.email && winnerEmails.includes(profile.email.toLowerCase().trim())) {
+                                    document.body.innerHTML = `
+                                        <div style="color: white; text-align: center; font-family: 'Outfit', sans-serif; font-size: 1.5rem; padding: 4rem;">
+                                            <h2>Participation Certificate Unavailable</h2>
+                                            <p>As an award winner, you are eligible for a special category certificate instead of a participation certificate. Please check your email or contact the organizers.</p>
+                                        </div>
+                                    `;
+                                    return;
+                                }
+
                                 nameDisplay.textContent = profile.full_name;
                             } else {
                                 nameDisplay.textContent = session.user.email || 'Participant';

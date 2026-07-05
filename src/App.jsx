@@ -303,6 +303,12 @@ const MediaSlide = ({ item, idx, objectPosition = 'center center' }) => {
   );
 };
 
+const checkIsAfter13th = () => {
+  const now = new Date();
+  const deadline = new Date(2026, 6, 13, 23, 59, 59); // July 13, 2026 at 23:59:59 (Month is 0-indexed)
+  return now > deadline;
+};
+
 // ==========================================
 // 🚀 MAIN APPLICATION COMPONENT
 // ==========================================
@@ -355,6 +361,7 @@ function App() {
   const [activePostMenuId, setActivePostMenuId] = useState(null);
   const [profileTab, setProfileTab] = useState('posts');
   const [userSavedPosts, setUserSavedPosts] = useState([]);
+
   const [savedPostIds, setSavedPostIds] = useState(new Set());
   const [magicLinkState, setMagicLinkState] = useState({}); // { [userId]: 'loading' | 'done' | null }
   const [uploadFiles, setUploadFiles] = useState([]);
@@ -803,8 +810,22 @@ function App() {
     registration_open: 'true',
     certificates_released: 'false',
     event_announcement: '',
-    google_drive_link: ''
+    google_drive_link: '',
+    project_submission_open: 'true',
+    winner_1st_email: '',
+    winner_2nd_email: '',
+    winner_3rd_email: '',
+    winner_innovation_email: ''
   });
+
+  const winnerEmails = [
+    settings.winner_1st_email,
+    settings.winner_2nd_email,
+    settings.winner_3rd_email,
+    settings.winner_innovation_email
+  ].map(e => e ? e.toLowerCase().trim() : '');
+
+  const isWinner = user.email && winnerEmails.includes(user.email.toLowerCase().trim());
   const [announcementHistory, setAnnouncementHistory] = useState([]);
   const [isBannerDismissed, setIsBannerDismissed] = useState(true);
   const prevAnnouncementRef = useRef('');
@@ -2446,7 +2467,7 @@ function App() {
     if (data) {
       const settingsMap = {};
       data.forEach(s => settingsMap[s.id] = s.value);
-      setSettings(settingsMap);
+      setSettings(prev => ({ ...prev, ...settingsMap }));
     }
     fetchAnnouncementHistory();
   };
@@ -2595,6 +2616,10 @@ function App() {
 
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
+    if (settings.project_submission_open !== 'true') {
+      alert('Project submissions are currently closed by the admin.');
+      return;
+    }
     const formData = new FormData(e.target);
 
     if (formData.get('description').toString().split(' ').length < 100) {
@@ -2901,6 +2926,11 @@ function App() {
   };
 
   const handleToggleAttendance = async (userId, isPresent) => {
+    if (checkIsAfter13th()) {
+      alert("Attendance records cannot be modified after July 13th, 2026.");
+      fetchAllUsers();
+      return;
+    }
     // Optimistically update the UI so the checkbox ticks instantly
     setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, is_approved: isPresent } : u));
 
@@ -3363,7 +3393,7 @@ function App() {
               team_status: signupRole === 'attendee' ? teamStatus : null,
               needs_teaming: signupRole === 'attendee' ? needsTeaming : false,
               team_name: signupRole === 'attendee' ? teamName : null,
-              is_approved: signupRole !== 'mentor',
+              is_approved: false,
               venue: signupRole === 'attendee' ? selectedVenueChosen : null
             }
           ], { onConflict: 'id' });
@@ -5263,6 +5293,15 @@ function App() {
                           {settings.certificates_released === 'true' ? 'ENABLED' : 'DISABLED'}
                         </button>
                       </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Project Submissions</span>
+                        <button
+                          className={`btn-small ${settings.project_submission_open === 'true' ? 'accept' : 'decline'}`}
+                          onClick={() => updateSetting('project_submission_open', settings.project_submission_open === 'true' ? 'false' : 'true')}
+                        >
+                          {settings.project_submission_open === 'true' ? 'ENABLED' : 'DISABLED'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div className="admin-card">
@@ -5331,6 +5370,72 @@ function App() {
                         UPDATE DRIVE LINK
                       </button>
                     </div>
+                  </div>
+
+                  <div className="admin-card" style={{ gridColumn: 'span 2' }}>
+                    <h3>Special Award Winners</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#555', marginBottom: '1rem' }}>
+                      Enter the email addresses of the award winners. These users will be excluded from claiming participation certificates.
+                    </p>
+                    <div className="admin-two-col-grid" style={{ gap: '1rem' }}>
+                      <div className="input-group">
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>1st Place Winner Email</label>
+                        <input
+                          type="email"
+                          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                          value={settings.winner_1st_email || ''}
+                          onChange={(e) => setSettings({ ...settings, winner_1st_email: e.target.value })}
+                          placeholder="winner1@example.com"
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>2nd Place Winner Email</label>
+                        <input
+                          type="email"
+                          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                          value={settings.winner_2nd_email || ''}
+                          onChange={(e) => setSettings({ ...settings, winner_2nd_email: e.target.value })}
+                          placeholder="winner2@example.com"
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>3rd Place Winner Email</label>
+                        <input
+                          type="email"
+                          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                          value={settings.winner_3rd_email || ''}
+                          onChange={(e) => setSettings({ ...settings, winner_3rd_email: e.target.value })}
+                          placeholder="winner3@example.com"
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Best Innovation Prize Email</label>
+                        <input
+                          type="email"
+                          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                          value={settings.winner_innovation_email || ''}
+                          onChange={(e) => setSettings({ ...settings, winner_innovation_email: e.target.value })}
+                          placeholder="innovation@example.com"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      className="join-btn"
+                      style={{ width: '100%', marginTop: '1.5rem' }}
+                      onClick={async () => {
+                        try {
+                          await updateSetting('winner_1st_email', settings.winner_1st_email || '');
+                          await updateSetting('winner_2nd_email', settings.winner_2nd_email || '');
+                          await updateSetting('winner_3rd_email', settings.winner_3rd_email || '');
+                          await updateSetting('winner_innovation_email', settings.winner_innovation_email || '');
+                          alert('Winner emails updated successfully!');
+                        } catch (err) {
+                          alert('Failed to update winner emails: ' + err.message);
+                        }
+                      }}
+                    >
+                      UPDATE WINNERS LIST
+                    </button>
                   </div>
                 </div>
               </div>
@@ -6020,13 +6125,15 @@ function App() {
                                           <input
                                             type="checkbox"
                                             checked={u.is_approved || false}
+                                            disabled={checkIsAfter13th()}
                                             onChange={(e) => handleToggleAttendance(u.id, e.target.checked)}
                                             onClick={(e) => e.stopPropagation()}
                                             style={{
                                               width: '20px',
                                               height: '20px',
-                                              cursor: 'pointer',
-                                              accentColor: 'var(--pink-primary)'
+                                              cursor: checkIsAfter13th() ? 'not-allowed' : 'pointer',
+                                              accentColor: 'var(--pink-primary)',
+                                              opacity: checkIsAfter13th() ? 0.5 : 1
                                             }}
                                           />
                                         </div>
@@ -6894,12 +7001,14 @@ function App() {
                                   <input
                                     type="checkbox"
                                     checked={u.is_approved || false}
+                                    disabled={checkIsAfter13th()}
                                     onChange={(e) => handleToggleAttendance(u.id, e.target.checked)}
                                     style={{
                                       width: '20px',
                                       height: '20px',
-                                      cursor: 'pointer',
-                                      accentColor: 'var(--pink-primary)'
+                                      cursor: checkIsAfter13th() ? 'not-allowed' : 'pointer',
+                                      accentColor: 'var(--pink-primary)',
+                                      opacity: checkIsAfter13th() ? 0.5 : 1
                                     }}
                                   />
                                 </div>
@@ -7266,7 +7375,7 @@ function App() {
                     <div className="support-btn issue" onClick={handleReportIssue}>
                       REPORT AN ISSUE
                     </div>
-                    {settings.certificates_released === 'true' && user.isApproved && (
+                    {settings.certificates_released === 'true' && user.isApproved && !isWinner && (
                       <div
                         className="support-btn mentor"
                         style={{
@@ -7277,6 +7386,21 @@ function App() {
                         onClick={() => setActiveView('certificate')}
                       >
                         🎓 CLAIM ACHIEVEMENT CERTIFICATE
+                      </div>
+                    )}
+                    {settings.certificates_released === 'true' && user.isApproved && isWinner && (
+                      <div
+                        className="support-btn mentor disabled"
+                        style={{
+                          background: 'linear-gradient(135deg, #bdc3c7, #2c3e50)',
+                          color: '#fff',
+                          gridColumn: 'span 2',
+                          cursor: 'not-allowed',
+                          opacity: 0.8
+                        }}
+                        onClick={() => alert("As an award winner, you are eligible for a special category certificate instead of a participation certificate. Please contact the organizers.")}
+                      >
+                        🎓 SPECIAL CERTIFICATE (CONTACT ADMIN)
                       </div>
                     )}
                   </div>
@@ -7336,8 +7460,18 @@ function App() {
                         <label style={{ color: 'var(--text-navy)', fontWeight: 'bold' }}>Brief Description (min 100 words)</label>
                         <textarea name="description" placeholder="Tell us what you built and how it helps..." required style={{ width: '100%', minHeight: '100px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}></textarea>
                       </div>
-                      <button type="submit" className="join-btn" style={{ width: '100%', marginTop: '1.5rem' }}>
-                        SUBMIT FINAL PROJECT
+                      <button
+                        type="submit"
+                        className={`join-btn ${settings.project_submission_open !== 'true' ? 'disabled' : ''}`}
+                        style={{
+                          width: '100%',
+                          marginTop: '1.5rem',
+                          opacity: settings.project_submission_open !== 'true' ? 0.6 : 1,
+                          cursor: settings.project_submission_open !== 'true' ? 'not-allowed' : 'pointer'
+                        }}
+                        disabled={settings.project_submission_open !== 'true'}
+                      >
+                        {settings.project_submission_open === 'true' ? 'SUBMIT FINAL PROJECT' : 'SUBMISSION CLOSED BY ADMIN'}
                       </button>
                     </form>
                   )}
@@ -7699,7 +7833,7 @@ function App() {
       ) : activeView === 'blog' ? (
         <div className="blog-page-layout">
           <div className="blog-feed-container" style={{ paddingTop: '100px' }}>
-            {isLoggedIn && (
+            {isLoggedIn && !checkIsAfter13th() && (
               <button
                 className="floating-add-post-btn"
                 onClick={() => setIsUploadModalOpen(true)}
