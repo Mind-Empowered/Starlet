@@ -4027,18 +4027,28 @@ function App() {
               <div className="registration-modal-header" style={{ padding: '1rem', borderBottom: '3px solid var(--text-navy)', background: 'var(--yellow-star)' }}>
                 <h2 className="text-3d" style={{ fontSize: '1.2rem', margin: 0, textAlign: 'center' }}>Registration Form</h2>
               </div>
-              <div className="form-iframe-container" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-cream)' }}>
-                <iframe
-                  src="https://docs.google.com/forms/d/e/1FAIpQLScpTSmn2W3htUW6o2oy7Qnb1g5JGGGdVeV1E950b0lpJHTaaw/viewform?embedded=true"
-                  width="100%"
-                  height="1600"
-                  frameBorder="0"
-                  marginHeight="0"
-                  marginWidth="0"
-                  title="Starlet 5.0 Registration Form"
-                >
-                  Loading…
-                </iframe>
+              <div className="form-iframe-container" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-cream)', display: settings.registration_open === 'true' ? 'block' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: settings.registration_open === 'true' ? '0' : '3rem 2rem', textAlign: 'center', gap: '1rem' }}>
+                {settings.registration_open === 'true' ? (
+                  <iframe
+                    src="https://docs.google.com/forms/d/e/1FAIpQLScpTSmn2W3htUW6o2oy7Qnb1g5JGGGdVeV1E950b0lpJHTaaw/viewform?embedded=true"
+                    width="100%"
+                    height="1600"
+                    frameBorder="0"
+                    marginHeight="0"
+                    marginWidth="0"
+                    title="Starlet 5.0 Registration Form"
+                  >
+                    Loading…
+                  </iframe>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '4rem', margin: '1rem 0' }}>🔒</div>
+                    <h3 className="text-3d" style={{ fontSize: '2rem', color: 'var(--text-navy)', marginBottom: '0.5rem' }}>Registrations Closed</h3>
+                    <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                      Public registrations for Starlet 5.0 are currently closed. If you have already registered, you can still sign up to create your account!
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
