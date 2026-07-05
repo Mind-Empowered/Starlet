@@ -6634,20 +6634,6 @@ function App() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                       <div className="directory-filter-tabs" style={{ margin: 0 }}>
                         <button
-                          className={`directory-filter-btn ${submissionsFilter === 'all' ? 'active' : ''}`}
-                          onClick={() => { setSubmissionsFilter('all'); setProjectSubmissionsPage(1); }}
-                        >
-                          ALL
-                        </button>
-                        <button
-                          className={`directory-filter-btn ${submissionsFilter === 'team' ? 'active' : ''}`}
-                          onClick={() => { setSubmissionsFilter('team'); setProjectSubmissionsPage(1); }}
-                        >
-                          TEAMS ONLY
-                        </button>
-                      </div>
-                      <div className="directory-filter-tabs" style={{ margin: 0 }}>
-                        <button
                           className={`directory-filter-btn ${submissionStatusFilter === 'all' ? 'active' : ''}`}
                           onClick={() => { setSubmissionStatusFilter('all'); setProjectSubmissionsPage(1); }}
                         >
@@ -6687,11 +6673,12 @@ function App() {
                       </thead>
                       <tbody>
                         {(() => {
-                          const rawTeamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                          const rawTeamsList = Array.from(new Set(
+                            allUsers
+                              .filter(u => u.user_role === 'attendee' && u.team_name && !u.team_name.startsWith('Individual-'))
+                              .map(u => u.team_name)
+                          ));
                           const teamsList = rawTeamsList.filter(team => {
-                            if (submissionsFilter === 'team' && team.startsWith('Individual-')) {
-                              return false;
-                            }
                             const sub = projectSubmissions.find(s => s.team_name === team);
                             if (submissionStatusFilter === 'submitted' && !sub) {
                               return false;
@@ -6846,11 +6833,12 @@ function App() {
                   </div>
 
                   {(() => {
-                    const rawTeamsList = Array.from(new Set(allUsers.filter(u => u.user_role === 'attendee').map(u => u.team_name || `Individual-${u.id}`)));
+                    const rawTeamsList = Array.from(new Set(
+                      allUsers
+                        .filter(u => u.user_role === 'attendee' && u.team_name && !u.team_name.startsWith('Individual-'))
+                        .map(u => u.team_name)
+                    ));
                     const teamsList = rawTeamsList.filter(team => {
-                      if (submissionsFilter === 'team' && team.startsWith('Individual-')) {
-                        return false;
-                      }
                       const sub = projectSubmissions.find(s => s.team_name === team);
                       if (submissionStatusFilter === 'submitted' && !sub) {
                         return false;
