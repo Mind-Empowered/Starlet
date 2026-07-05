@@ -182,12 +182,38 @@ header.header-minimal {
     object-fit: contain;
 }
 
+.logo-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--pink-primary);
+    text-shadow:
+        2px 2px 0px var(--blue-shadow),
+        4px 4px 0px rgba(0, 0, 0, 0.1);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.logo-text:hover {
+    transform: scale(1.05);
+}
+
 @media (max-width: 600px) {
     .logo-circle {
         width: 50px;
         height: 50px;
         border-width: 2px;
         box-shadow: 3px 3px 0px var(--text-navy);
+    }
+    .logo-text {
+        font-size: 1.3rem;
+        text-shadow:
+            1.5px 1.5px 0px var(--blue-shadow),
+            3px 3px 0px rgba(0, 0, 0, 0.1);
+        letter-spacing: 1px;
     }
 }
 

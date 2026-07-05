@@ -3892,6 +3892,9 @@ function App() {
             <div className="logo-circle" onClick={() => setActiveView('landing')} style={{ cursor: 'pointer' }}>
               <img src="brand/Logo.png" alt="Starlet Logo" />
             </div>
+            <span className="logo-text" onClick={() => setActiveView('landing')}>
+              Starlet
+            </span>
           </div>
 
           {(activeView === 'landing' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue') && (
@@ -4281,7 +4284,7 @@ function App() {
                           </div>
                           <div className="warning-item" style={{ "--r": -0.8 }}>
                             <div className="warning-icon"><img src="icons/laptop.svg" className="card-icon" alt="laptop" /></div>
-                            <p><strong>CODE ORIGINALITY:</strong> All projects must be built from scratch during hackathon hours. Pre-existing code is prohibited, except open-source libraries or frameworks.</p>
+                            <p><strong>CODE ORIGINALITY:</strong> All projects must be built from scratch during hackathon hours. Pre-existing code is prohibited, except open-source libraries or frameworks. Taking external help or coding only using ai leads to disqualification.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 1.2 }}>
                             <div className="warning-icon"><img src="icons/rocket.svg" className="card-icon" alt="rocket" /></div>
@@ -4289,11 +4292,11 @@ function App() {
                           </div>
                           <div className="warning-item" style={{ "--r": -1.2 }}>
                             <div className="warning-icon"><img src="icons/users.svg" className="card-icon" alt="users" /></div>
-                            <p><strong>COLLABORATION POWER:</strong> Cross-team collaboration is highly encouraged and will win extra points! Seek advice and guidance from mentors and organizers.</p>
+                            <p><strong>COLLABORATION POWER:</strong> Cross-team collaboration is highly encouraged! Seek advice and guidance from mentors and organizers.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": 0.8 }}>
                             <div className="warning-icon"><img src="icons/calendar.svg" className="card-icon" alt="calendar" /></div>
-                            <p><strong>SUBMISSION DEADLINE:</strong> Submit project documentation, source code, and presentation before the deadline. Late submissions face penalties or disqualification.</p>
+                            <p><strong>SUBMISSION DEADLINE:</strong> Submit project documentation, source code, and presentation before the deadline. Late submissions face disqualification.</p>
                           </div>
                           <div className="warning-item" style={{ "--r": -1.5 }}>
                             <div className="warning-icon"><img src="icons/trophy.svg" className="card-icon" alt="trophy" /></div>

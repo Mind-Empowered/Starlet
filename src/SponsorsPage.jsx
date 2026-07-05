@@ -37,8 +37,7 @@ const SponsorsPage = ({ onBack }) => {
           <p>
             Starlet 5.0 is the ultimate innovation marathon dedicated to building technology that empowers women. 
             By sponsoring us, you align your brand with inclusivity, innovation, and youth empowerment. 
-            Gain unparalleled access to top talent and showcase your commitment to driving meaningful change. 
-            Join us to provide credibility to our shared mission.
+            Gain unparalleled access to top talent and showcase your commitment to driving meaningful change.
           </p>
         </div>
 
