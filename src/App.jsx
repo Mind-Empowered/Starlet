@@ -7471,6 +7471,35 @@ function App() {
                     </span>
                   </div>
                 </div>
+                {settings.google_drive_link && (
+                  <div className="profile-field">
+                    <label>Submission Drive Link</label>
+                    <div className="field-value" style={{ width: '100%', marginTop: '0.4rem' }}>
+                      <a
+                        href={settings.google_drive_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-small accept"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          background: 'var(--yellow-star)',
+                          color: 'var(--text-navy)',
+                          border: '2px solid var(--text-navy)',
+                          textDecoration: 'none',
+                          fontWeight: 'bold',
+                          boxShadow: '3px 3px 0px var(--text-navy)',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📂 Open Shared Google Drive Folder
+                      </a>
+                    </div>
+                  </div>
+                )}
                 <div className="profile-field">
                   <label>Team Status</label>
                   <div className="field-value" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-start' }}>
