@@ -1022,17 +1022,21 @@ function App() {
 
   const handleHomeNavClick = (sectionId, e) => {
     if (e) e.preventDefault();
+    setIsMenuOpen(false);
+
+    const performScroll = () => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
     if (activeView !== 'landing') {
       setActiveView('landing');
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
+      setTimeout(performScroll, 300);
     } else {
-      const el = document.getElementById(sectionId);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(performScroll, 100);
     }
-    setIsMenuOpen(false);
   };
 
   const renderPagination = (currentPage, totalItems, itemsPerPage, onPageChange) => {
@@ -7874,7 +7878,7 @@ function App() {
 
       ) : activeView === 'blog' ? (
         <div className="blog-page-layout">
-          <div className="blog-feed-container" style={{ paddingTop: '100px' }}>
+          <div className="blog-feed-container">
             {isLoggedIn && !checkIsAfter13th() && (
               <button
                 className="floating-add-post-btn"
@@ -7954,8 +7958,14 @@ function App() {
                         </div>
                       </div>
 
-                      {/* Post Content Media */}
-                      {renderPostMedia(post)}
+                      {/* Post Content Media or Text-only body */}
+                      {(post.media_type === 'text' || !post.media_url) ? (
+                        <div className="blog-post-text-body" style={{ padding: '2.5rem 1.5rem', fontSize: '1.25rem', color: 'var(--text-navy)', fontFamily: "'Outfit', sans-serif", borderBottom: '3.5px solid var(--text-navy)', lineHeight: '1.6', background: 'rgba(255, 255, 255, 0.3)', textAlign: 'left', wordBreak: 'break-word' }}>
+                          {renderCaptionWithMentions(post.caption)}
+                        </div>
+                      ) : (
+                        renderPostMedia(post)
+                      )}
 
                       {/* Post Actions & Caption */}
                       <div className="blog-post-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1.25rem' }}>
@@ -7970,7 +7980,7 @@ function App() {
                           </svg>
                         </button>
 
-                        {post.caption && (
+                        {post.caption && post.media_type !== 'text' && post.media_url && (
                           <div className="blog-post-caption" style={{ margin: 0, flex: 1, textAlign: 'left' }}>
                             <span>{renderCaptionWithMentions(post.caption)}</span>
                           </div>
@@ -8046,7 +8056,6 @@ function App() {
                         placeholder="Write something cool about this post... Use @ to tag users!"
                         value={uploadCaption}
                         onChange={(e) => handleCaptionChange(e.target.value)}
-                        required
                         className="blog-form-textarea"
                       />
                       {mentionSuggestions.length > 0 && (
@@ -8221,6 +8230,26 @@ function App() {
             )}
           </div>
 
+          <div className="blog-sidebar-panel">
+            <div className="sidebar-card quote-card">
+              <div className="quote-icon">“</div>
+              <p className="quote-text">
+                Technology is most powerful when it empowers everyone. Build for accessibility, innovate for independence.
+              </p>
+              <span className="quote-author">— Starlet 5.0 Team</span>
+            </div>
+
+            <div className="sidebar-card info-card">
+              <h3>📢 Galaxy Feed</h3>
+              <p>
+                Catch up with live updates, vlogs, and project sneak peeks from all our squads across adiabatic venues.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span className="sidebar-tag">#AssistiveTech</span>
+                <span className="sidebar-tag">#Inclusion</span>
+              </div>
+            </div>
+          </div>
 
         </div>
         // ==========================================

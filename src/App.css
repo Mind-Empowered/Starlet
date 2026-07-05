@@ -8434,7 +8434,7 @@ input:checked + .a11y-slider:before {
 /* Mobile Post Card Layout - Full Bleed Screen Width */
 @media (max-width: 768px) {
     .blog-feed-container {
-        padding: 68px 0 0 0 !important;
+        padding: 0 !important;
     }
     
     .blog-posts-list {
@@ -8472,7 +8472,7 @@ input:checked + .a11y-slider:before {
         flex: 1;
         max-width: 650px;
         margin: 0;
-        padding: 2rem 0;
+        padding: 100px 0 2rem 0;
     }
     
     .blog-posts-list {
@@ -8655,4 +8655,104 @@ input:checked + .a11y-slider:before {
 .volunteer-info span {
     color: var(--text-navy);
     font-weight: 500;
+}
+
+/* Sidebar Panel (Desktop only) */
+.blog-sidebar-panel {
+    display: none; /* Hidden by default (mobile/tablet) */
+}
+
+@media (min-width: 992px) {
+    .blog-sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        width: 380px;
+        margin-left: 3rem;
+        padding-top: 100px; /* Align with the blog feed padding */
+        position: sticky;
+        top: 20px;
+    }
+
+    .sidebar-card {
+        background: #ffffff;
+        border: 3.5px solid var(--text-navy);
+        border-radius: 20px;
+        padding: 1.75rem;
+        box-shadow: 6px 6px 0px var(--text-navy);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .sidebar-card:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 8px 8px 0px var(--pink-primary);
+    }
+
+    .sidebar-card.quote-card {
+        position: relative;
+        background: #fffdf0;
+        overflow: hidden;
+        text-align: left;
+    }
+
+    .sidebar-card.quote-card .quote-icon {
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        font-size: 5rem;
+        font-family: 'Fredoka One', cursive;
+        color: rgba(255, 20, 147, 0.15);
+        line-height: 1;
+    }
+
+    .sidebar-card.quote-card .quote-text {
+        font-size: 1.1rem;
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        color: var(--text-navy);
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .sidebar-card.quote-card .quote-author {
+        display: block;
+        text-align: right;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: var(--pink-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-card.info-card {
+        text-align: left;
+    }
+
+    .sidebar-card.info-card h3 {
+        font-family: 'Fredoka One', cursive;
+        color: var(--text-navy);
+        margin-bottom: 0.75rem;
+        font-size: 1.2rem;
+    }
+
+    .sidebar-card.info-card p {
+        font-size: 0.9rem;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+
+    .sidebar-tag {
+        display: inline-block;
+        background: rgba(51, 102, 255, 0.1);
+        color: var(--blue-shadow);
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-right: 0.5rem;
+        border: 1px solid rgba(51, 102, 255, 0.15);
+    }
 }
