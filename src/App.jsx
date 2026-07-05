@@ -2384,6 +2384,35 @@ function App() {
     }
   };
 
+  const handleReRunAudit = async (submission) => {
+    try {
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+      
+      // Update local state to scanning
+      setProjectSubmissions(prev => prev.map(s => s.id === submission.id ? { ...s, git_audit_status: 'scanning' } : s));
+
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/analyze-repo`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminSession.access_token}`,
+            'apikey': supabaseAnonKey,
+          },
+          body: JSON.stringify({ id: submission.id, github_url: submission.github_url }),
+        }
+      );
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Failed to analyze repository');
+      
+      fetchSubmissions();
+    } catch (err) {
+      alert('Audit trigger failed: ' + err.message);
+      fetchSubmissions();
+    }
+  };
+
   const getDisplayTeamName = (teamName) => {
     if (!teamName) return '';
     const m = teamName.match(/^Individual-(.+)$/);
@@ -6327,6 +6356,7 @@ function App() {
                           <th>Team / Project</th>
                           <th>Links</th>
                           <th>Status</th>
+                          <th>Audit Status</th>
                           <th>Submitted At</th>
                         </tr>
                       </thead>
@@ -6376,11 +6406,23 @@ function App() {
                                       {sub ? 'SUBMITTED' : 'PENDING'}
                                     </span>
                                   </td>
+                                  <td>
+                                    {sub ? (
+                                      <span className={`role-badge ${
+                                        sub.git_audit_status === 'passed' ? 'accept' :
+                                        sub.git_audit_status === 'scanning' ? 'pending' : 'decline'
+                                      }`} style={{ background: sub.git_audit_status === 'scanning' ? '#2b6cb0' : undefined }}>
+                                        {sub.git_audit_status === 'scanning' ? '⏳ SCANNING' :
+                                         sub.git_audit_status === 'passed' ? '✅ PASSED' :
+                                         sub.git_audit_status === 'flagged' ? '⚠️ FLAGGED' : '⏳ PENDING'}
+                                      </span>
+                                    ) : '-'}
+                                  </td>
                                   <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
                                 </tr>
                                 {isExpanded && sub && (
                                   <tr className="submission-details-row">
-                                    <td colSpan="4" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
+                                    <td colSpan="5" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
                                       <div style={{ color: '#fff' }}>
                                         <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                           🚀 {sub.project_name} Details
@@ -6401,6 +6443,53 @@ function App() {
                                               <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>Google Drive Folder</a>
                                             )}
                                           </div>
+
+                                          {/* Automated Git & AI Audit Report details */}
+                                          <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                            <h5 style={{ color: 'var(--pink-primary)', margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
+                                              🔍 Automated Git & AI Audit Report
+                                            </h5>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
+                                              <div>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>AUDIT STATUS</span>
+                                                <strong style={{
+                                                  fontSize: '0.9rem',
+                                                  color: sub.git_audit_status === 'passed' ? '#48bb78' :
+                                                         sub.git_audit_status === 'scanning' ? '#4299e1' :
+                                                         sub.git_audit_status === 'flagged' ? '#f56565' : '#a0aec0'
+                                                }}>
+                                                  {sub.git_audit_status?.toUpperCase() || 'PENDING'}
+                                                </strong>
+                                              </div>
+                                              <div>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>COMMIT COUNT</span>
+                                                <strong style={{ fontSize: '0.9rem' }}>{sub.commit_count !== null && sub.commit_count !== undefined ? `${sub.commit_count} commits` : '—'}</strong>
+                                              </div>
+                                              <div>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>AI CODE CONFIDENCE</span>
+                                                <strong style={{ fontSize: '0.9rem' }}>{sub.ai_percentage !== null && sub.ai_percentage !== undefined ? `${sub.ai_percentage}% AI` : '—'}</strong>
+                                              </div>
+                                            </div>
+                                            {sub.audit_anomalies && sub.audit_anomalies.length > 0 && (
+                                              <div style={{ marginBottom: '0.8rem' }}>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>FLAGGED ANOMALIES</span>
+                                                <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', color: '#f6e05e', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                                                  {sub.audit_anomalies.map((anom, aIdx) => (
+                                                    <li key={aIdx}>{anom}</li>
+                                                  ))}
+                                                </ul>
+                                              </div>
+                                            )}
+                                            <button
+                                              className="btn-small accept"
+                                              disabled={sub.git_audit_status === 'scanning'}
+                                              onClick={(e) => { e.stopPropagation(); handleReRunAudit(sub); }}
+                                              style={{ marginTop: '0.5rem' }}
+                                            >
+                                              {sub.git_audit_status === 'scanning' ? '⏳ Scanning Repo...' : '🔄 Re-run Repo Audit'}
+                                            </button>
+                                          </div>
+
                                         </div>
                                       </div>
                                     </td>
