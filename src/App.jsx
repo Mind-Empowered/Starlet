@@ -3053,11 +3053,20 @@ function App() {
   };
 
   const handleAdminUpdateUserPS = async (userId, psId) => {
-    const { error } = await supabase.from('profiles').update({ problem_statement_id: psId }).eq('id', userId);
-    if (error) alert(error.message);
-    else {
+    try {
+      const { data: targetUser } = await supabase.from('profiles').select('team_name').eq('id', userId).maybeSingle();
+      let query = supabase.from('profiles').update({ problem_statement_id: psId });
+      if (targetUser && targetUser.team_name) {
+        query = query.ilike('team_name', targetUser.team_name.trim());
+      } else {
+        query = query.eq('id', userId);
+      }
+      const { error } = await query;
+      if (error) throw error;
       alert('Attendee track updated!');
       fetchAllUsers();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -3101,11 +3110,22 @@ function App() {
 
   const handleSelectPS = async (psId) => {
     if (!psId) return;
-    const { error } = await supabase.from('profiles').update({ problem_statement_id: psId }).eq('id', session.user.id);
-    if (error) alert(error.message);
-    else {
+    try {
+      setLoading(true);
+      let query = supabase.from('profiles').update({ problem_statement_id: psId });
+      if (user.teamName) {
+        query = query.ilike('team_name', user.teamName.trim());
+      } else {
+        query = query.eq('id', session.user.id);
+      }
+      const { error } = await query;
+      if (error) throw error;
       alert('Selection locked! Contact admin to change.');
       fetchProfile(session.user.id);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -3120,13 +3140,15 @@ function App() {
     try {
       const { data: existingTeam } = await supabase
         .from('teams')
-        .select('id')
-        .eq('name', teamName)
+        .select('id, name')
+        .ilike('name', teamName)
         .maybeSingle();
 
       let finalTeamId = null;
+      let finalTeamName = teamName;
       if (existingTeam) {
         finalTeamId = existingTeam.id;
+        finalTeamName = existingTeam.name;
       } else {
         const { data: newTeam, error: newTeamError } = await supabase
           .from('teams')
@@ -3134,14 +3156,17 @@ function App() {
           .select()
           .single();
         if (newTeamError) throw newTeamError;
-        if (newTeam) finalTeamId = newTeam.id;
+        if (newTeam) {
+          finalTeamId = newTeam.id;
+          finalTeamName = newTeam.name;
+        }
       }
 
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           team_id: finalTeamId,
-          team_name: teamName,
+          team_name: finalTeamName,
           team_status: 'team',
           needs_teaming: false
         })
@@ -3149,7 +3174,7 @@ function App() {
 
       if (profileError) throw profileError;
 
-      alert(`Successfully joined/created team: ${teamName}`);
+      alert(`Successfully joined/created team: ${finalTeamName}`);
       fetchProfile(session.user.id);
     } catch (error) {
       alert(error.message);
@@ -3380,24 +3405,29 @@ function App() {
         }
 
         let finalTeamId = null;
+        let finalTeamName = null;
         if (signupRole === 'attendee' && teamStatus === 'team' && teamName) {
-          // Check if team exists, if not create it
+          const trimmedTeamName = teamName.trim();
+          // Check if team exists case-insensitively, if not create it
           const { data: existingTeam } = await supabase
             .from('teams')
-            .select('id')
-            .eq('name', teamName)
-            .single();
+            .select('id, name')
+            .ilike('name', trimmedTeamName)
+            .maybeSingle();
 
           if (existingTeam) {
             finalTeamId = existingTeam.id;
+            finalTeamName = existingTeam.name;
           } else {
-
             const { data: newTeam } = await supabase
               .from('teams')
-              .insert([{ name: teamName }])
+              .insert([{ name: trimmedTeamName }])
               .select()
               .single();
-            if (newTeam) finalTeamId = newTeam.id;
+            if (newTeam) {
+              finalTeamId = newTeam.id;
+              finalTeamName = newTeam.name;
+            }
           }
         }
 
@@ -3418,7 +3448,7 @@ function App() {
               team_id: finalTeamId,
               team_status: signupRole === 'attendee' ? teamStatus : null,
               needs_teaming: signupRole === 'attendee' ? needsTeaming : false,
-              team_name: signupRole === 'attendee' ? teamName : null,
+              team_name: signupRole === 'attendee' ? (finalTeamName || teamName) : null,
               is_approved: false,
               venue: signupRole === 'attendee' ? selectedVenueChosen : null
             }
