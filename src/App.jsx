@@ -2651,8 +2651,8 @@ function App() {
       return;
     }
     
-    // Leadership Check
-    if (user.teamName && !user.isTeamLeader) {
+    // Leadership Check (Attendees only)
+    if (user.role === 'attendee' && user.teamName && !user.isTeamLeader) {
       alert('Only the Team Leader can submit the project for your team!');
       return;
     }
