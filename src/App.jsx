@@ -401,6 +401,7 @@ function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
+  const [isIOSUser, setIsIOSUser] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -922,6 +923,13 @@ function App() {
   }, [isLoggedIn, user?.role, adminActiveTab, session?.user?.id]);
 
   useEffect(() => {
+    // Detect iOS users who are not in standalone mode
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isStandalone) {
+      setIsIOSUser(true);
+    }
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setInstallPrompt(e);
@@ -4097,7 +4105,8 @@ function App() {
         )}
 
         {/* PWA Install Banner */}
-        {installPrompt && showInstallBanner && (
+        {/* PWA Install Banner (Android/Chrome/Windows) */}
+        {!isIOSUser && installPrompt && showInstallBanner && (
           <div className="pwa-install-banner">
             <div className="pwa-install-banner-content">
               <span className="pwa-install-logo">✦</span>
@@ -4109,6 +4118,24 @@ function App() {
             <div className="pwa-install-actions">
               <button className="pwa-install-dismiss" onClick={() => setShowInstallBanner(false)} aria-label="Dismiss install prompt">Not Now</button>
               <button className="pwa-install-btn-accent" onClick={handleInstallClick} aria-label="Install App">Install</button>
+            </div>
+          </div>
+        )}
+
+        {/* PWA Install Banner (iOS Safari) */}
+        {isIOSUser && showInstallBanner && (
+          <div className="pwa-install-banner" style={{ background: 'var(--yellow-star)', color: 'var(--text-navy)', border: '3px solid var(--text-navy)', boxShadow: '6px 6px 0px var(--blue-shadow)' }}>
+            <div className="pwa-install-banner-content">
+              <span className="pwa-install-logo" style={{ color: 'var(--pink-primary)' }}>✦</span>
+              <div className="pwa-install-text-wrapper">
+                <span className="pwa-install-badge" style={{ background: 'var(--pink-primary)', color: '#fff' }}>INSTALL APP</span>
+                <span className="pwa-install-text" style={{ fontSize: '0.85rem', color: 'var(--text-navy)', fontWeight: 'bold' }}>
+                  Add Starlet 5.0 to your iPhone: tap the <strong>Share</strong> button <span style={{ fontSize: '1.2rem', verticalAlign: 'middle' }}>⎋</span> at the bottom of Safari, then select <strong>Add to Home Screen</strong>!
+                </span>
+              </div>
+            </div>
+            <div className="pwa-install-actions">
+              <button className="pwa-install-dismiss" onClick={() => setShowInstallBanner(false)} style={{ color: 'var(--text-navy)', border: '2px solid var(--text-navy)', fontWeight: 'bold' }} aria-label="Dismiss install prompt">Dismiss</button>
             </div>
           </div>
         )}
