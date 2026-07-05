@@ -1341,7 +1341,7 @@ function App() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, email, avatar_url, user_role, team_name, team_id')
+      .select('id, full_name, email, avatar_url, user_role, team_name, team_id, is_team_leader')
       .eq(teamKey.column, teamKey.value)
       .order('full_name', { ascending: true });
 
@@ -1377,6 +1377,7 @@ function App() {
           languages: [],
           teamId: null,
           teamName: '',
+          isTeamLeader: false,
           problemStatementId: null,
           socials: {
             github: '',
@@ -1401,6 +1402,7 @@ function App() {
           languages: Array.isArray(data.languages) ? data.languages : [],
           teamId: data.team_id || null,
           teamName: data.team_name || '',
+          isTeamLeader: data.is_team_leader || false,
           problemStatementId: data.problem_statement_id || null,
           socials: {
             github: data.github_url || '',
@@ -1425,6 +1427,7 @@ function App() {
           languages: Array.isArray(data.languages) ? [...data.languages] : [],
           teamId: data.team_id || null,
           teamName: data.team_name || '',
+          isTeamLeader: data.is_team_leader || false,
           problemStatementId: data.problem_statement_id || null,
           socials: {
             github: data.github_url || '',
@@ -2167,7 +2170,8 @@ function App() {
             linkedin: profile.linkedin_url || '',
             instagram: profile.twitter_url || ''
           },
-          isApproved: profile.is_approved || false
+          isApproved: profile.is_approved || false,
+          isTeamLeader: profile.is_team_leader || false
         };
         setViewProfileUser(mappedUser);
         fetchUserProfilePosts(userId);
@@ -2646,6 +2650,13 @@ function App() {
       alert('Project submissions are currently closed by the admin.');
       return;
     }
+    
+    // Leadership Check
+    if (user.teamName && !user.isTeamLeader) {
+      alert('Only the Team Leader can submit the project for your team!');
+      return;
+    }
+
     const formData = new FormData(e.target);
 
     if (formData.get('description').toString().split(' ').length < 100) {
@@ -2713,6 +2724,14 @@ function App() {
       const groupSize = 4;
       const createdTeams = [];
 
+      // Fetch current count of teams to determine the starting index
+      const { count: teamCount, error: countError } = await supabase
+        .from('teams')
+        .select('*', { count: 'exact', head: true });
+
+      if (countError) throw countError;
+      let squadIndex = (teamCount || 0) + 1;
+
       for (let i = 0; i < shuffled.length; i += groupSize) {
         const group = shuffled.slice(i, i + groupSize);
 
@@ -2726,14 +2745,15 @@ function App() {
               team_id: lastTeam.id,
               team_name: lastTeam.name,
               team_status: 'team',
+              is_team_leader: false,
               needs_teaming: false
             })
             .eq('id', singleUser.id);
           continue;
         }
 
-        const squadNumber = Math.floor(Math.random() * 10000);
-        const teamName = `Stellar Squad ${squadNumber}`;
+        const teamName = `Starlet ${String(squadIndex).padStart(2, '0')}`;
+        squadIndex++;
 
         // Create the team in the teams table first
         const { data: newTeam, error: teamError } = await supabase
@@ -2745,14 +2765,20 @@ function App() {
         if (teamError) continue;
         createdTeams.push({ id: newTeam.id, name: teamName });
 
+        // Randomly select a leader index for this group
+        const leaderIndex = Math.floor(Math.random() * group.length);
+
         // Update all members in this group
-        for (const user of group) {
+        for (let j = 0; j < group.length; j++) {
+          const user = group[j];
+          const isLeader = j === leaderIndex;
           await supabase
             .from('profiles')
             .update({
               team_id: newTeam.id,
               team_name: teamName,
               team_status: 'team',
+              is_team_leader: isLeader,
               needs_teaming: false
             })
             .eq('id', user.id);
@@ -3146,9 +3172,21 @@ function App() {
 
       let finalTeamId = null;
       let finalTeamName = teamName;
+      let isLeader = true;
+
       if (existingTeam) {
         finalTeamId = existingTeam.id;
         finalTeamName = existingTeam.name;
+        
+        // Check if there are already members in this team
+        const { data: teamMembers } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('team_id', finalTeamId)
+          .limit(1);
+        if (teamMembers && teamMembers.length > 0) {
+          isLeader = false;
+        }
       } else {
         const { data: newTeam, error: newTeamError } = await supabase
           .from('teams')
@@ -3168,6 +3206,7 @@ function App() {
           team_id: finalTeamId,
           team_name: finalTeamName,
           team_status: 'team',
+          is_team_leader: isLeader,
           needs_teaming: false
         })
         .eq('id', session.user.id);
@@ -3308,22 +3347,118 @@ function App() {
 
   const handleLeaveTeam = async () => {
     try {
+      const leavingUserId = session.user.id;
+      const leavingUserTeamId = user.teamId;
+      const leavingUserWasLeader = user.isTeamLeader;
+
       const { error } = await supabase
         .from('profiles')
         .update({
           team_id: null,
           team_name: null,
           team_status: 'single',
+          is_team_leader: false,
           needs_teaming: true
         })
-        .eq('id', session.user.id);
+        .eq('id', leavingUserId);
 
       if (error) throw error;
+
+      // If the leaving user was the leader, assign another leader or delete the team if empty
+      if (leavingUserWasLeader && leavingUserTeamId) {
+        const { data: remainingMembers } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('team_id', leavingUserTeamId)
+          .neq('id', leavingUserId)
+          .limit(1);
+
+        if (remainingMembers && remainingMembers.length > 0) {
+          await supabase
+            .from('profiles')
+            .update({ is_team_leader: true })
+            .eq('id', remainingMembers[0].id);
+        } else {
+          // No members left in the team, delete from teams table
+          await supabase
+            .from('teams')
+            .delete()
+            .eq('id', leavingUserTeamId);
+        }
+      }
+
       alert('You have left the team and are now back in the solo pool.');
-      fetchProfile(session.user.id);
+      fetchProfile(leavingUserId);
       await promoteWaitlistedUsers();
     } catch (error) {
       alert(error.message);
+    }
+  };
+
+  const handleRenameTeam = async (newTeamNameInput) => {
+    if (!newTeamNameInput || !newTeamNameInput.trim()) {
+      alert('Please enter a valid team name.');
+      return;
+    }
+    const newTeamName = newTeamNameInput.trim();
+    if (!user.teamId) return;
+
+    try {
+      // 1. Fetch team's current rename_count
+      const { data: teamData, error: fetchError } = await supabase
+        .from('teams')
+        .select('id, rename_count, name')
+        .eq('id', user.teamId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      const currentRenameCount = teamData.rename_count || 0;
+      if (currentRenameCount >= 2) {
+        alert('You can only rename your team up to 2 times!');
+        return;
+      }
+      
+      // Check case-insensitive uniqueness (excluding current team name)
+      if (teamData.name.trim().toLowerCase() !== newTeamName.toLowerCase()) {
+        const { data: duplicateTeam } = await supabase
+          .from('teams')
+          .select('id')
+          .ilike('name', newTeamName)
+          .maybeSingle();
+          
+        if (duplicateTeam) {
+          alert('A team with this name already exists. Please choose another name!');
+          return;
+        }
+      }
+      
+      // 2. Update the team name and increment rename_count in 'teams' table
+      const { error: teamUpdateError } = await supabase
+        .from('teams')
+        .update({
+          name: newTeamName,
+          rename_count: currentRenameCount + 1
+        })
+        .eq('id', user.teamId);
+        
+      if (teamUpdateError) throw teamUpdateError;
+      
+      // 3. Update all team members' profiles team_name field
+      const { error: profilesUpdateError } = await supabase
+        .from('profiles')
+        .update({
+          team_name: newTeamName
+        })
+        .eq('team_id', user.teamId);
+        
+      if (profilesUpdateError) throw profilesUpdateError;
+      
+      alert('Team renamed successfully!');
+      fetchProfile(session.user.id);
+      fetchMyTeamMembers();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -5603,9 +5738,18 @@ function App() {
                             </div>
                             <div className="team-members-list">
                               {members.map(m => (
-                                <div key={m.id} className="team-member-item">
-                                  <span>{m.full_name}</span>
-                                  <small>{m.email}</small>
+                                <div key={m.id} className="team-member-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      {m.full_name}
+                                      {m.is_team_leader && (
+                                        <span className="leader-tag" style={{ background: 'var(--pink-primary)', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>
+                                          LEADER
+                                        </span>
+                                      )}
+                                    </span>
+                                    <small>{m.email}</small>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -7205,6 +7349,11 @@ function App() {
                   <div className="profile-header-details">
                     <h2 className="text-3d">{user.name}</h2>
                     <div className="profile-badges-row">
+                      {user.isTeamLeader && (
+                        <div className="status-badge approved" style={{ background: 'var(--pink-primary)', color: '#fff', border: 'none' }}>
+                          TEAM LEADER
+                        </div>
+                      )}
                       <div className="vlogs-count-badge">
                         📷 {userProfilePosts.length} {userProfilePosts.length === 1 ? 'Post' : 'Posts'}
                       </div>
@@ -7293,10 +7442,23 @@ function App() {
                 <div className="profile-field">
                   <label>Team Status</label>
                   <div className="field-value" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <strong>{user.teamName ? user.teamName : 'Solo Hacker'}</strong>
+                      {user.teamName && user.isTeamLeader && (
+                        <button
+                          className="btn-small accept"
+                          onClick={() => {
+                            const newName = prompt("Enter new team name (Max 2 changes allowed):");
+                            if (newName && newName.trim()) {
+                              handleRenameTeam(newName);
+                            }
+                          }}
+                        >
+                          RENAME TEAM
+                        </button>
+                      )}
                       {user.teamName && (
-                        <button className="btn-small decline" style={{ marginLeft: '1rem' }} onClick={handleLeaveTeam}>
+                        <button className="btn-small decline" onClick={handleLeaveTeam}>
                           LEAVE TEAM
                         </button>
                       )}
@@ -7337,7 +7499,14 @@ function App() {
                       teamMembers.map(member => (
                         <div key={member.id} className="team-member-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f9fa', padding: '0.5rem 1rem', borderRadius: '12px', border: '2px solid #eee' }}>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 'bold', color: 'var(--text-navy)' }}>{member.full_name}</span>
+                            <span style={{ fontWeight: 'bold', color: 'var(--text-navy)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {member.full_name}
+                              {member.is_team_leader && (
+                                <span className="leader-tag" style={{ background: 'var(--pink-primary)', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.5rem', borderRadius: '6px', fontWeight: 'bold' }}>
+                                  LEADER
+                                </span>
+                              )}
+                            </span>
                             <small style={{ color: 'var(--text-muted)' }}>{member.email}</small>
                           </div>
                         </div>
@@ -8350,6 +8519,11 @@ function App() {
                   <div className={`status-badge ${viewProfileUser.role}`}>
                     {viewProfileUser.role.toUpperCase()}
                   </div>
+                  {viewProfileUser.isTeamLeader && (
+                    <div className="status-badge approved" style={{ background: 'var(--pink-primary)', color: '#fff', border: 'none' }}>
+                      TEAM LEADER
+                    </div>
+                  )}
                   <div className="vlogs-count-badge">
                     📷 {userProfilePosts.length} {userProfilePosts.length === 1 ? 'Post' : 'Posts'}
                   </div>
