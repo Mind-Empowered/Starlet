@@ -5052,6 +5052,74 @@ function App() {
                         </div>
                       </div>
 
+                      {/* Judging Criteria Showcase */}
+                      <div className="judging-criteria-deck" style={{ marginTop: '3.5rem', marginBottom: '3.5rem' }}>
+                        <h3 className="arcade-subtitle">JUDGING CRITERIA</h3>
+                        <div className="arcade-criteria-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', padding: '1rem' }}>
+                          
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--pink-primary)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              15 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--pink-primary)', margin: 0 }}>Innovation</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Does the project bring a new and unique solution to the challenge at hand?
+                            </p>
+                          </div>
+
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--text-navy)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              10 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--text-navy)', margin: 0 }}>Technical Merit</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Does the project demonstrate a high level of technical skill and expertise?
+                            </p>
+                          </div>
+
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--text-navy)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              10 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--text-navy)', margin: 0 }}>User Experience</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Is the project user-friendly and easy to use?
+                            </p>
+                          </div>
+
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--text-navy)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              10 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--text-navy)', margin: 0 }}>Impact</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Does the project have the potential to have a positive impact on society or a specific group of people?
+                            </p>
+                          </div>
+
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--text-navy)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              10 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--text-navy)', margin: 0 }}>Presentation</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Was the presentation clear, concise, and engaging?
+                            </p>
+                          </div>
+
+                          <div className="arcade-char-card" style={{ padding: '1.5rem', border: '3px solid var(--text-navy)', background: 'var(--bg-cream)', boxShadow: '5px 5px 0px var(--text-navy)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '-15px', right: '15px', background: 'var(--text-navy)', color: '#fff', padding: '0.3rem 0.8rem', border: '2px solid var(--text-navy)', borderRadius: '10px', fontFamily: "'Fredoka One', cursive", fontSize: '0.9rem', boxShadow: '2px 2px 0px var(--text-navy)' }}>
+                              10 MARKS
+                            </div>
+                            <h4 style={{ fontFamily: "'Fredoka One', cursive", fontSize: '1.25rem', color: 'var(--text-navy)', margin: 0 }}>Feasibility</h4>
+                            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.95rem', color: 'var(--text-navy)', margin: 0, lineHeight: '1.4', textAlign: 'left' }}>
+                              Is the project feasible to implement in the real world?
+                            </p>
+                          </div>
+
+                        </div>
+                      </div>
+
                       {/* Full Screen dashed divider */}
                       <div className="arcade-full-bleed-divider"></div>
 
