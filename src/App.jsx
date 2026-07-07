@@ -231,6 +231,13 @@ const eventsData = [
     person: "Rabia Rahim",
     company: "Lawyer",
     image: "events/Rabia Rahim.png"
+  },
+  {
+    id: 9,
+    name: "Voice Your Worries",
+    person: "Alka V",
+    company: "Clinical Psychologist",
+    image: "events/Alka V.png"
   }
 ];
 
