@@ -5010,12 +5010,7 @@ function App() {
                         <span>My Profile</span>
                       </div>
                     </>
-                  ) : (
-                    <div className="mobile-auth-btns">
-                      <div className="login-btn" onClick={() => { setActiveView('login'); setIsMenuOpen(false); }}>LOGIN</div>
-                      <div className="join-btn" onClick={() => { setActiveView('signup'); setIsMenuOpen(false); }}>SIGN UP</div>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </nav>
 
@@ -5038,12 +5033,7 @@ function App() {
                         title="My Profile"
                       />
                     </>
-                  ) : (
-                    <>
-                      <div className="login-btn" onClick={() => setActiveView('login')}>LOGIN</div>
-                      <div className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</div>
-                    </>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -5174,8 +5164,8 @@ function App() {
               </div>
 
               <div className="hero-ctas">
-                <button className="join-btn" onClick={() => setShowRegPopup(true)}>REGISTER NOW</button>
-                <a href="#what-is-starlet" className="btn-secondary">LEARN MORE</a>
+                {!isLoggedIn && <button className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</button>}
+                {!isLoggedIn && <button className="btn-secondary" onClick={() => setActiveView('login')}>LOGIN</button>}
               </div>
 
 
@@ -6694,7 +6684,7 @@ function App() {
                             <div className="team-track">
                               <strong>Track:</strong> {members[0].selected_track || 'Not Selected Yet'}
                             </div>
-                            <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem' }}>
+                            <div className="team-venue-override" style={{ marginTop: '0.5rem', borderTop: '1px solid #eee', paddingTop: '0.5rem', marginBottom: '1rem' }}>
                               <select
                                 className="admin-select-small"
                                 value={members[0].venue || ''}
@@ -6709,7 +6699,7 @@ function App() {
                             </div>
                             <div className="team-members-list">
                               {members.map(m => (
-                                <div key={m.id} className="team-member-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div key={m.id} className="team-member-item">
                                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                       {m.full_name}
@@ -7382,7 +7372,7 @@ function App() {
                                                 <span className="detail-label">Phone</span>
                                                 <span className="detail-value">
                                                   {u.phone
-                                                    ? <a href={`tel:${u.phone}`} style={{ color: 'var(--pink-primary)', fontWeight: 700 }}>📞 {u.phone}</a>
+                                                    ? <a href={`tel:${u.phone}`} style={{ color: 'var(--pink-primary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><img src="/svg/emoji/phone.svg" alt="phone" style={{ width: '16px', height: '16px' }} /> {u.phone}</a>
                                                     : <span style={{ color: '#a0aec0', fontStyle: 'italic' }}>Not provided</span>
                                                   }
                                                 </span>
@@ -7399,8 +7389,8 @@ function App() {
                                                 <span className="detail-label">{u.user_role === 'attendee' ? 'Attendance' : 'Approval Status'}</span>
                                                 <span className="detail-value" style={{ color: u.is_approved ? '#2e7d32' : '#c62828', fontWeight: 700 }}>
                                                   {u.user_role === 'attendee'
-                                                    ? (u.is_approved ? '✓ Present' : '⏳ Absent')
-                                                    : (u.is_approved ? '✓ Verified' : '⏳ Pending')
+                                                    ? (u.is_approved ? '✓ Present' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><img src="/svg/emoji/pending.svg" alt="absent" style={{ width: '16px', height: '16px' }} /> Absent</span>)
+                                                    : (u.is_approved ? '✓ Verified' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><img src="/svg/emoji/pending.svg" alt="pending" style={{ width: '16px', height: '16px' }} /> Pending</span>)
                                                   }
                                                 </span>
                                               </div>
@@ -7733,7 +7723,7 @@ function App() {
                                 {isExpanded && sub && (
                                   <tr className="submission-details-row">
                                     <td colSpan="5" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
-                                      <div style={{ color: '#fff' }}>
+                                      <div style={{ color: '#000000' }}>
                                         <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                           🚀 {sub.project_name} Details
                                         </h4>
@@ -7794,7 +7784,7 @@ function App() {
                                             {sub.audit_anomalies && sub.audit_anomalies.length > 0 && (
                                               <div style={{ marginBottom: '0.8rem' }}>
                                                 <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.2rem' }}>FLAGGED ANOMALIES</span>
-                                                <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', color: '#c53030', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                                                <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', color: '#000000', fontSize: '0.82rem', lineHeight: '1.4' }}>
                                                   {sub.audit_anomalies.map((anom, aIdx) => (
                                                     <li key={aIdx}>{anom}</li>
                                                   ))}
@@ -10165,7 +10155,7 @@ function App() {
                             </div>
                           )}
 
-                          <p style={{ fontFamily: 'Outfit', color: 'var(--text-navy)', fontSize: '0.92rem', lineHeight: '1.5', flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebKitLineClamp: 4, WebKitBoxOrient: 'vertical', textAlign: 'left', margin: '0.5rem 0' }}>
+                          <p style={{ fontFamily: 'Outfit', color: '#000000', fontSize: '0.92rem', lineHeight: '1.5', flexGrow: 1, textAlign: 'left', margin: '0.5rem 0' }}>
                             {submission.description}
                           </p>
 
