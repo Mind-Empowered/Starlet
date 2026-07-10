@@ -8167,6 +8167,42 @@ function App() {
                   <div className="directory-header-row">
                     <h2 className="text-3d" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.2rem)', margin: 0, textTransform: 'uppercase' }}>Mark Attendance</h2>
                     <div className="directory-controls">
+                      {/* QR SCANNER BUTTON */}
+                      <button
+                        id="volunteer-qr-scan-btn"
+                        onClick={() => setIsScannerOpen(true)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 18px',
+                          borderRadius: '12px',
+                          border: '2.5px solid #25D366',
+                          background: 'rgba(37, 211, 102, 0.12)',
+                          color: '#1a7a40',
+                          fontFamily: 'Outfit, sans-serif',
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                          cursor: checkIsAfter13th() ? 'not-allowed' : 'pointer',
+                          opacity: checkIsAfter13th() ? 0.5 : 1,
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 8px rgba(37,211,102,0.2)',
+                        }}
+                        title={checkIsAfter13th() ? 'Attendance closed' : 'Scan attendee QR code'}
+                        disabled={checkIsAfter13th()}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="7" rx="1" />
+                          <rect x="14" y="3" width="7" height="7" rx="1" />
+                          <rect x="3" y="14" width="7" height="7" rx="1" />
+                          <rect x="14" y="14" width="3" height="3" />
+                          <rect x="18" y="14" width="3" height="3" />
+                          <rect x="14" y="18" width="3" height="3" />
+                          <rect x="18" y="18" width="3" height="3" />
+                        </svg>
+                        Scan QR
+                      </button>
                       <div className="directory-search" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                           type="text"
