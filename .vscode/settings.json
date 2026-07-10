@@ -1,0 +1,8 @@
+{
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.path": "C:\\Users\\abira\\AppData\\Local\\Microsoft\\WinGet\\Links\\deno.exe"
+}
+

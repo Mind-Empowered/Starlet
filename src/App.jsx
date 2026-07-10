@@ -5010,12 +5010,7 @@ function App() {
                         <span>My Profile</span>
                       </div>
                     </>
-                  ) : (
-                    <div className="mobile-auth-btns">
-                      <div className="login-btn" onClick={() => { setActiveView('login'); setIsMenuOpen(false); }}>LOGIN</div>
-                      <div className="join-btn" onClick={() => { setActiveView('signup'); setIsMenuOpen(false); }}>SIGN UP</div>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </nav>
 
@@ -5038,12 +5033,7 @@ function App() {
                         title="My Profile"
                       />
                     </>
-                  ) : (
-                    <>
-                      <div className="login-btn" onClick={() => setActiveView('login')}>LOGIN</div>
-                      <div className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</div>
-                    </>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -5174,8 +5164,8 @@ function App() {
               </div>
 
               <div className="hero-ctas">
-                <button className="join-btn" onClick={() => setShowRegPopup(true)}>REGISTER NOW</button>
-                <a href="#what-is-starlet" className="btn-secondary">LEARN MORE</a>
+                {!isLoggedIn && <button className="join-btn" onClick={() => setActiveView('signup')}>SIGN UP</button>}
+                {!isLoggedIn && <button className="btn-secondary" onClick={() => setActiveView('login')}>LOGIN</button>}
               </div>
 
 
@@ -7639,7 +7629,7 @@ function App() {
                       </div>
                     </div>
                   </div>
-                  <div className="user-table-wrapper">
+                  <div className="user-table-wrapper submission-table-wrapper">
                     <table className="admin-table">
                       <thead>
                         <tr>
@@ -7670,6 +7660,14 @@ function App() {
                           return teamsList.slice((projectSubmissionsPage - 1) * 5, projectSubmissionsPage * 5).map(team => {
                             const sub = projectSubmissions.find(s => s.team_name === team);
                             const isExpanded = expandedTeam === team;
+                            const aiScore = sub && sub.ai_percentage !== null && sub.ai_percentage !== undefined ? Number(sub.ai_percentage) : null;
+                            const isAiApproved = Number.isFinite(aiScore) && aiScore < 40;
+                            const isAiFlagged = Number.isFinite(aiScore) && aiScore >= 40;
+                            const isScanning = sub?.git_audit_status === 'scanning';
+                            const auditBadgeClass = sub ? (isScanning ? 'pending' : isAiApproved ? 'accept' : isAiFlagged ? 'decline' : sub.git_audit_status === 'passed' ? 'accept' : 'decline') : '';
+                            const auditBadgeStyle = isScanning ? { background: '#2b6cb0', color: '#fff' } : isAiApproved ? { background: '#dcfce7', color: '#166534' } : isAiFlagged ? { background: '#fee2e2', color: '#991b1b' } : undefined;
+                            const auditStatusText = sub ? (isScanning ? 'SCANNING' : isAiApproved ? 'APPROVED' : isAiFlagged ? 'FLAGGED' : sub.git_audit_status === 'passed' ? 'PASSED' : 'PENDING') : '-';
+                            const detailStatusColor = isScanning ? '#2b6cb0' : isAiApproved ? '#166534' : isAiFlagged ? '#c53030' : sub?.git_audit_status === 'passed' ? '#276749' : '#000000';
                             return (
                               <React.Fragment key={team}>
                                 <tr
@@ -7681,19 +7679,24 @@ function App() {
                                       {sub && (isExpanded ? '▼' : '▶')} {getDisplayTeamName(team)}
                                     </strong>
                                     {sub && (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{sub.project_name}</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)', minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' }}>{sub.project_name}</span>
                                         {sub.ai_percentage !== null && sub.ai_percentage !== undefined && (
                                           <span style={{
                                             fontSize: '0.72rem',
                                             fontWeight: 'bold',
                                             padding: '2px 6px',
                                             borderRadius: '4px',
-                                            background: 'rgba(255, 255, 255, 0.1)',
-                                            color: '#fff',
-                                            border: '1px solid rgba(255, 255, 255, 0.15)'
+                                            background: '#fff',
+                                            color: '#000',
+                                            border: '1px solid rgba(0, 0, 0, 0.15)',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                            whiteSpace: 'nowrap'
                                           }}>
-                                            🤖 {sub.ai_percentage}% AI
+                                            <img src="/svg/emoji/robot.svg" alt="" style={{ width: '13px', height: '13px' }} />
+                                            {sub.ai_percentage}% AI
                                           </span>
                                         )}
                                       </div>
@@ -7719,12 +7722,15 @@ function App() {
                                   </td>
                                   <td>
                                     {sub ? (
-                                      <span className={`role-badge ${sub.git_audit_status === 'passed' ? 'accept' :
-                                        sub.git_audit_status === 'scanning' ? 'pending' : 'decline'
-                                        }`} style={{ background: sub.git_audit_status === 'scanning' ? '#2b6cb0' : undefined }}>
-                                        {sub.git_audit_status === 'scanning' ? '⏳ SCANNING' :
-                                          sub.git_audit_status === 'passed' ? '✅ PASSED' :
-                                            sub.git_audit_status === 'flagged' ? '⚠️ FLAGGED' : '⏳ PENDING'}
+                                      <span className={`role-badge ${auditBadgeClass}`} style={auditBadgeStyle}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                          <img
+                                            src={isScanning ? '/svg/emoji/pending.svg' : isAiFlagged ? '/svg/emoji/warning.svg' : sub.git_audit_status === 'passed' ? '/svg/emoji/check.svg' : '/svg/emoji/pending.svg'}
+                                            alt=""
+                                            style={{ width: '14px', height: '14px' }}
+                                          />
+                                          <span>{auditStatusText}</span>
+                                        </span>
                                       </span>
                                     ) : '-'}
                                   </td>
@@ -7735,7 +7741,7 @@ function App() {
                                     <td colSpan="5" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
                                       <div style={{ color: '#000000' }}>
                                         <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                          🚀 {sub.project_name} Details
+                                          <img src="/svg/emoji/rocket.svg" alt="" style={{ width: '18px', height: '18px' }} /> {sub.project_name} Details
                                         </h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                           <p style={{ margin: 0, fontSize: '0.9rem' }}>
@@ -7760,18 +7766,16 @@ function App() {
                                           {/* Automated Git & AI Audit Report details */}
                                           <div style={{ marginTop: '1rem', padding: '1rem', background: '#ffffff', borderRadius: '10px', border: '2px solid rgba(0,31,63,0.15)' }}>
                                             <h5 style={{ color: '#000000', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', fontWeight: 'bold' }}>
-                                              🔍 Automated Git &amp; AI Audit Report
+                                              <img src="/svg/emoji/report.svg" alt="" style={{ width: '16px', height: '16px' }} /> Automated Git &amp; AI Audit Report
                                             </h5>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
                                               <div>
                                                 <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.15rem' }}>AUDIT STATUS</span>
                                                 <strong style={{
                                                   fontSize: '0.9rem',
-                                                  color: sub.git_audit_status === 'passed' ? '#276749' :
-                                                    sub.git_audit_status === 'scanning' ? '#2b6cb0' :
-                                                      sub.git_audit_status === 'flagged' ? '#c53030' : '#000000'
+                                                  color: detailStatusColor
                                                 }}>
-                                                  {sub.git_audit_status?.toUpperCase() || 'PENDING'}
+                                                  {auditStatusText}
                                                 </strong>
                                               </div>
                                               <div>
@@ -7805,9 +7809,13 @@ function App() {
                                               className="btn-small accept"
                                               disabled={sub.git_audit_status === 'scanning'}
                                               onClick={(e) => { e.stopPropagation(); handleReRunAudit(sub); }}
-                                              style={{ marginTop: '0.5rem' }}
+                                              style={{ marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                                             >
-                                              {sub.git_audit_status === 'scanning' ? '⏳ Scanning Repo...' : '🔄 Re-run Repo Audit'}
+                                              {sub.git_audit_status === 'scanning' ? (
+                                                <><img src="/svg/emoji/pending.svg" alt="" style={{ width: '14px', height: '14px' }} /> Scanning Repo...</>
+                                              ) : (
+                                                <><img src="/svg/emoji/refresh.svg" alt="" style={{ width: '14px', height: '14px' }} /> Re-run Repo Audit</>
+                                              )}
                                             </button>
                                           </div>
 

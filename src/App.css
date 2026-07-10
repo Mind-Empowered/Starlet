@@ -4924,6 +4924,16 @@ html.menu-open {
     background: #fdfdfd;
 }
 
+.submission-table-wrapper {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.submission-table-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
 .request-item,
 .request-card {
     background: var(--bg-cream);
