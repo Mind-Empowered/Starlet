@@ -109,9 +109,23 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Instead of returning the raw Supabase action_link (which relies on
+    // Supabase's redirect flow and often fails on static-hosted SPAs),
+    // we extract the hashed_token and build an app URL. The app's JS client
+    // will call verifyOtp({ token_hash, type }) on load to establish the session.
+    const tokenHash = data.properties?.hashed_token
+    if (!tokenHash) {
+      console.error('generateLink succeeded but hashed_token is missing from response')
+      return new Response(JSON.stringify({ error: 'Failed to extract token from generated link' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const appMagicLink = `https://starlet.mind-empowered.org/?token_hash=${encodeURIComponent(tokenHash)}&type=magiclink`
+
     return new Response(
       JSON.stringify({
-        magic_link: data.properties?.action_link,
+        magic_link: appMagicLink,
         email: trimmedEmail,
         expires_in: '1 hour (single-use)'
       }),

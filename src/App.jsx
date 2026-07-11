@@ -1429,6 +1429,28 @@ function App() {
   }, [isSoundEnabled]);
 
   useEffect(() => {
+    // 0. Handle magic-link auto-login from URL query params
+    //    URLs look like: https://starlet.mind-empowered.org/?token_hash=xxx&type=magiclink
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenHash = urlParams.get('token_hash');
+    const tokenType = urlParams.get('type');
+
+    if (tokenHash && tokenType) {
+      // Clean the URL immediately so the token isn't visible / re-used on refresh
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: tokenType })
+        .then(({ data: otpData, error: otpError }) => {
+          if (otpError) {
+            console.error('Magic link verification failed:', otpError);
+            alert('This login link has expired or already been used. Please request a new one from your admin.');
+            setLoading(false);
+          }
+          // If successful, onAuthStateChange will fire and handle the session
+        });
+      return; // Let onAuthStateChange handle the rest once verifyOtp succeeds
+    }
+
     // 1. Check for initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -1442,11 +1464,12 @@ function App() {
       setLoading(false);
     });
 
-    // 2. Listen for auth changes
+    // 2. Listen for auth changes (also handles magic-link verifyOtp flow)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session) {
         setIsLoggedIn(true);
+        setLoading(false); // Clear loading for magic-link flow that skips getSession
         fetchProfile(session.user.id);
 
         // If the event is PASSWORD_RECOVERY or hash contains type=recovery, switch to reset view
