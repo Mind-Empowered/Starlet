@@ -1434,8 +1434,9 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenHash = urlParams.get('token_hash');
     const tokenType = urlParams.get('type');
+    const isMagicLinkFlow = !!(tokenHash && tokenType);
 
-    if (tokenHash && tokenType) {
+    if (isMagicLinkFlow) {
       // Clean the URL immediately so the token isn't visible / re-used on refresh
       window.history.replaceState({}, '', window.location.pathname + window.location.hash);
 
@@ -1445,31 +1446,37 @@ function App() {
             console.error('Magic link verification failed:', otpError);
             alert('This login link has expired or already been used. Please request a new one from your admin.');
             setLoading(false);
+          } else if (otpData?.session) {
+            // Directly set the session from verifyOtp response
+            setSession(otpData.session);
+            setIsLoggedIn(true);
+            setLoading(false);
+            fetchProfile(otpData.session.user.id);
           }
-          // If successful, onAuthStateChange will fire and handle the session
         });
-      return; // Let onAuthStateChange handle the rest once verifyOtp succeeds
     }
 
-    // 1. Check for initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        setIsLoggedIn(true);
-        fetchProfile(session.user.id);
-        if (window.location.hash && window.location.hash.includes('type=recovery')) {
-          setActiveView('reset-password');
+    // 1. Check for initial session (skip if magic link flow — verifyOtp handles it)
+    if (!isMagicLinkFlow) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        if (session) {
+          setIsLoggedIn(true);
+          fetchProfile(session.user.id);
+          if (window.location.hash && window.location.hash.includes('type=recovery')) {
+            setActiveView('reset-password');
+          }
         }
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
+    }
 
-    // 2. Listen for auth changes (also handles magic-link verifyOtp flow)
+    // 2. Listen for auth changes (always set up — handles magic-link, password recovery, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session) {
         setIsLoggedIn(true);
-        setLoading(false); // Clear loading for magic-link flow that skips getSession
+        setLoading(false);
         fetchProfile(session.user.id);
 
         // If the event is PASSWORD_RECOVERY or hash contains type=recovery, switch to reset view
