@@ -1182,11 +1182,16 @@ function App() {
   const [activeMentorsPage, setActiveMentorsPage] = useState(1);
   const [pendingMentorsPage, setPendingMentorsPage] = useState(1);
   const [projectSubmissionsPage, setProjectSubmissionsPage] = useState(1);
+  const [ideaSubmissionsPage, setIdeaSubmissionsPage] = useState(1);
+  const [expandedIdea, setExpandedIdea] = useState(null);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [mentorRequestModal, setMentorRequestModal] = useState(null);
   const [projectSubmissions, setProjectSubmissions] = useState([]);
   const [ideaSubmissions, setIdeaSubmissions] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbacksPage, setFeedbacksPage] = useState(1);
+  const [expandedFeedbackId, setExpandedFeedbackId] = useState(null);
   const [mySubmission, setMySubmission] = useState(null);
   const [myIdeaSubmission, setMyIdeaSubmission] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
@@ -1533,6 +1538,10 @@ function App() {
     venueChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'idea_submissions' }, () => {
       fetchSubmissions();
       if (isLoggedIn && user.role === 'attendee') fetchMyIdeaSubmission();
+    });
+
+    venueChannel.on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
+      fetchSubmissions();
     });
 
     venueChannel.subscribe();
@@ -3357,6 +3366,9 @@ function App() {
     const { data: ideaData } = await supabase.from('idea_submissions').select('*');
     if (ideaData) setIdeaSubmissions(ideaData);
 
+    const { data: feedbackData } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+    if (feedbackData) setFeedbacks(feedbackData);
+
     if (session?.user?.id) {
       if (user.role === 'judge') {
         await fetchJudgeScores();
@@ -4760,6 +4772,36 @@ function App() {
         console.error('Supabase insert error:', dbError);
       }
 
+      // ── Step 2.5: Automatically post media to the blog ──
+      if (q4BlogEntries.length > 0) {
+        const mediaUrlPayload = q4BlogEntries.length === 1 
+          ? q4BlogEntries[0].url 
+          : JSON.stringify(q4BlogEntries);
+        const mediaTypePayload = q4BlogEntries.length === 1 
+          ? q4BlogEntries[0].type 
+          : 'carousel';
+        const positionsPayload = q4BlogEntries.map(entry => ({
+          position: entry.type === 'video' ? 'center center' : '50% 50%'
+        }));
+
+        const { error: blogError } = await supabase
+          .from('blog_posts')
+          .insert([{
+            user_id: session?.user?.id || null,
+            caption: '',
+            media_url: mediaUrlPayload,
+            media_type: mediaTypePayload,
+            media_positions: positionsPayload,
+          }]);
+        
+        if (blogError) {
+          console.error('Failed to auto-post feedback media to blog:', blogError);
+        } else {
+          fetchBlogPosts(true);
+          if (session?.user?.id) fetchUserProfilePosts(session.user.id);
+        }
+      }
+
       // ── Step 3: Google Sheets backup ──
       const googleScriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxegpLYC3j5i1UIGffgpRXdHOZ6pgDVDQSc3qyY-_xNs5z0MopMkH_ezspB5PTpF2U/exec';
       if (googleScriptUrl) {
@@ -4803,6 +4845,75 @@ function App() {
       alert('Failed to submit feedback: ' + error.message + '. Please try again.');
     } finally {
       setIsSubmittingFeedback(false);
+    }
+  };
+
+
+  const handleSyncFeedbacksToBlog = async () => {
+    try {
+      const { data: allFeedbacks, error: fbError } = await supabase.from('feedback').select('*');
+      if (fbError || !allFeedbacks) {
+        alert('Failed to fetch feedbacks for syncing: ' + fbError?.message);
+        return;
+      }
+
+      const { data: allPosts, error: postError } = await supabase.from('blog_posts').select('*');
+      if (postError || !allPosts) {
+        alert('Failed to fetch blog posts for syncing: ' + postError?.message);
+        return;
+      }
+
+      const postsToInsert = [];
+
+      for (const fb of allFeedbacks) {
+        if (!fb.q4_blog_entries || !Array.isArray(fb.q4_blog_entries) || fb.q4_blog_entries.length === 0) {
+          continue;
+        }
+
+        const firstMediaUrl = fb.q4_blog_entries[0]?.url;
+        if (!firstMediaUrl) continue;
+
+        const alreadyExists = allPosts.some(post => {
+          return post.user_id === fb.user_id && post.media_url && post.media_url.includes(firstMediaUrl);
+        });
+
+        if (!alreadyExists) {
+          const mediaUrlPayload = fb.q4_blog_entries.length === 1 
+            ? fb.q4_blog_entries[0].url 
+            : JSON.stringify(fb.q4_blog_entries);
+          const mediaTypePayload = fb.q4_blog_entries.length === 1 
+            ? fb.q4_blog_entries[0].type 
+            : 'carousel';
+          const positionsPayload = fb.q4_blog_entries.map(entry => ({
+            position: entry.type === 'video' ? 'center center' : '50% 50%'
+          }));
+
+          postsToInsert.push({
+            user_id: fb.user_id,
+            caption: '',
+            media_url: mediaUrlPayload,
+            media_type: mediaTypePayload,
+            media_positions: positionsPayload,
+            created_at: fb.created_at || new Date().toISOString()
+          });
+        }
+      }
+
+      if (postsToInsert.length === 0) {
+        alert('All existing feedback media are already synced with the blog.');
+        return;
+      }
+
+      const { error: insertError } = await supabase.from('blog_posts').insert(postsToInsert);
+      if (insertError) {
+        alert('Failed to sync feedback media: ' + insertError.message);
+      } else {
+        alert(`Successfully synced ${postsToInsert.length} existing feedback(s) to the blog!`);
+        fetchBlogPosts(true);
+      }
+    } catch (err) {
+      console.error('Error in handleSyncFeedbacksToBlog:', err);
+      alert('Error during synchronization: ' + err.message);
     }
   };
 
@@ -5271,6 +5382,7 @@ function App() {
                 {user.role === 'admin' && adminActiveTab === 'admin' && (
                   <>
                     <a href="#project-submissions-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('project-submissions-section'); }}>Submissions</a>
+                    <a href="#user-feedbacks-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('user-feedbacks-section'); }}>Feedbacks</a>
                     <a href="#active-squads-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('active-squads-section'); }}>Active Squads</a>
                     <a href="#global-config-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('global-config-section'); }}>Config</a>
                     <a href="#venue-management-section" className="nav-link" onClick={(e) => { e.preventDefault(); handleAdminNavClick('venue-management-section'); }}>Venue</a>
@@ -7744,7 +7856,7 @@ function App() {
                       return u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
                     });
 
-                    const itemsPerPage = 5;
+                    const itemsPerPage = 12;
                     const paginated = filtered.slice((volunteerPage - 1) * itemsPerPage, volunteerPage * itemsPerPage);
 
                     if (filtered.length === 0) {
@@ -7803,7 +7915,7 @@ function App() {
                             );
                           })}
                         </div>
-                        {renderPagination(volunteerPage, filtered.length, 5, setVolunteerPage)}
+                        {renderPagination(volunteerPage, filtered.length, 12, setVolunteerPage)}
                       </>
                     );
                   })()}
@@ -7898,6 +8010,7 @@ function App() {
                             return (
                               <React.Fragment key={team}>
                                 <tr
+                                  className={isExpanded ? 'expanded-row' : ''}
                                   onClick={() => sub && setExpandedTeam(isExpanded ? null : team)}
                                   style={{ cursor: sub ? 'pointer' : 'default' }}
                                 >
@@ -7981,54 +8094,55 @@ function App() {
                                   <td>{sub ? new Date(sub.submitted_at).toLocaleString() : '-'}</td>
                                 </tr>
                                 {isExpanded && sub && (
-                                  <tr className="submission-details-row">
-                                    <td colSpan="5" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderLeft: '4px solid var(--pink-primary)' }}>
-                                      <div style={{ color: '#000000' }}>
-                                        <h4 style={{ color: 'var(--yellow-star)', fontFamily: "'Fredoka One', cursive", marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                          <img src="/svg/emoji/rocket.svg" alt="" style={{ width: '18px', height: '18px' }} /> {sub.project_name} Details
+                                  <tr className="user-details-row">
+                                    <td colSpan="5">
+                                      <div className="user-details-dropdown">
+                                        <h4 style={{ color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive", marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '2px solid rgba(0, 31, 95, 0.1)', paddingBottom: '0.5rem' }}>
+                                          <img src="/svg/emoji/rocket.svg" alt="" style={{ width: '20px', height: '20px' }} /> {sub.project_name} Details
                                         </h4>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                                          <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                            <strong>Team/Group Name:</strong> {getDisplayTeamName(sub.team_name)}
-                                          </p>
-                                          <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                            <strong>Description:</strong> {sub.description}
-                                          </p>
-                                          <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                            <strong>Tech Stack Used:</strong> <span style={{ background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)' }}>{sub.tech_stack || 'Not specified'}</span>
-                                          </p>
-                                          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                            <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>GitHub Code</a>
-                                            {sub.ppt_link && (
-                                              <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>Google Drive Folder</a>
-                                            )}
-                                            {sub.demo_url && (
-                                              <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem', background: 'var(--yellow-star)' }}>Live Project Website</a>
-                                            )}
+                                        <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
+                                          <div className="user-detail-item">
+                                            <span className="detail-label">Team / Group Name</span>
+                                            <span className="detail-value">{getDisplayTeamName(sub.team_name)}</span>
+                                          </div>
+                                          <div className="user-detail-item">
+                                            <span className="detail-label">Tech Stack Used</span>
+                                            <span className="detail-value" style={{ display: 'inline-block', background: 'rgba(0,0,0,0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.1)' }}>{sub.tech_stack || 'Not specified'}</span>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Submission Links</span>
+                                            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                                              <a href={sub.github_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>GitHub Code</a>
+                                              {sub.ppt_link && (
+                                                <a href={sub.ppt_link} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem' }}>Google Drive Folder</a>
+                                              )}
+                                              {sub.demo_url && (
+                                                <a href={sub.demo_url} target="_blank" rel="noreferrer" className="btn-small accept" style={{ padding: '0.4rem 0.8rem', background: 'var(--yellow-star)' }}>Live Project Website</a>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Description</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{sub.description}</span>
                                           </div>
 
                                           {/* Automated Git & AI Audit Report details */}
-                                          <div style={{ marginTop: '1rem', padding: '1rem', background: '#ffffff', borderRadius: '10px', border: '2px solid rgba(0,31,63,0.15)' }}>
-                                            <h5 style={{ color: '#000000', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', fontWeight: 'bold' }}>
-                                              <img src="/svg/emoji/report.svg" alt="" style={{ width: '16px', height: '16px' }} /> Automated Git &amp; AI Audit Report
+                                          <div style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1.2rem', background: '#ffffff', borderRadius: '15px', border: '3px solid var(--text-navy)', boxShadow: '4px 4px 0px rgba(0, 0, 0, 0.05)' }}>
+                                            <h5 style={{ color: 'var(--text-navy)', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', fontWeight: 'bold', fontFamily: "'Fredoka One', cursive" }}>
+                                              <img src="/svg/emoji/report.svg" alt="" style={{ width: '18px', height: '18px' }} /> Automated Git &amp; AI Audit Report
                                             </h5>
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
                                               <div>
-                                                <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.15rem' }}>AUDIT STATUS</span>
-                                                <strong style={{
-                                                  fontSize: '0.9rem',
-                                                  color: detailStatusColor
-                                                }}>
-                                                  {auditStatusText}
-                                                </strong>
+                                                <span className="detail-label">Audit Status</span>
+                                                <strong style={{ fontSize: '0.95rem', color: detailStatusColor }}>{auditStatusText}</strong>
                                               </div>
                                               <div>
-                                                <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.15rem' }}>COMMIT COUNT</span>
-                                                <strong style={{ fontSize: '0.9rem', color: '#000000' }}>{sub.commit_count !== null && sub.commit_count !== undefined ? `${sub.commit_count} commits` : '—'}</strong>
+                                                <span className="detail-label">Commit Count</span>
+                                                <strong style={{ fontSize: '0.95rem', color: 'var(--text-navy)' }}>{sub.commit_count !== null && sub.commit_count !== undefined ? `${sub.commit_count} commits` : '—'}</strong>
                                               </div>
                                               <div>
-                                                <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.15rem' }}>AI CODE CONFIDENCE</span>
-                                                <strong style={{ fontSize: '0.9rem', color: '#000000' }}>
+                                                <span className="detail-label">AI Code Confidence</span>
+                                                <strong style={{ fontSize: '0.95rem', color: 'var(--text-navy)' }}>
                                                   {sub.ai_percentage !== null && sub.ai_percentage !== undefined
                                                     ? `${sub.ai_percentage}% AI`
                                                     : sub.git_audit_status === 'scanning'
@@ -8040,9 +8154,9 @@ function App() {
                                               </div>
                                             </div>
                                             {sub.audit_anomalies && sub.audit_anomalies.length > 0 && (
-                                              <div style={{ marginBottom: '0.8rem' }}>
-                                                <span style={{ fontSize: '0.72rem', color: '#000000', fontWeight: '600', display: 'block', marginBottom: '0.2rem' }}>FLAGGED ANOMALIES</span>
-                                                <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', color: '#000000', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                                              <div style={{ marginTop: '0.8rem', borderTop: '1px dashed rgba(0, 0, 0, 0.1)', paddingTop: '0.8rem' }}>
+                                                <span className="detail-label">Flagged Anomalies</span>
+                                                <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', color: 'var(--text-navy)', fontSize: '0.85rem', lineHeight: '1.4' }}>
                                                   {sub.audit_anomalies.map((anom, aIdx) => (
                                                     <li key={aIdx}>{anom}</li>
                                                   ))}
@@ -8053,7 +8167,7 @@ function App() {
                                               className="btn-small accept"
                                               disabled={sub.git_audit_status === 'scanning'}
                                               onClick={(e) => { e.stopPropagation(); handleReRunAudit(sub); }}
-                                              style={{ marginTop: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                              style={{ marginTop: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                                             >
                                               {sub.git_audit_status === 'scanning' ? (
                                                 <><img src="/svg/emoji/pending.svg" alt="" style={{ width: '14px', height: '14px' }} /> Scanning Repo...</>
@@ -8062,7 +8176,6 @@ function App() {
                                               )}
                                             </button>
                                           </div>
-
                                         </div>
                                       </div>
                                     </td>
@@ -8108,24 +8221,173 @@ function App() {
                         <tr>
                           <th>TEAM / INDIVIDUAL</th>
                           <th>IDEA TITLE</th>
-                          <th>DESCRIPTION</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ideaSubmissions.length === 0 ? (
-                          <tr><td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>No ideas submitted yet.</td></tr>
+                          <tr><td colSpan="2" style={{ textAlign: 'center', padding: '2rem' }}>No ideas submitted yet.</td></tr>
                         ) : (
-                          ideaSubmissions.map((sub, idx) => (
-                            <tr key={sub.id || idx}>
-                              <td><strong>{sub.team_name}</strong></td>
-                              <td>{sub.idea_title}</td>
-                              <td style={{ whiteSpace: 'pre-wrap', minWidth: '300px' }}>{sub.description}</td>
-                            </tr>
-                          ))
+                          ideaSubmissions.slice((ideaSubmissionsPage - 1) * 5, ideaSubmissionsPage * 5).map((sub, idx) => {
+                            const isExpanded = expandedIdea === sub.id;
+                            return (
+                              <React.Fragment key={sub.id || idx}>
+                                <tr
+                                  className={isExpanded ? 'expanded-row' : ''}
+                                  onClick={() => setExpandedIdea(isExpanded ? null : sub.id)}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <td>
+                                    <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      {isExpanded ? '▼' : '▶'} {sub.team_name}
+                                    </strong>
+                                  </td>
+                                  <td>{sub.idea_title}</td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="user-details-row">
+                                    <td colSpan="2">
+                                      <div className="user-details-dropdown">
+                                        <h4 style={{ color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive", marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '2px solid rgba(0, 31, 95, 0.1)', paddingBottom: '0.5rem' }}>
+                                          <img src="/svg/emoji/idea.svg" alt="" style={{ width: '20px', height: '20px' }} /> Idea Details
+                                        </h4>
+                                        <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
+                                          <div className="user-detail-item">
+                                            <span className="detail-label">Team / Individual</span>
+                                            <span className="detail-value">{sub.team_name}</span>
+                                          </div>
+                                          <div className="user-detail-item">
+                                            <span className="detail-label">Idea Title</span>
+                                            <span className="detail-value">{sub.idea_title}</span>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Description</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{sub.description}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>
                   </div>
+
+                  {renderPagination(ideaSubmissionsPage, ideaSubmissions.length, 5, setIdeaSubmissionsPage)}
+                </div>
+
+                {/* USER FEEDBACKS OVERVIEW */}
+                <div className="admin-panel" id="user-feedbacks-section" style={{ marginBottom: '4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h2 className="text-3d" style={{ fontSize: '2rem', margin: 0 }}>User Feedbacks</h2>
+                    <button 
+                      className="directory-download-btn" 
+                      onClick={handleSyncFeedbacksToBlog} 
+                      style={{ margin: 0, padding: '0.6rem 1.2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      <img src="/svg/emoji/refresh.svg" alt="" style={{ width: '16px', height: '16px' }} />
+                      SYNC MEDIA TO BLOG
+                    </button>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>USER</th>
+                          <th>COLLEGE / ROLE</th>
+                          <th>SUBMITTED AT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {feedbacks.length === 0 ? (
+                          <tr><td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>No feedbacks submitted yet.</td></tr>
+                        ) : (
+                          feedbacks.slice((feedbacksPage - 1) * 5, feedbacksPage * 5).map((fb, idx) => {
+                            const isExpanded = expandedFeedbackId === fb.id;
+                            return (
+                              <React.Fragment key={fb.id || idx}>
+                                <tr
+                                  className={isExpanded ? 'expanded-row' : ''}
+                                  onClick={() => setExpandedFeedbackId(isExpanded ? null : fb.id)}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <td>
+                                    <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      {isExpanded ? '▼' : '▶'} {fb.name}
+                                    </strong>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{fb.email}</span>
+                                  </td>
+                                  <td>
+                                    <strong style={{ textTransform: 'capitalize' }}>{fb.role}</strong>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--blue-shadow)' }}>{fb.college || '—'}</span>
+                                  </td>
+                                  <td>{fb.created_at ? new Date(fb.created_at).toLocaleString() : '—'}</td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="user-details-row">
+                                    <td colSpan="3">
+                                      <div className="user-details-dropdown">
+                                        <h4 style={{ color: 'var(--text-navy)', fontFamily: "'Fredoka One', cursive", marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '2px solid rgba(0, 31, 95, 0.1)', paddingBottom: '0.5rem' }}>
+                                          <img src="/svg/emoji/announcement.svg" alt="" style={{ width: '20px', height: '20px' }} /> Feedback Details
+                                        </h4>
+                                        <div className="user-details-grid-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem 2rem', width: '100%' }}>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Q1: How was the experience?</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{fb.q1_experience || '—'}</span>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Q2: Any memorable session?</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{fb.q2_memorable_session || '—'}</span>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Q3: Best memory?</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{fb.q3_best_memory || '—'}</span>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Q4: Blog Photos & Videos</span>
+                                            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                                              {fb.q4_blog_entries && Array.isArray(fb.q4_blog_entries) && fb.q4_blog_entries.length > 0 ? (
+                                                fb.q4_blog_entries.map((entry, eIdx) => (
+                                                  <div key={eIdx} style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '10px', overflow: 'hidden', border: '2px solid var(--text-navy)', background: '#fff' }}>
+                                                    {entry.type === 'video' ? (
+                                                      <video src={entry.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+                                                    ) : (
+                                                      <img
+                                                        src={entry.url}
+                                                        alt={`Blog photo ${eIdx + 1}`}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                                        onClick={() => setFullscreenImageUrl(entry.url)}
+                                                      />
+                                                    )}
+                                                  </div>
+                                                ))
+                                              ) : (
+                                                <span className="detail-value" style={{ color: '#a0aec0', fontStyle: 'italic' }}>No media uploaded</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="user-detail-item" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="detail-label">Q5: Place to improve?</span>
+                                            <span className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{fb.q5_improve || '—'}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {renderPagination(feedbacksPage, feedbacks.length, 5, setFeedbacksPage)}
                 </div>
               </div>
             </div>
@@ -9121,17 +9383,6 @@ function App() {
                       : "Submit your final hackathon project files, presentation slides, and source code link."}
                   </p>
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', width: '100%', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                    {!mySubmission && (
-                      <a
-                        href={settings.google_drive_link || "https://drive.google.com"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-small accept"
-                        style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', textDecoration: 'none', fontFamily: 'Fredoka One', minWidth: '200px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '48px', boxSizing: 'border-box' }}
-                      >
-                        📂 UPLOAD TO DRIVE
-                      </a>
-                    )}
                     <button
                       onClick={() => setIsProjectModalOpen(true)}
                       className="join-btn"
