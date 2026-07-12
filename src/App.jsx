@@ -399,6 +399,7 @@ function App() {
   const [fbQ3, setFbQ3] = useState(''); // Best memory? (optional)
   const [fbQ4Files, setFbQ4Files] = useState([]); // [{file, preview}] — Upload blogs (mandatory, min 2)
   const [fbQ5, setFbQ5] = useState(''); // Place to improve (mandatory)
+  const [showWinnersPopup, setShowWinnersPopup] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -862,7 +863,8 @@ function App() {
     winner_1st_email: '',
     winner_2nd_email: '',
     winner_3rd_email: '',
-    winner_innovation_email: ''
+    winner_innovation_email: '',
+    winners_announced: 'false'
   });
 
   const winnerEmails = [
@@ -6808,6 +6810,20 @@ function App() {
                     >
                       UPDATE WINNERS LIST
                     </button>
+                    <div style={{ marginTop: '2rem', padding: '1rem', borderTop: '2px dashed rgba(0,0,0,0.1)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h4 style={{ margin: 0, color: 'var(--text-navy)', fontFamily: 'Fredoka One' }}>Announce Winners</h4>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Show a popup to all attendees with the winning projects.</p>
+                        </div>
+                        <button
+                          className={`btn-small ${settings.winners_announced === 'true' ? 'decline' : 'accept'}`}
+                          onClick={() => updateSetting('winners_announced', settings.winners_announced === 'true' ? 'false' : 'true')}
+                        >
+                          {settings.winners_announced === 'true' ? 'HIDE ANNOUNCEMENT' : 'ANNOUNCE TO ALL'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -7861,6 +7877,12 @@ function App() {
                               return false;
                             }
                             return true;
+                          }).sort((teamA, teamB) => {
+                            const subA = projectSubmissions.find(s => s.team_name === teamA);
+                            const subB = projectSubmissions.find(s => s.team_name === teamB);
+                            const scoreA = subA && subA.final_score !== null && subA.final_score !== undefined ? Number(subA.final_score) : -1;
+                            const scoreB = subB && subB.final_score !== null && subB.final_score !== undefined ? Number(subB.final_score) : -1;
+                            return scoreB - scoreA;
                           });
                           return teamsList.slice((projectSubmissionsPage - 1) * 5, projectSubmissionsPage * 5).map(team => {
                             const sub = projectSubmissions.find(s => s.team_name === team);
@@ -7902,6 +7924,23 @@ function App() {
                                           }}>
                                             <img src="/svg/emoji/robot.svg" alt="" style={{ width: '13px', height: '13px' }} />
                                             {sub.ai_percentage}% AI
+                                          </span>
+                                        )}
+                                        {sub.final_score !== null && sub.final_score !== undefined && (
+                                          <span style={{
+                                            fontSize: '0.72rem',
+                                            fontWeight: 'bold',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            background: 'var(--yellow-star)',
+                                            color: '#000',
+                                            border: '1px solid rgba(0, 0, 0, 0.15)',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                            whiteSpace: 'nowrap'
+                                          }}>
+                                            🏆 Score: {sub.final_score}
                                           </span>
                                         )}
                                       </div>
@@ -10062,6 +10101,88 @@ function App() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      ) : activeView === 'winners' ? (
+        <div className="winners-container" style={{ padding: '4rem 1rem', minHeight: '100vh', background: 'var(--bg-cream)' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center', animation: 'fadeIn 0.5s ease-out' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'tada 1.5s infinite' }}>🏆</div>
+            <h1 className="text-3d" style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: '1rem', color: 'var(--pink-primary)' }}>
+              Hackathon Winners
+            </h1>
+            <p style={{ fontSize: '1.2rem', color: 'var(--text-navy)', marginBottom: '3rem', opacity: 0.9 }}>
+              Congratulations to all participants! Here are the winning projects of Starlet 5.0.
+            </p>
+
+            <div className="winners-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+              {/* 1st Place */}
+              <div className="winner-card" style={{ background: '#fff', border: '4px solid #FFD700', borderRadius: '24px', padding: '2.5rem 1.5rem', position: 'relative', boxShadow: '8px 8px 0px #FFD700', transform: 'scale(1.05)', zIndex: 2 }}>
+                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '3.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>🥇</div>
+                <h2 style={{ fontFamily: 'Fredoka One', color: '#B8860B', fontSize: '1.8rem', marginTop: '1rem', marginBottom: '0.5rem' }}>1st Place</h2>
+                {(() => {
+                  const w = getWinnerDetails(settings.winner_1st_email);
+                  if (!w) return <p>Pending Announcement...</p>;
+                  return (
+                    <>
+                      <h3 style={{ fontSize: '1.5rem', color: 'var(--text-navy)', margin: '0.5rem 0' }}>{w.project}</h3>
+                      <p style={{ fontWeight: 'bold', color: 'var(--pink-primary)', margin: 0 }}>Team: {w.team}</p>
+                      {w.demoUrl && <a href={w.demoUrl} target="_blank" rel="noreferrer" className="join-btn" style={{ display: 'inline-block', marginTop: '1.5rem', background: '#FFD700', color: '#000', textDecoration: 'none' }}>View Demo</a>}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* 2nd Place */}
+              <div className="winner-card" style={{ background: '#fff', border: '4px solid #C0C0C0', borderRadius: '24px', padding: '2rem 1.5rem', position: 'relative', boxShadow: '8px 8px 0px #C0C0C0' }}>
+                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '3.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>🥈</div>
+                <h2 style={{ fontFamily: 'Fredoka One', color: '#808080', fontSize: '1.5rem', marginTop: '1rem', marginBottom: '0.5rem' }}>2nd Place</h2>
+                {(() => {
+                  const w = getWinnerDetails(settings.winner_2nd_email);
+                  if (!w) return <p>Pending Announcement...</p>;
+                  return (
+                    <>
+                      <h3 style={{ fontSize: '1.3rem', color: 'var(--text-navy)', margin: '0.5rem 0' }}>{w.project}</h3>
+                      <p style={{ fontWeight: 'bold', color: 'var(--pink-primary)', margin: 0 }}>Team: {w.team}</p>
+                      {w.demoUrl && <a href={w.demoUrl} target="_blank" rel="noreferrer" className="join-btn" style={{ display: 'inline-block', marginTop: '1.5rem', background: '#C0C0C0', color: '#000', textDecoration: 'none' }}>View Demo</a>}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* 3rd Place */}
+              <div className="winner-card" style={{ background: '#fff', border: '4px solid #CD7F32', borderRadius: '24px', padding: '2rem 1.5rem', position: 'relative', boxShadow: '8px 8px 0px #CD7F32' }}>
+                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '3.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>🥉</div>
+                <h2 style={{ fontFamily: 'Fredoka One', color: '#8B4513', fontSize: '1.5rem', marginTop: '1rem', marginBottom: '0.5rem' }}>3rd Place</h2>
+                {(() => {
+                  const w = getWinnerDetails(settings.winner_3rd_email);
+                  if (!w) return <p>Pending Announcement...</p>;
+                  return (
+                    <>
+                      <h3 style={{ fontSize: '1.3rem', color: 'var(--text-navy)', margin: '0.5rem 0' }}>{w.project}</h3>
+                      <p style={{ fontWeight: 'bold', color: 'var(--pink-primary)', margin: 0 }}>Team: {w.team}</p>
+                      {w.demoUrl && <a href={w.demoUrl} target="_blank" rel="noreferrer" className="join-btn" style={{ display: 'inline-block', marginTop: '1.5rem', background: '#CD7F32', color: '#fff', textDecoration: 'none' }}>View Demo</a>}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Best Innovation */}
+              <div className="winner-card" style={{ background: '#fff', border: '4px solid #00BFFF', borderRadius: '24px', padding: '2.5rem 1.5rem', position: 'relative', boxShadow: '8px 8px 0px #00BFFF', gridColumn: '1 / -1', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '3.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>💡</div>
+                <h2 style={{ fontFamily: 'Fredoka One', color: '#008B8B', fontSize: '1.8rem', marginTop: '1rem', marginBottom: '0.5rem' }}>Best Innovation</h2>
+                {(() => {
+                  const w = getWinnerDetails(settings.winner_innovation_email);
+                  if (!w) return <p>Pending Announcement...</p>;
+                  return (
+                    <>
+                      <h3 style={{ fontSize: '1.5rem', color: 'var(--text-navy)', margin: '0.5rem 0' }}>{w.project}</h3>
+                      <p style={{ fontWeight: 'bold', color: 'var(--pink-primary)', margin: 0 }}>Team: {w.team}</p>
+                      {w.demoUrl && <a href={w.demoUrl} target="_blank" rel="noreferrer" className="join-btn" style={{ display: 'inline-block', marginTop: '1.5rem', background: '#00BFFF', color: '#fff', textDecoration: 'none' }}>View Demo</a>}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>
