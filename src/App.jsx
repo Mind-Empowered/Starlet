@@ -8337,7 +8337,7 @@ function App() {
                     <h2 className="text-3d" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.2rem)', margin: 0, textTransform: 'uppercase' }}>Mark Attendance</h2>
                     <div className="directory-controls">
                       {/* QR SCANNER BUTTON */}
-                      <button
+                      {/* <button
                         id="volunteer-qr-scan-btn"
                         onClick={() => setIsScannerOpen(true)}
                         style={{
@@ -8371,7 +8371,7 @@ function App() {
                           <rect x="18" y="18" width="3" height="3" />
                         </svg>
                         Scan QR
-                      </button>
+                      </button> */}
                       <div className="directory-search" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                           type="text"
