@@ -10623,7 +10623,7 @@ function App() {
                   <div className="winner-team-tag">Team: AVAT</div>
                   <h3 className="winner-project-title">Sign translator</h3>
                   <div className="winner-team-photo-container">
-                    <img src="winners/accestive.png" className="winner-team-photo" alt="Accessibility Prize Winner Team Photo" />
+                    <img src="winners/accestive.png" className="winner-team-photo" style={{ objectPosition: 'bottom' }} alt="Accessibility Prize Winner Team Photo" />
                   </div>
                   <p className="winner-project-desc" style={{ marginTop: '1rem' }}>
                     An AI-powered real-time translation communication bridge converting camera gestures to text/speech output, and vice versa. Intended to enhance accessibility in hospitals, schools, and offices.
