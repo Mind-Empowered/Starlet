@@ -2445,7 +2445,7 @@ function App() {
     "Fayiza KH": "70677c0a-4c81-425d-a71c-effb5e37fb85",
     "SAFEENA K S": "ae7309d9-0a0d-4e2e-b11d-a4400dbd8c00",
     // Stack 3
-    "Kavery Sayal": "3326a1f9-df4f-42db-a0bd-0d4da08bc023",
+    "Kavery Sanal": "3326a1f9-df4f-42db-a0bd-0d4da08bc023",
     "Iba Lutf": "c1dcd912-a752-4465-bc53-6510f33afede",
     "Kathrin James": "05d48ae9-2c79-4036-bab5-c1730da16f22",
     // Algora
@@ -10461,7 +10461,7 @@ function App() {
               <div>
                 <h4 className="winner-members-heading">Team Members</h4>
                 <div className="winner-members-list">
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Kavery Sayal")}>Kavery Sayal</span>
+                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Kavery Sanal")}>Kavery Sanal</span>
                   <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Iba Lutf")}>Iba Lutf</span>
                   <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Kathrin James")}>Kathrin James</span>
                 </div>
