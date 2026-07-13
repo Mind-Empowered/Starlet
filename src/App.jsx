@@ -10452,7 +10452,7 @@ function App() {
                 <div className="winner-team-tag">Team: Stack 3</div>
                 <h3 className="winner-project-title">graphoscan</h3>
                 <div className="winner-team-photo-container">
-                  <img src="winners/2.png" className="winner-team-photo" alt="2nd Place Winner Team Photo" />
+                  <img src="winners/2.png" className="winner-team-photo" style={{ objectPosition: 'center 65%' }} alt="2nd Place Winner Team Photo" />
                 </div>
                 <p className="winner-project-desc">
                   An AI-powered tool diagnosing handwriting disabilities like dysgraphia by scanning uploaded handwriting images, helping highlight signs for early intervention and referral.
