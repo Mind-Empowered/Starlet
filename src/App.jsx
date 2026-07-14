@@ -5706,15 +5706,6 @@ function App() {
                                   </div>
                                 )}
                               </div>
-                              <div style={{ marginTop: '1rem' }}>
-                                <div className="winner-college-info">
-                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
-                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
-                                </div>
-                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
-                                  View Details
-                                </button>
-                              </div>
                             </div>
                           );
                         })()}
@@ -5737,19 +5728,6 @@ function App() {
                                   </div>
                                 )}
                               </div>
-                              <div style={{ marginTop: '1rem' }}>
-                                <div className="winner-college-info" style={{ flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                                  {w.college.map((c, i) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                      <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
-                                      <span style={{ fontSize: '0.85rem' }}>{c}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
-                                  View Details
-                                </button>
-                              </div>
                             </div>
                           );
                         })()}
@@ -5771,15 +5749,6 @@ function App() {
                                     <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
                                   </div>
                                 )}
-                              </div>
-                              <div style={{ marginTop: '1rem' }}>
-                                <div className="winner-college-info">
-                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
-                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
-                                </div>
-                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
-                                  View Details
-                                </button>
                               </div>
                             </div>
                           );
@@ -5805,15 +5774,6 @@ function App() {
                                     <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
                                   </div>
                                 )}
-                              </div>
-                              <div style={{ marginTop: '1.2rem' }}>
-                                <div className="winner-college-info">
-                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
-                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
-                                </div>
-                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
-                                  View Details
-                                </button>
                               </div>
                             </div>
                           ))}
