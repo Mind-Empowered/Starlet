@@ -55,6 +55,13 @@ const sectionsData = [
     image: "icons/trophy.svg"
   },
   {
+    id: 18,
+    type: 'winners',
+    title: "Hackathon Winners",
+    content: "Celebrating excellence, creativity, and impact. Congratulations to all the winning teams of the Starlet Hackathon!",
+    image: "brand/Logo.png"
+  },
+  {
     id: 4,
     type: 'timeline',
     title: "The Roadmap",
@@ -116,6 +123,111 @@ const sectionsData = [
     title: "Get in Touch",
     content: "Reach out for support or inquiries.",
     image: "icons/location.svg"
+  }
+];
+
+const winnersData = [
+  {
+    rank: "1st Place",
+    team: "She code",
+    project: "Mudra",
+    image: "winners/1.png",
+    emoji: "svg/emoji/crown.svg",
+    shadowColor: "var(--yellow-star)",
+    desc: "Mudra is an AI-powered inclusive dance learning platform designed specifically for deaf and hard-of-hearing children. Using body pose estimation and visual guidance, it converts beats to colorful light cues so kids can experience dance without sound.",
+    members: [
+      { name: "Ayisha Shana", dbName: "Ayisha shana perumballi" },
+      { name: "Fayiza K H", dbName: "Fayiza KH" },
+      { name: "Safeena K S", dbName: "SAFEENA K S" }
+    ],
+    college: [
+      "Adi Shankara Institute (Ayisha, Fayiza)",
+      "Muthoot Institute (Safeena)"
+    ],
+    github: "https://github.com/safeenaks/mudra"
+  },
+  {
+    rank: "2nd Place",
+    team: "Stack 3",
+    project: "graphoscan",
+    image: "winners/2.png",
+    emoji: "svg/emoji/prize.svg",
+    shadowColor: "var(--blue-shadow)",
+    objectPosition: "center 65%",
+    desc: "An AI-powered tool diagnosing handwriting disabilities like dysgraphia by scanning uploaded handwriting images, helping highlight signs for early intervention and referral.",
+    members: [
+      { name: "Kavery Sanal", dbName: "Kavery Sanal" },
+      { name: "Iba Lutf", dbName: "Iba Lutf" },
+      { name: "Kathrin James", dbName: "Kathrin James" }
+    ],
+    college: ["Model engineering college Thrikkakara"],
+    github: "https://github.com/ibalutf2008-cell/Stackthree.git"
+  },
+  {
+    rank: "3rd Place",
+    team: "Algora",
+    project: "Tinytalks",
+    image: "winners/3.png",
+    emoji: "svg/emoji/prize.svg",
+    shadowColor: "var(--pink-primary)",
+    desc: "Bridging the gap between deaf parents and infants. Features include smart baby cry detection with vibration alerts and babbling translation integrated with interactive sign-language visual picture books.",
+    members: [
+      { name: "Jaseera P A", dbName: "Jaseera P A" },
+      { name: "Fasla M K", dbName: "Fasla MK" },
+      { name: "Medha G S", dbName: "Medha GS" }
+    ],
+    college: ["CUSAT, School of Engineering"],
+    github: "https://github.com/medha67/tinytalks.git"
+  },
+  {
+    rank: "Best Innovation",
+    team: "Bloom X",
+    project: "PROJECT BLOOM",
+    image: "winners/innovation.png",
+    emoji: "svg/emoji/idea.svg",
+    shadowColor: "var(--pink-primary)",
+    desc: "A menstrual hygiene educational platform designed specifically for autistic students. By using highly visual elements and structured pathways, it builds menstruation knowledge and independence in a safe, supportive environment.",
+    members: [
+      { name: "Glynal Rose", dbName: "Glynal Rose James" },
+      { name: "Drishya V D", dbName: "Drishya V D" },
+      { name: "Rida Alhaan", dbName: "Rida Alhaan J S" }
+    ],
+    college: ["Adi Shankara Institute of Eng. & Tech."],
+    github: "https://github.com/Rida168"
+  },
+  {
+    rank: "Best Hardware",
+    team: "Zenith",
+    project: "HAPTINAV",
+    image: null,
+    emoji: "svg/emoji/robot.svg",
+    shadowColor: "var(--blue-shadow)",
+    desc: "A wearable assistive device (cap and glove duo) for visually impaired individuals. Ultrasonic sensors measure obstacle proximity in front and on the ground, wirelessly communicating to servo-actuated glove indicators.",
+    members: [
+      { name: "Sreelakshmi S", dbName: "Sreelakshmi.s" },
+      { name: "Adiya S", dbName: "Adiya s" },
+      { name: "Sreeparvathy A", dbName: "Sreeparvathy anand" }
+    ],
+    college: ["Amrita School of Engineering, Amritapuri"],
+    github: "https://github.com/sreeparvathy2007/HaptiNav"
+  },
+  {
+    rank: "Accessibility Prize",
+    team: "AVAT",
+    project: "Sign translator",
+    image: "winners/accestive.png",
+    emoji: "svg/emoji/speak.svg",
+    shadowColor: "var(--yellow-star)",
+    objectPosition: "center 40%",
+    desc: "An AI-powered real-time translation communication bridge converting camera gestures to text/speech output, and vice versa. Intended to enhance accessibility in hospitals, schools, and offices.",
+    members: [
+      { name: "Aparna Binu", dbName: "Aparna" },
+      { name: "Vishnupriya V", dbName: "Vishnupriya" },
+      { name: "Anushka C", dbName: "Anuskha" },
+      { name: "Thejasree", dbName: "Thejasree" }
+    ],
+    college: ["National Institute of Speech and Hearing"],
+    github: "https://github.com/Vishnupriyakunjus/sign-translator"
   }
 ];
 
@@ -399,7 +511,7 @@ function App() {
   const [fbQ3, setFbQ3] = useState(''); // Best memory? (optional)
   const [fbQ4Files, setFbQ4Files] = useState([]); // [{file, preview}] — Upload blogs (mandatory, min 2)
   const [fbQ5, setFbQ5] = useState(''); // Place to improve (mandatory)
-  const [showWinnersPopup, setShowWinnersPopup] = useState(false);
+  const [selectedWinner, setSelectedWinner] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -5355,7 +5467,7 @@ function App() {
         <div className="sparkle s2">✧</div>
         <div className="sparkle s3">✦</div>
 
-        <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' && activeView !== 'audit-logs' && activeView !== 'blog' && activeView !== 'profile-view' && activeView !== 'venue' && activeView !== 'showroom' && activeView !== 'winners' ? 'header-minimal' : ''}>
+        <header className={activeView !== 'landing' && activeView !== 'sponsors-overview' && activeView !== 'profile' && activeView !== 'audit-logs' && activeView !== 'blog' && activeView !== 'profile-view' && activeView !== 'venue' && activeView !== 'showroom' ? 'header-minimal' : ''}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <div className="logo-circle" onClick={navigateToLanding} style={{ cursor: 'pointer' }}>
               <img src="brand/Logo.png" alt="Starlet Logo" />
@@ -5365,7 +5477,7 @@ function App() {
             </span>
           </div>
 
-          {(activeView === 'landing' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue' || activeView === 'showroom' || activeView === 'winners') && (
+          {(activeView === 'landing' || activeView === 'blog' || activeView === 'profile-view' || activeView === 'venue' || activeView === 'showroom') && (
             <>
               <nav className={`nav-links ${isMenuOpen ? 'mobile-active' : ''}`}>
                 <>
@@ -5374,11 +5486,11 @@ function App() {
                   <a href="#events" className="nav-link" onClick={(e) => handleHomeNavClick('events', e)}>Events</a>
                   <a href="#rules" className="nav-link" onClick={(e) => handleHomeNavClick('rules', e)}>Rules</a>
                   <a href="#sponsors" className="nav-link" onClick={(e) => handleHomeNavClick('sponsors', e)}>Sponsors</a>
-                  <a href="#uic-overview" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('sponsors-overview'); setIsMenuOpen(false); }}>UIC Overview</a>
+                  {/* <a href="#uic-overview" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('sponsors-overview'); setIsMenuOpen(false); }}>UIC Overview</a> */}
                   <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
                   <a href="#" className={`nav-link ${activeView === 'showroom' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('showroom'); setIsMenuOpen(false); }}>Showroom</a>
                   <a href="#" className={`nav-link ${activeView === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('blog'); setIsMenuOpen(false); }}>Blog</a>
-                  <a href="#" className={`nav-link ${activeView === 'winners' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('winners'); setIsMenuOpen(false); }}>Winners</a>
+                  <a href="#winners" className="nav-link" onClick={(e) => handleHomeNavClick('winners', e)}>Winners</a>
                 </>
 
                 <div className="mobile-auth-wrapper">
@@ -5562,7 +5674,152 @@ function App() {
                   id={section.type}
                   className={`section-block ${section.type}-section ${visibleSections.has(section.type) ? 'visible' : ''}`}
                 >
-                  {section.type === 'timeline' ? (
+                  {section.type === 'winners' ? (
+                    <div className="winners-container" style={{ padding: '2rem 1rem', background: 'transparent' }}>
+                      <div className="winners-header-wrapper" style={{ marginBottom: '3rem' }}>
+                        <img src="svg/emoji/prize.svg" className="winners-header-trophy" alt="Trophy" />
+                        <h2 className="text-3d" style={{ color: 'var(--pink-primary)', margin: '0.5rem 0' }}>
+                          {section.title}
+                        </h2>
+                        <p style={{ fontSize: '1.2rem', color: 'var(--text-navy)', opacity: 0.9, maxWidth: '700px', margin: '0.5rem auto' }}>
+                          {section.content}
+                        </p>
+                      </div>
+
+                      <div className="winners-podium-grid">
+                        {/* 2nd Place */}
+                        {(() => {
+                          const w = winnersData.find(x => x.rank === "2nd Place");
+                          return (
+                            <div className="winner-podium-card winner-rank-2nd" onClick={() => setSelectedWinner(w)} style={{ cursor: 'pointer' }}>
+                              <div className="winner-badge-icon">
+                                <img src={w.emoji} alt="" />
+                              </div>
+                              <div>
+                                <h2 className="winner-rank-title">2nd Place</h2>
+                                <div className="winner-team-tag">Team: {w.team}</div>
+                                <h3 className="winner-project-title">{w.project}</h3>
+                                {w.image && (
+                                  <div className="winner-team-photo-container">
+                                    <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ marginTop: '1rem' }}>
+                                <div className="winner-college-info">
+                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
+                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
+                                </div>
+                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 1st Place */}
+                        {(() => {
+                          const w = winnersData.find(x => x.rank === "1st Place");
+                          return (
+                            <div className="winner-podium-card winner-rank-1st" onClick={() => setSelectedWinner(w)} style={{ cursor: 'pointer' }}>
+                              <div className="winner-badge-icon">
+                                <img src={w.emoji} alt="" />
+                              </div>
+                              <div>
+                                <h2 className="winner-rank-title">1st Place</h2>
+                                <div className="winner-team-tag">Team: {w.team}</div>
+                                <h3 className="winner-project-title">{w.project}</h3>
+                                {w.image && (
+                                  <div className="winner-team-photo-container">
+                                    <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ marginTop: '1rem' }}>
+                                <div className="winner-college-info" style={{ flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                                  {w.college.map((c, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                      <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
+                                      <span style={{ fontSize: '0.85rem' }}>{c}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 3rd Place */}
+                        {(() => {
+                          const w = winnersData.find(x => x.rank === "3rd Place");
+                          return (
+                            <div className="winner-podium-card winner-rank-3rd" onClick={() => setSelectedWinner(w)} style={{ cursor: 'pointer' }}>
+                              <div className="winner-badge-icon">
+                                <img src={w.emoji} alt="" />
+                              </div>
+                              <div>
+                                <h2 className="winner-rank-title">3rd Place</h2>
+                                <div className="winner-team-tag">Team: {w.team}</div>
+                                <h3 className="winner-project-title">{w.project}</h3>
+                                {w.image && (
+                                  <div className="winner-team-photo-container">
+                                    <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ marginTop: '1rem' }}>
+                                <div className="winner-college-info">
+                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
+                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
+                                </div>
+                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="winners-special-section">
+                        <h3 className="winners-special-title text-3d" style={{ textShadow: '2px 2px 0px var(--blue-shadow)', marginBottom: '3rem', fontSize: '2rem' }}>
+                          Special Recognition Awards
+                        </h3>
+                        <div className="winners-special-grid">
+                          {winnersData.filter(x => !x.rank.includes("Place")).map((w) => (
+                            <div key={w.rank} className="winner-special-card" onClick={() => setSelectedWinner(w)} style={{ cursor: 'pointer' }}>
+                              <div className="winner-special-badge-icon">
+                                <img src={w.emoji} alt="" />
+                              </div>
+                              <div>
+                                <h2 className="winner-rank-title" style={{ marginTop: '0.5rem' }}>{w.rank}</h2>
+                                <div className="winner-team-tag">Team: {w.team}</div>
+                                <h3 className="winner-project-title" style={{ fontSize: '1.5rem', textAlign: 'left' }}>{w.project}</h3>
+                                {w.image && (
+                                  <div className="winner-team-photo-container">
+                                    <img src={w.image} className="winner-team-photo" style={{ objectPosition: w.objectPosition || 'center' }} alt="" />
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ marginTop: '1.2rem' }}>
+                                <div className="winner-college-info">
+                                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '16px', height: '16px' }} />
+                                  <span style={{ fontSize: '0.85rem' }}>{w.college[0]}</span>
+                                </div>
+                                <button className="winner-action-btn" style={{ width: '100%', marginTop: '0.5rem' }}>
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : section.type === 'timeline' ? (
                     <div className="whiteboard-container">
                       <div className="wall-clock">
                         <div className="clock-center">
@@ -10429,227 +10686,6 @@ function App() {
             </div>
           </div>
         </div>
-      ) : activeView === 'winners' ? (
-        <div className="winners-container">
-          <div className="winners-header-wrapper">
-            <img src="svg/emoji/prize.svg" className="winners-header-trophy" alt="Trophy" />
-            <h1 className="text-3d" style={{ fontSize: 'clamp(2.5rem, 8vw, 4.2rem)', marginBottom: '1rem', color: 'var(--pink-primary)' }}>
-              Hackathon Winners
-            </h1>
-            <p style={{ fontSize: '1.25rem', color: 'var(--text-navy)', opacity: 0.9, lineHeight: 1.6 }}>
-              Celebrating excellence, creativity, and impact. Congratulations to all the winning teams of the Starlet Hackathon!
-            </p>
-          </div>
-
-          <div className="winners-podium-grid">
-            {/* 2nd Place Card */}
-            <div className="winner-podium-card winner-rank-2nd">
-              <div className="winner-badge-icon">
-                <img src="svg/emoji/prize.svg" alt="2nd Place Trophy" />
-              </div>
-              <div>
-                <h2 className="winner-rank-title">2nd Place</h2>
-                <div className="winner-team-tag">Team: Stack 3</div>
-                <h3 className="winner-project-title">graphoscan</h3>
-                <div className="winner-team-photo-container">
-                  <img src="winners/2.png" className="winner-team-photo" style={{ objectPosition: 'center 65%' }} alt="2nd Place Winner Team Photo" />
-                </div>
-                <p className="winner-project-desc">
-                  An AI-powered tool diagnosing handwriting disabilities like dysgraphia by scanning uploaded handwriting images, helping highlight signs for early intervention and referral.
-                </p>
-              </div>
-              <div>
-                <h4 className="winner-members-heading">Team Members</h4>
-                <div className="winner-members-list">
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Kavery Sanal")}>Kavery Sanal</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Iba Lutf")}>Iba Lutf</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Kathrin James")}>Kathrin James</span>
-                </div>
-                <div className="winner-college-info">
-                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> Model engineering college Thrikkakara
-                </div>
-                <div className="winner-card-footer">
-                  <a href="https://github.com/ibalutf2008-cell/Stackthree.git" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                    GitHub Code
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* 1st Place Card */}
-            <div className="winner-podium-card winner-rank-1st">
-              <div className="winner-badge-icon">
-                <img src="svg/emoji/crown.svg" alt="1st Place Crown" />
-              </div>
-              <div>
-                <h2 className="winner-rank-title">1st Place</h2>
-                <div className="winner-team-tag">Team: She code</div>
-                <h3 className="winner-project-title">Mudra</h3>
-                <div className="winner-team-photo-container">
-                  <img src="winners/1.png" className="winner-team-photo" alt="1st Place Winner Team Photo" />
-                </div>
-                <p className="winner-project-desc">
-                  Mudra is an AI-powered inclusive dance learning platform designed specifically for deaf and hard-of-hearing children. Using body pose estimation and visual guidance, it converts beats to colorful light cues so kids can experience dance without sound.
-                </p>
-              </div>
-              <div>
-                <h4 className="winner-members-heading">Team Members</h4>
-                <div className="winner-members-list">
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Ayisha shana perumballi")}>Ayisha Shana</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Fayiza KH")}>Fayiza K H</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("SAFEENA K S")}>Safeena K S</span>
-                </div>
-                <div className="winner-college-info" style={{ flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                  <span><img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> Adi Shankara Institute (Ayisha, Fayiza)</span>
-                  <span><img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> Muthoot Institute (Safeena)</span>
-                </div>
-                <div className="winner-card-footer">
-                  <a href="https://github.com/safeenaks/mudra" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                    GitHub Code
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* 3rd Place Card */}
-            <div className="winner-podium-card winner-rank-3rd">
-              <div className="winner-badge-icon">
-                <img src="svg/emoji/prize.svg" alt="3rd Place Trophy" />
-              </div>
-              <div>
-                <h2 className="winner-rank-title">3rd Place</h2>
-                <div className="winner-team-tag">Team: Algora</div>
-                <h3 className="winner-project-title">Tinytalks</h3>
-                <div className="winner-team-photo-container">
-                  <img src="winners/3.png" className="winner-team-photo" alt="3rd Place Winner Team Photo" />
-                </div>
-                <p className="winner-project-desc">
-                  Bridging the gap between deaf parents and infants. Features include smart baby cry detection with vibration alerts and babbling translation integrated with interactive sign-language visual picture books.
-                </p>
-              </div>
-              <div>
-                <h4 className="winner-members-heading">Team Members</h4>
-                <div className="winner-members-list">
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Jaseera P A")}>Jaseera P A</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Fasla MK")}>Fasla M K</span>
-                  <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Medha GS")}>Medha G S</span>
-                </div>
-                <div className="winner-college-info">
-                  <img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> CUSAT, School of Engineering
-                </div>
-                <div className="winner-card-footer">
-                  <a href="https://github.com/medha67/tinytalks.git" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                    GitHub Code
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="winners-special-section">
-            <h2 className="winners-special-title text-3d" style={{ textShadow: '2px 2px 0px var(--blue-shadow)' }}>
-              Special Recognition Awards
-            </h2>
-            <div className="winners-special-grid">
-              {/* Best Innovation */}
-              <div className="winner-special-card">
-                <div className="winner-special-badge-icon">
-                  <img src="svg/emoji/idea.svg" alt="Best Innovation Icon" />
-                </div>
-                <div>
-                  <h2 className="winner-rank-title">Best Innovation</h2>
-                  <div className="winner-team-tag">Team: Bloom X</div>
-                  <h3 className="winner-project-title">PROJECT BLOOM</h3>
-                  <p className="winner-project-desc" style={{ marginTop: '1rem' }}>
-                    A menstrual hygiene educational platform designed specifically for autistic students. By using highly visual elements and structured pathways, it builds menstruation knowledge and independence in a safe, supportive environment.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="winner-members-heading">Team Members</h4>
-                  <div className="winner-members-list">
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Glynal Rose James")}>Glynal Rose</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Drishya V D")}>Drishya V D</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Rida Alhaan J S")}>Rida Alhaan</span>
-                  </div>
-                  <div className="winner-college-info">
-                    <img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> Adi Shankara Institute of Eng. & Tech.
-                  </div>
-                  <div className="winner-card-footer" style={{ marginTop: '1rem' }}>
-                    <a href="https://github.com/Rida168" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                      GitHub Code
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Best Hardware */}
-              <div className="winner-special-card">
-                <div className="winner-special-badge-icon">
-                  <img src="svg/emoji/robot.svg" alt="Best Hardware Icon" />
-                </div>
-                <div>
-                  <h2 className="winner-rank-title">Best Hardware</h2>
-                  <div className="winner-team-tag">Team: Zenith</div>
-                  <h3 className="winner-project-title">HAPTINAV</h3>
-                  <p className="winner-project-desc" style={{ marginTop: '1rem' }}>
-                    A wearable assistive device (cap and glove duo) for visually impaired individuals. Ultrasonic sensors measure obstacle proximity in front and on the ground, wirelessly communicating to servo-actuated glove indicators.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="winner-members-heading">Team Members</h4>
-                  <div className="winner-members-list">
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Sreelakshmi.s")}>Sreelakshmi S</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Adiya s")}>Adiya S</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Sreeparvathy anand")}>Sreeparvathy A</span>
-                  </div>
-                  <div className="winner-college-info">
-                    <img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> Amrita School of Engineering, Amritapuri
-                  </div>
-                  <div className="winner-card-footer" style={{ marginTop: '1rem' }}>
-                    <a href="https://github.com/sreeparvathy2007/HaptiNav" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                      GitHub Code
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Accessibility Prize */}
-              <div className="winner-special-card">
-                <div className="winner-special-badge-icon">
-                  <img src="svg/emoji/speak.svg" alt="Accessibility Icon" />
-                </div>
-                <div>
-                  <h2 className="winner-rank-title">Accessibility Prize</h2>
-                  <div className="winner-team-tag">Team: AVAT</div>
-                  <h3 className="winner-project-title">Sign translator</h3>
-                  <div className="winner-team-photo-container">
-                    <img src="winners/accestive.png" className="winner-team-photo" style={{ objectPosition: 'center 40%' }} alt="Accessibility Prize Winner Team Photo" />
-                  </div>
-                  <p className="winner-project-desc" style={{ marginTop: '1rem' }}>
-                    An AI-powered real-time translation communication bridge converting camera gestures to text/speech output, and vice versa. Intended to enhance accessibility in hospitals, schools, and offices.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="winner-members-heading">Team Members</h4>
-                  <div className="winner-members-list">
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Aparna")}>Aparna Binu</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Vishnupriya")}>Vishnupriya V</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Anuskha")}>Anushka C</span>
-                    <span className="winner-member-link" title="Click to view profile" onClick={() => handleWinnerProfileClick("Thejasree")}>Thejasree</span>
-                  </div>
-                  <div className="winner-college-info">
-                    <img src="svg/emoji/company.svg" className="emoji-icon" alt="College Icon" style={{ width: '16px', height: '16px', verticalAlign: 'middle', marginRight: '6px' }} /> National Institute of Speech and Hearing
-                  </div>
-                  <div className="winner-card-footer" style={{ marginTop: '1rem' }}>
-                    <a href="https://github.com/Vishnupriyakunjus/sign-translator" target="_blank" rel="noreferrer" className="winner-action-btn github-btn">
-                      GitHub Code
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       ) : activeView === 'showroom' ? (
         <div className="showroom-container">
           <div className="section-header" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
@@ -11246,6 +11282,87 @@ function App() {
                 </div>
                 <div className="modal-footer-brand">
                   Starlet Organizer Support
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedWinner && (
+        <div className="modal-overlay" onClick={() => setSelectedWinner(null)}>
+          <div className="modal-content about-modal winner-detail-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedWinner(null)}>×</button>
+            <div className="modal-inner">
+              {selectedWinner.image ? (
+                <div className="modal-visual" style={{ background: '#e8eff6', position: 'relative', overflow: 'hidden', padding: 0 }}>
+                  <img
+                    src={selectedWinner.image}
+                    alt={selectedWinner.project}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: selectedWinner.objectPosition || 'center'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="modal-visual" style={{ background: 'var(--bg-cream)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '2rem' }}>
+                  <img src={selectedWinner.emoji} alt="" style={{ width: '120px', height: '120px', animation: 'winners-tada 2s infinite ease-in-out' }} />
+                  <span style={{ fontFamily: 'Fredoka One', marginTop: '1rem', color: 'var(--text-navy)', fontSize: '1.2rem' }}>Best Assistive Hardware</span>
+                </div>
+              )}
+              <div className="modal-text" style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.5rem' }}>
+                    <img src={selectedWinner.emoji} alt="" style={{ width: '40px', height: '40px' }} />
+                    <span className="winner-rank-title" style={{ margin: 0, fontSize: '1.2rem', color: 'var(--pink-primary)' }}>{selectedWinner.rank}</span>
+                  </div>
+                  <div className="winner-team-tag" style={{ fontSize: '1.2rem', marginBottom: '0.8rem', textAlign: 'left' }}>Team: {selectedWinner.team}</div>
+                  <h2 className="text-3d" style={{ marginBottom: '1.5rem', fontSize: '2.2rem', color: 'var(--text-navy)', textAlign: 'left' }}>{selectedWinner.project}</h2>
+                  <p style={{ fontSize: '1rem', lineHeight: '1.6', color: 'var(--text-navy)', marginBottom: '1.5rem', textAlign: 'justify' }}>
+                    {selectedWinner.desc}
+                  </p>
+
+                  <h4 className="winner-members-heading" style={{ textAlign: 'left', marginBottom: '0.8rem' }}>Team Members</h4>
+                  <div className="winner-members-list" style={{ justifyContent: 'flex-start', marginBottom: '1.5rem' }}>
+                    {selectedWinner.members.map((member) => (
+                      <span
+                        key={member.name}
+                        className="winner-member-link"
+                        title="Click to view profile"
+                        onClick={() => { setSelectedWinner(null); handleWinnerProfileClick(member.dbName); }}
+                      >
+                        {member.name}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="winner-college-info" style={{ marginBottom: '2rem', textAlign: 'left' }}>
+                    <img src="svg/emoji/company.svg" className="emoji-icon" alt="" style={{ width: '18px', height: '18px', marginRight: '6px' }} />
+                    <span>
+                      {Array.isArray(selectedWinner.college) ? selectedWinner.college.join(' / ') : selectedWinner.college}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
+                  <a
+                    href={selectedWinner.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="winner-action-btn github-btn"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    GitHub Code
+                  </a>
+                  <button
+                    className="winner-action-btn"
+                    onClick={() => setSelectedWinner(null)}
+                    style={{ background: 'var(--pink-primary)', color: '#fff', cursor: 'pointer' }}
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
