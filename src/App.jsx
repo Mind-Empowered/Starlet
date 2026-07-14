@@ -134,6 +134,7 @@ const winnersData = [
     image: "winners/1.png",
     emoji: "svg/emoji/crown.svg",
     shadowColor: "var(--yellow-star)",
+    objectPosition: "top",
     desc: "Mudra is an AI-powered inclusive dance learning platform designed specifically for deaf and hard-of-hearing children. Using body pose estimation and visual guidance, it converts beats to colorful light cues so kids can experience dance without sound.",
     members: [
       { name: "Ayisha Shana", dbName: "Ayisha shana perumballi" },
@@ -5487,10 +5488,10 @@ function App() {
                   <a href="#rules" className="nav-link" onClick={(e) => handleHomeNavClick('rules', e)}>Rules</a>
                   <a href="#sponsors" className="nav-link" onClick={(e) => handleHomeNavClick('sponsors', e)}>Sponsors</a>
                   {/* <a href="#uic-overview" className="nav-link" onClick={(e) => { e.preventDefault(); setActiveView('sponsors-overview'); setIsMenuOpen(false); }}>UIC Overview</a> */}
-                  <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
                   <a href="#" className={`nav-link ${activeView === 'showroom' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('showroom'); setIsMenuOpen(false); }}>Showroom</a>
                   <a href="#" className={`nav-link ${activeView === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveView('blog'); setIsMenuOpen(false); }}>Blog</a>
                   <a href="#winners" className="nav-link" onClick={(e) => handleHomeNavClick('winners', e)}>Winners</a>
+                  <a href="#contact" className="nav-link" onClick={(e) => handleHomeNavClick('contact', e)}>Contact Us</a>
                 </>
 
                 <div className="mobile-auth-wrapper">
